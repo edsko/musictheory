@@ -1,0 +1,24 @@
+cabal-version:      3.0
+name:               musictheory
+version:            0.1.0
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Edsko de Vries
+maintainer:         edsko@well-typed.com
+build-type:         Simple
+
+common lang
+  default-language: GHC2021
+  build-depends:    base >= 4.16 && < 5
+  ghc-options:      -Wall
+
+  default-extensions:
+      DerivingStrategies
+      PartialTypeSignatures
+
+library
+  import:          lang
+  hs-source-dirs:  src
+  exposed-modules: MusicTheory
+  other-modules:   Util
+  build-depends:   random
