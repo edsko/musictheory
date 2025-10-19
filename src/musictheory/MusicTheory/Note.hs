@@ -17,7 +17,6 @@ module MusicTheory.Note (
     -- * Normal forms
   , Norm(..)
   , Normalize(..)
-  , fromNorm
     -- * Transposition
   , Transpose(..)
     -- * Octaves
@@ -103,7 +102,7 @@ simpleWithAccidental = \(Simple note atal) atal' ->
           (SimpleFlat,  SimpleFlat)  -> DoubleFlat
 
 {-------------------------------------------------------------------------------
-  Note normal form
+  Normal form
 
   There are many enharmonic notes (E♯ == F, F𝄪 = G, etc.); how we denote these
   can only be determined in relation to a particular context (e.g. a scale).
@@ -135,6 +134,9 @@ instance Transpose a => Transpose [a] where
 
 {-------------------------------------------------------------------------------
   To normalized notes
+
+  NOTE: There is no meaningful operation in the reverse direction! Starting
+  from normalized note @5@, should we call this @F@, or @E#@?
 -------------------------------------------------------------------------------}
 
 class Normalize a where
@@ -170,34 +172,6 @@ instance Normalize Simple where
       shift = \case
           SimpleSharp ->  1
           SimpleFlat  -> -1
-
-{-------------------------------------------------------------------------------
-  From normalized notes
--------------------------------------------------------------------------------}
-
--- | Construct note from normalized note, using specified accidental
-fromNorm :: SimpleAccidental -> Norm -> Simple
-fromNorm defaultAccidental (Norm norm) =
-    case norm of
-      0  -> "C"
-      1  -> choose "C♯" "D♭"
-      2  -> "D"
-      3  -> choose "D♯" "E♭"
-      4  -> "E"
-      5  -> "F"
-      6  -> choose "F♯" "G♭"
-      7  -> "G"
-      8  -> choose "G♯" "A♭"
-      9  -> "A"
-      10 -> choose "A♯" "B♭"
-      11 -> "B"
-      _  -> error "invalid Norm"
-  where
-    choose :: Simple -> Simple -> Simple
-    choose sharp flat =
-        case defaultAccidental of
-          SimpleSharp -> sharp
-          SimpleFlat  -> flat
 
 {-------------------------------------------------------------------------------
   Octaves

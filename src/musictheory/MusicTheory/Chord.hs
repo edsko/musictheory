@@ -44,6 +44,9 @@ fromOctave = \o ns -> Chord $ go o ns
 data Type =
     TriadMajor
   | TriadMinor
+  | SeventhMajor
+  | SeventhMinor
+  | Dominant
 
 -- | Scale degrees for chord, wrt to the corresponding /major/ scale
 --
@@ -51,8 +54,11 @@ data Type =
 -- > majorScaleDegrees TriadMinor == ["I","III♭","V"]
 majorScaleDegrees :: Type -> [Scale.Degree]
 majorScaleDegrees = \case
-    TriadMajor -> ["I", "III" , "V"]
-    TriadMinor -> ["I", "III♭", "V"]
+    TriadMajor   -> ["I", "III" , "V"]
+    TriadMinor   -> ["I", "III♭", "V"]
+    SeventhMajor -> ["I", "III" , "V", "VII"]
+    SeventhMinor -> ["I", "III♭", "V", "VII♭"]
+    Dominant     -> ["I", "III" , "V", "VII♭"]
 
 -- | Construct chord, using note names wrt the corresponding /major/ scale
 --

@@ -1,5 +1,6 @@
 module Exercises.Chords (
     majorTriads
+  , majorSeventh
   ) where
 
 import MusicTheory.Chord qualified as Chord
@@ -17,6 +18,14 @@ majorTriads = Ly.Score{
           piece = "Major triads, root position"
         }
     , elems = allChordsOfType Chord.TriadMajor
+    }
+
+majorSeventh :: Ly.Score
+majorSeventh = Ly.Score{
+      header = Ly.ScoreHeader{
+          piece = "Major seventh chords, root position"
+        }
+    , elems = allChordsOfType Chord.SeventhMajor
     }
 
 {-------------------------------------------------------------------------------

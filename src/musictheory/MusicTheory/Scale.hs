@@ -25,7 +25,6 @@ import Control.Monad.Reader (Reader)
 import Control.Monad.Reader qualified as Reader
 import Data.Functor.Identity
 import Data.List ((!?))
-import GHC.Stack
 
 import MusicTheory.Note (Note)
 import MusicTheory.Note qualified as Note
@@ -70,37 +69,25 @@ data Scale = Scale{
 {-------------------------------------------------------------------------------
   Major scales around the circle of fifths
 
-  Scales /determine/ the context for determining note names, so in order to
-  construct these scales we use normalized notes, and then superimpose the
-  standard conventions.
+  Scales /determine/ the context for determining note names, so we construct
+  these by hand.
 -------------------------------------------------------------------------------}
 
-majorScaleNorm :: Name -> [Note.Norm]
-majorScaleNorm = \case
-    C     -> map Note.normalize [Note.C .. Note.B]
-    Gb    -> majorScaleNorm F#
-    scale -> Note.transpose 7 (majorScaleNorm (pred scale))
-
-defaultAccidentals :: HasCallStack => Name -> Note.SimpleAccidental
-defaultAccidentals = \case
-    C  -> error "No default accidental in C"
-    G  -> "♯"
-    D  -> "♯"
-    A  -> "♯"
-    E  -> "♯"
-    B  -> "♯"
-    F# -> "♯"
-    Gb -> "♭"
-    Db -> "♭"
-    Ab -> "♭"
-    Eb -> "♭"
-    Bb -> "♭"
-    F  -> "♭"
-
 majorScale :: Name -> Scale
-majorScale name = Scale $
-    map (Note.fromNorm (defaultAccidentals name)) $
-      majorScaleNorm name
+majorScale = Scale . \case
+    C  -> ["C"  , "D"  , "E"  , "F"  , "G"  , "A"  , "B" ]
+    G  -> ["G"  , "A"  , "B"  , "C"  , "D"  , "E"  , "F♯"]
+    D  -> ["D"  , "E"  , "F♯" , "G"  , "A"  , "B"  , "C♯"]
+    A  -> ["A"  , "B"  , "C♯" , "D"  , "E"  , "F♯" , "G♯"]
+    E  -> ["E"  , "F♯" , "G♯" , "A"  , "B"  , "C♯" , "D♯"]
+    B  -> ["B"  , "C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A♯"]
+    F# -> ["F♯" , "G♯" , "A♯" , "B"  , "C♯" , "D♯" , "E♯"]
+    Gb -> ["G♭" , "A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F" ]
+    Db -> ["D♭" , "E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C" ]
+    Ab -> ["A♭" , "B♭" , "C"  , "D♭" , "E♭" , "F"  , "G" ]
+    Eb -> ["E♭" , "F"  , "G"  , "A♭" , "B♭" , "C"  , "D" ]
+    Bb -> ["B♭" , "C"  , "D"  , "E♭" , "F"  , "G"  , "A" ]
+    F  -> ["F"  , "G"  , "A"  , "B♭" , "C"  , "D"  , "E" ]
 
 {-------------------------------------------------------------------------------
   Operations that only make sense in the context of a specific scale

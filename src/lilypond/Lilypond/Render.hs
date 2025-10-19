@@ -74,7 +74,7 @@ instance ToDoc ScoreElem where
         "<<"
       , Doc.indent $ Doc.fromStrings [
             concat [
-                "\\new ChordNames {"
+                "\\chords {"
               , renderChordNames content
               , "}"
               ]
@@ -96,12 +96,10 @@ renderChordNames :: Absolute -> String
 renderChordNames (Absolute elems) = intercalate " " $ map aux elems
   where
     aux :: AbsoluteElem -> [Char]
-    aux elem = concat [
-          case elem.chordName of
-            Nothing   -> error "TODO" -- should be a rest
-            Just name -> renderChordName name
-        , renderDuration elem.duration
-        ]
+    aux elem =
+        case elem.chordName of
+          Nothing   -> error "TODO" -- should be a rest
+          Just name -> renderChordName name elem.duration
 
 renderNotes :: Absolute -> String
 renderNotes (Absolute elems) = intercalate " " $
@@ -125,24 +123,27 @@ renderDuration Thirtysecond = "32"
   Chords
 -------------------------------------------------------------------------------}
 
-renderChordName :: ChordName -> String
-renderChordName (ChordName note typ) = concat [
+renderChordName :: ChordName -> Duration -> String
+renderChordName (ChordName note typ) d = concat [
       renderSimpleNote note
+    , renderDuration d
     , renderChordType typ
     ]
 
 -- <https://lilypond.org/doc/v2.24/Documentation/notation/common-chord-modifiers>
 renderChordType :: Chord.Type -> String
 renderChordType = \case
-    Chord.TriadMajor -> ""
-    Chord.TriadMinor -> ":m"
+    Chord.TriadMajor   -> ""
+    Chord.TriadMinor   -> ":m"
+    Chord.SeventhMajor -> ":maj7"
+    Chord.SeventhMinor -> ":m7"
+    Chord.Dominant     -> ":7"
 
 renderChord :: Chord -> String
 renderChord (Chord ns) =
     case ns of
       [n] -> renderInOctave n
       _   -> "<" ++ intercalate " " (map renderInOctave ns) ++ ">"
-
 
 {-------------------------------------------------------------------------------
   Simple notes
