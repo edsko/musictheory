@@ -1,6 +1,8 @@
-module ChordExercises.Util (
+module MusicTheory.Util (
     -- * String tables
     StringTable(..)
+  , stringTableLookup
+  , stringTableReverse
   , HasStringTable(..)
   , UseShow(..)
     -- ** Construction
@@ -23,6 +25,18 @@ newtype StringTable a = StringTable{
       entries :: [(a, String)]
     }
   deriving stock (Functor)
+
+stringTableLookup :: Eq a => StringTable a -> a -> String
+stringTableLookup table x =
+    case lookup x table.entries of
+      Just str -> str
+      Nothing  -> "Missing string table entry"
+
+stringTableReverse :: StringTable a -> String -> a
+stringTableReverse table str =
+    case lookup str (map swap table.entries) of
+      Just x  -> x
+      Nothing -> error $ "Missing string table entry for " ++ show str
 
 class Eq a => HasStringTable a where
   stringTable :: StringTable a
@@ -83,13 +97,7 @@ stringTablePair tableA tableB = StringTable [
 newtype UseStringTable a = UseStringTable a
 
 instance HasStringTable a => Show (UseStringTable a) where
-  show (UseStringTable x) =
-      case lookup x stringTable.entries of
-        Just str -> "\"" ++ str ++ "\""
-        Nothing  -> "Missing string table entry"
+  show (UseStringTable x) = "\"" ++ stringTableLookup stringTable x ++ "\""
 
 instance HasStringTable a => IsString (UseStringTable a) where
-  fromString str = UseStringTable $
-      case lookup str (map swap stringTable.entries) of
-        Just x  -> x
-        Nothing -> error $ "Missing string table entry for " ++ show str
+  fromString = UseStringTable . stringTableReverse stringTable

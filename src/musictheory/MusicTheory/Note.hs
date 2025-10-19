@@ -2,15 +2,16 @@
 --
 -- Intended for qualified import.
 --
--- > import ChordExercises.Note (Note)
--- > import ChordExercises.Note qualified as Note
-module ChordExercises.Note (
+-- > import MusicTheory.Note (Note(Note))
+-- > import MusicTheory.Note qualified as Note
+module MusicTheory.Note (
     -- * Basic definitions
     Name(..)
   , Accidental(..)
   , Note(..)
     -- * \"Simple\" notes
   , SimpleAccidental(..)
+  , fromSimpleAccidental
   , Simple(..)
   , simpleWithAccidental
     -- * Normal forms
@@ -19,16 +20,21 @@ module ChordExercises.Note (
   , fromNorm
     -- * Transposition
   , Transpose(..)
+    -- * Octaves
+  , InOctave(..)
+  , Octave(..)
+  , middleOctave
+  , aboveMiddleOctave
   ) where
 
-import ChordExercises.Util
+import MusicTheory.Util
 
 {-------------------------------------------------------------------------------
   Basic definitions
 -------------------------------------------------------------------------------}
 
 data Name = C | D | E | F | G | A | B
-  deriving stock (Show, Eq, Ord, Enum, Bounded)
+  deriving stock (Show, Eq, Enum, Bounded)
   deriving HasStringTable via UseShow Name
   deriving IsString via UseStringTable Name
 
@@ -110,7 +116,7 @@ simpleWithAccidental = \(Simple note atal) atal' ->
 --
 -- C = 0, C#/Db = 1, D = 2, .., B = 11.
 newtype Norm = Norm Word
-  deriving stock (Show)
+  deriving stock (Show, Eq, Ord)
 
 {-------------------------------------------------------------------------------
   Transposition
@@ -169,43 +175,71 @@ instance Normalize Simple where
   From normalized notes
 -------------------------------------------------------------------------------}
 
--- | Construct note from normalized note, using specified policy
+-- | Construct note from normalized note, using specified accidental
 fromNorm :: SimpleAccidental -> Norm -> Simple
-fromNorm SimpleSharp = fromNormSharp
-fromNorm SimpleFlat  = fromNormFlat
-
--- | Note from normalized note, defaulting to 'Sharp' for accidentals
-fromNormSharp :: Norm -> Simple
-fromNormSharp (Norm norm) =
+fromNorm defaultAccidental (Norm norm) =
     case norm of
       0  -> "C"
-      1  -> "C♯"
+      1  -> choose "C♯" "D♭"
       2  -> "D"
-      3  -> "D♯"
+      3  -> choose "D♯" "E♭"
       4  -> "E"
       5  -> "F"
-      6  -> "F♯"
+      6  -> choose "F♯" "G♭"
       7  -> "G"
-      8  -> "G♯"
+      8  -> choose "G♯" "A♭"
       9  -> "A"
-      10 -> "A♯"
+      10 -> choose "A♯" "B♭"
       11 -> "B"
       _  -> error "invalid Norm"
+  where
+    choose :: Simple -> Simple -> Simple
+    choose sharp flat =
+        case defaultAccidental of
+          SimpleSharp -> sharp
+          SimpleFlat  -> flat
 
--- | Note from normalized note, defaulting to 'Flat' for accidentals
-fromNormFlat :: Norm -> Simple
-fromNormFlat (Norm norm) =
-    case norm of
-      0  -> "C"
-      1  -> "D♭"
-      2  -> "D"
-      3  -> "E♭"
-      4  -> "E"
-      5  -> "F"
-      6  -> "G♭"
-      7  -> "G"
-      8  -> "A♭"
-      9  -> "A"
-      10 -> "B♭"
-      11 -> "B"
-      _  -> error "invalid Norm"
+{-------------------------------------------------------------------------------
+  Octaves
+-------------------------------------------------------------------------------}
+
+-- | Scientific pitch notation
+data InOctave = InOctave Note Octave
+  deriving stock (Eq)
+  deriving (Show, IsString) via UseStringTable InOctave
+
+instance HasStringTable InOctave where
+  stringTable = uncurry InOctave <$> stringTablePair stringTable stringTable
+
+-- | Octave
+newtype Octave = Octave Word
+  deriving stock (Eq)
+  deriving newtype (Enum)
+  deriving (Show, IsString) via UseStringTable Octave
+
+instance Bounded Octave where
+  minBound = Octave 0
+  maxBound = Octave 9
+
+instance HasStringTable Octave where
+  stringTable = stringTableEnum $ \(Octave o) ->
+      case o of
+        0 -> "0"
+        1 -> "1"
+        2 -> "2"
+        3 -> "3"
+        4 -> "4"
+        5 -> "5"
+        6 -> "6"
+        7 -> "7"
+        8 -> "8"
+        9 -> "9"
+        _ -> error "Invalid Octave"
+
+-- | Octave containing middle C
+middleOctave :: Octave
+middleOctave = Octave 4
+
+-- | How many octaves is the specified octave about the middle octave?
+aboveMiddleOctave :: Octave -> Int
+aboveMiddleOctave (Octave o) = fromIntegral o - 4

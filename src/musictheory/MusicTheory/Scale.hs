@@ -2,11 +2,13 @@
 --
 -- Intended for qualified import.
 --
--- > import ChordExercises.Scale (Scale)
--- > import ChordExercises.Scale qualified as Scale
-module ChordExercises.Scale (
+-- > import MusicTheory.Scale (Scale)
+-- > import MusicTheory.Scale qualified as Scale
+module MusicTheory.Scale (
     -- * Basic definitions
     Name(..)
+  , rootNote
+  , scaleNames
   , Scale(..)
     -- * Standard scales
   , majorScale
@@ -23,34 +25,42 @@ import Control.Monad.Reader (Reader)
 import Control.Monad.Reader qualified as Reader
 import Data.Functor.Identity
 import Data.List ((!?))
+import GHC.Stack
 
-import ChordExercises.Note (Note)
-import ChordExercises.Note qualified as Note
-import ChordExercises.Util
+import MusicTheory.Note (Note)
+import MusicTheory.Note qualified as Note
+import MusicTheory.Util
 
 {-------------------------------------------------------------------------------
   Basic definitions
 -------------------------------------------------------------------------------}
 
 -- | Scale names as used in the circle of fifths
-data Name = C | G | D | A | E | B | F# | Db | Ab | Eb | Bb | F
-  deriving stock (Eq, Ord, Enum, Bounded)
+data Name = C | G | D | A | E | B | F# | Gb | Db | Ab | Eb | Bb | F
+  deriving stock (Eq, Enum, Bounded)
   deriving (Show, IsString) via UseStringTable Name
 
+rootNote :: Name -> Note.Simple
+rootNote = \case
+    C  -> "C"
+    G  -> "G"
+    D  -> "D"
+    A  -> "A"
+    E  -> "E"
+    B  -> "B"
+    F# -> "F♯"
+    Gb -> "G♭"
+    Db -> "D♭"
+    Ab -> "A♭"
+    Eb -> "E♭"
+    Bb -> "B♭"
+    F  -> "F"
+
 instance HasStringTable Name where
-  stringTable = stringTableEnum $ \case
-      C  -> "C"
-      G  -> "G"
-      D  -> "D"
-      A  -> "A"
-      E  -> "E"
-      B  -> "B"
-      F# -> "F♯"
-      Db -> "D♭"
-      Ab -> "A♭"
-      Eb -> "E♭"
-      Bb -> "B♭"
-      F  -> "F"
+  stringTable = stringTableEnum $ stringTableLookup stringTable . rootNote
+
+scaleNames :: [Name]
+scaleNames = [minBound .. maxBound]
 
 data Scale = Scale{
       notes :: [Note.Simple]
@@ -68,16 +78,28 @@ data Scale = Scale{
 majorScaleNorm :: Name -> [Note.Norm]
 majorScaleNorm = \case
     C     -> map Note.normalize [Note.C .. Note.B]
+    Gb    -> majorScaleNorm F#
     scale -> Note.transpose 7 (majorScaleNorm (pred scale))
 
-defaultAccidentals :: Name -> Note.SimpleAccidental
-defaultAccidentals scale
-  | scale <= F# = "♯"
-  | otherwise   = "♭"
+defaultAccidentals :: HasCallStack => Name -> Note.SimpleAccidental
+defaultAccidentals = \case
+    C  -> error "No default accidental in C"
+    G  -> "♯"
+    D  -> "♯"
+    A  -> "♯"
+    E  -> "♯"
+    B  -> "♯"
+    F# -> "♯"
+    Gb -> "♭"
+    Db -> "♭"
+    Ab -> "♭"
+    Eb -> "♭"
+    Bb -> "♭"
+    F  -> "♭"
 
 majorScale :: Name -> Scale
 majorScale name = Scale $
-    map (Note.fromNorm $ defaultAccidentals name) $
+    map (Note.fromNorm (defaultAccidentals name)) $
       majorScaleNorm name
 
 {-------------------------------------------------------------------------------
