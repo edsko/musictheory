@@ -1,0 +1,45 @@
+cabal-version:   3.0
+name:            chord-exercises
+version:         0.1.0
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          Edsko de Vries
+maintainer:      edsko@edsko.net
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+common lang
+  build-depends:    base >= 4.20 && < 5
+  default-language: GHC2024
+
+  ghc-options:
+      -Wall
+      -Widentities
+      -Wprepositive-qualified-module
+      -Wredundant-constraints
+      -Wunused-packages
+
+  default-extensions:
+      DerivingVia
+      MagicHash
+      OverloadedRecordDot
+      OverloadedStrings
+
+library
+  import:         lang
+  hs-source-dirs: src
+
+  exposed-modules:
+      ChordExercises.Note
+      ChordExercises.Scale
+
+  other-modules:
+      ChordExercises.Util
+
+  build-depends:
+    , mtl >= 2.3 && < 2.4
+
+executable chord-exercises
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: app

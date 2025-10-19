@@ -1,0 +1,95 @@
+module ChordExercises.Util (
+    -- * String tables
+    StringTable(..)
+  , HasStringTable(..)
+  , UseShow(..)
+    -- ** Construction
+  , stringTableEnum
+  , stringTableMaybe
+  , stringTablePair
+    -- * 'Show' vs 'IsString' instances
+  , UseStringTable(..)
+  , IsString(..)
+  ) where
+
+import Data.String
+import Data.Tuple (swap)
+
+{-------------------------------------------------------------------------------
+  String tables
+-------------------------------------------------------------------------------}
+
+newtype StringTable a = StringTable{
+      entries :: [(a, String)]
+    }
+  deriving stock (Functor)
+
+class Eq a => HasStringTable a where
+  stringTable :: StringTable a
+
+-- | Derive 'StringTable' using stock-derived 'Show'
+--
+-- Usage example:
+--
+-- > data NoteName = C | D | E | F | G | A | B
+-- >   deriving stock (Show, Eq, Ord, Enum, Bounded)
+-- >   deriving StringTable via UseShow NoteName
+-- >   deriving IsString via UseStringTable NoteName
+newtype UseShow a = UseShow a
+  deriving newtype (Eq)
+
+instance (Show a, Eq a, Enum a, Bounded a) => HasStringTable (UseShow a) where
+  stringTable = UseShow <$> stringTableEnum show
+
+{-------------------------------------------------------------------------------
+  String table construction
+-------------------------------------------------------------------------------}
+
+stringTableEnum :: (Enum a, Bounded a) => (a -> String) -> StringTable a
+stringTableEnum f = StringTable [(x, f x) | x <- [minBound .. maxBound]]
+
+-- | String table for 'Maybe'
+--
+-- All 'Just' values are directly mapped to the string for the value; 'Nothing'
+-- is mapped to the specified string.
+stringTableMaybe :: String -> StringTable a -> StringTable (Maybe a)
+stringTableMaybe nothing table = StringTable $
+      (Nothing, nothing)
+    : (Just <$> table).entries
+
+-- | String table for pairs
+--
+-- We simply concatenate the strings for the values in the pair.
+stringTablePair :: StringTable a -> StringTable b -> StringTable (a, b)
+stringTablePair tableA tableB = StringTable [
+      ((a, b), strA ++ strB)
+    | (a, strA) <- tableA.entries
+    , (b, strB) <- tableB.entries
+    ]
+
+{-------------------------------------------------------------------------------
+  'Show' vs 'IsString' instances
+-------------------------------------------------------------------------------}
+
+-- | Derive 'Show' and 'IsString' using the string table
+--
+-- This ensures that they are consistent with each other.
+--
+-- Intended usage example:
+--
+-- > data Note = Note NoteName (Maybe Accidental)
+-- >   deriving stock (Eq)
+-- >   deriving (Show, IsString) via UseStringTable Note
+newtype UseStringTable a = UseStringTable a
+
+instance HasStringTable a => Show (UseStringTable a) where
+  show (UseStringTable x) =
+      case lookup x stringTable.entries of
+        Just str -> "\"" ++ str ++ "\""
+        Nothing  -> "Missing string table entry"
+
+instance HasStringTable a => IsString (UseStringTable a) where
+  fromString str = UseStringTable $
+      case lookup str (map swap stringTable.entries) of
+        Just x  -> x
+        Nothing -> error $ "Missing string table entry for " ++ show str
