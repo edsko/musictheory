@@ -9,14 +9,13 @@ module Lilypond (
   , Score(..)
   , ScoreHeader(..)
   , ScoreElem(..)
-    -- * Notes
-  , Absolute(..)
-  , AbsoluteElem(..)
+    -- * Staff elements
+  , StaffElem(..)
+  , Chord(..)
   , ChordName(..)
   , Duration(..)
   ) where
 
-import MusicTheory.Chord (Chord)
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Note qualified as Note
 
@@ -44,18 +43,20 @@ data ScoreHeader = ScoreHeader{
     }
 
 data ScoreElem =
-    Staff Absolute
+    Staff [StaffElem]
 
 {-------------------------------------------------------------------------------
   Notes
 -------------------------------------------------------------------------------}
 
-data Absolute = Absolute [AbsoluteElem]
+data StaffElem =
+    StaffChord Chord
+  | StaffLinebreak
 
-data AbsoluteElem = AbsoluteElem{
-      chordName :: Maybe ChordName
-    , chord     :: Chord
-    , duration  :: Duration
+data Chord = Chord{
+      name     :: Maybe ChordName
+    , notes    :: Chord.Chord
+    , duration :: Duration
     }
 
 data ChordName = ChordName Note.Simple Chord.Type

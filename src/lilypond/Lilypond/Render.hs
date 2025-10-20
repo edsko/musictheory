@@ -10,12 +10,11 @@ import Prelude hiding (elem)
 import Data.Char (toLower)
 import Data.List (intercalate)
 
-import MusicTheory.Chord (Chord(Chord))
 import MusicTheory.Chord qualified as Chord
-import MusicTheory.Note (Note(Note))
 import MusicTheory.Note qualified as Note
 
-import Lilypond
+import Lilypond (Lilypond)
+import Lilypond qualified as Ly
 import Lilypond.Util.Pretty (Doc)
 import Lilypond.Util.Pretty qualified as Doc
 
@@ -36,9 +35,6 @@ render = addFooter . Doc.render . toDoc
 class ToDoc a where
   toDoc :: a -> Doc
 
-instance ToDoc a => ToDoc [a] where
-  toDoc = foldMap toDoc
-
 {-------------------------------------------------------------------------------
   Render Lilypond fragments
 -------------------------------------------------------------------------------}
@@ -51,29 +47,29 @@ instance ToDoc Lilypond where
             assignReal "indent" 0.0
           ]
       , toDoc lilypond.header
-      , toDoc lilypond.scores
+      , foldMap toDoc lilypond.scores
       ]
 
-instance ToDoc Header where
+instance ToDoc Ly.Header where
   toDoc header = section "header" $ mconcat [
         assign "title"    header.title
       , assign "composer" header.composer
       , assign "tagline"  ""
       ]
 
-instance ToDoc Score where
+instance ToDoc Ly.Score where
   toDoc score = section "score" $ mconcat [
         toDoc score.header
       , toDoc score.elems
       ]
 
-instance ToDoc ScoreHeader where
+instance ToDoc Ly.ScoreHeader where
   toDoc header = section "header" $ mconcat [
         assign "piece" header.piece
       ]
 
-instance ToDoc ScoreElem where
-  toDoc (Staff content) = mconcat [
+instance ToDoc Ly.ScoreElem where
+  toDoc (Ly.Staff content) = mconcat [
         "<<"
       , Doc.indent $ Doc.fromStrings [
             concat [
@@ -95,39 +91,46 @@ instance ToDoc ScoreElem where
   Auxiliary: render a single 'Staff'
 -------------------------------------------------------------------------------}
 
-renderChordNames :: Absolute -> String
-renderChordNames (Absolute elems) = intercalate " " $ map aux elems
+renderChordNames :: [Ly.StaffElem] -> String
+renderChordNames = \elems ->
+    intercalate " " $ map aux elems
   where
-    aux :: AbsoluteElem -> [Char]
-    aux elem =
-        case elem.chordName of
+    aux :: Ly.StaffElem -> [Char]
+    aux (Ly.StaffChord chord) =
+        case chord.name of
           Nothing   -> error "TODO" -- should be a rest
-          Just name -> renderChordName name elem.duration
+          Just name -> renderChordName name chord.duration
+    aux (Ly.StaffLinebreak) =
+        -- We generate the linebreak when rendering the staff itself
+        ""
 
-renderNotes :: Absolute -> String
-renderNotes (Absolute elems) = intercalate " " $
+renderNotes :: [Ly.StaffElem] -> String
+renderNotes = \elems -> intercalate " " $
     map aux elems
   where
-    aux :: AbsoluteElem -> String
-    aux elem = concat [
-          renderChord    elem.chord
-        , renderDuration elem.duration
+    aux :: Ly.StaffElem -> String
+    aux (Ly.StaffChord chord) = concat [
+          renderChord    chord.notes
+        , renderDuration chord.duration
         ]
+    aux (Ly.StaffLinebreak) =
+        "\\break"
 
-renderDuration :: Duration -> String
-renderDuration Whole        = "1"
-renderDuration Half         = "2"
-renderDuration Quarter      = "4"
-renderDuration Eighth       = "8"
-renderDuration Sixteenth    = "16"
-renderDuration Thirtysecond = "32"
+renderDuration :: Ly.Duration -> String
+renderDuration = \case
+    Ly.Whole        -> "1"
+    Ly.Half         -> "2"
+    Ly.Quarter      -> "4"
+    Ly.Eighth       -> "8"
+    Ly.Sixteenth    -> "16"
+    Ly.Thirtysecond -> "32"
 
 {-------------------------------------------------------------------------------
   Chords
 -------------------------------------------------------------------------------}
 
-renderChordName :: ChordName -> Duration -> String
-renderChordName (ChordName note typ) d = concat [
+renderChordName :: Ly.ChordName -> Ly.Duration -> String
+renderChordName (Ly.ChordName note typ) d = concat [
       renderSimpleNote note
     , renderDuration d
     , renderChordType typ
@@ -142,8 +145,8 @@ renderChordType = \case
     Chord.MinorSeventh    -> ":m7"
     Chord.DominantSeventh -> ":7"
 
-renderChord :: Chord -> String
-renderChord (Chord ns) =
+renderChord :: Chord.Chord -> String
+renderChord (Chord.Chord ns) =
     case ns of
       [n] -> renderInOctave n
       _   -> "<" ++ intercalate " " (map renderInOctave ns) ++ ">"
@@ -173,7 +176,7 @@ renderSimpleAccidental (Just a) =
 -------------------------------------------------------------------------------}
 
 renderInOctave :: Note.InOctave -> String
-renderInOctave (Note.InOctave (Note n ma) o) = concat [
+renderInOctave (Note.InOctave (Note.Note n ma) o) = concat [
       renderNoteName n
     , renderAccidental ma o
     ]

@@ -1,0 +1,105 @@
+module Exercises.Chords.Basic (exercises) where
+
+import MusicTheory.Chord qualified as Chord
+import MusicTheory.Note  qualified as Note
+import MusicTheory.Scale qualified as Scale
+
+import Lilypond qualified as Ly
+
+{-------------------------------------------------------------------------------
+  List of exercises
+-------------------------------------------------------------------------------}
+
+exercises :: [Ly.Score]
+exercises = [
+      majorTriads
+    , majorSeventh
+    , dominantSeventh
+    , minorSeventh
+    ]
+
+{-------------------------------------------------------------------------------
+  Individual exercises
+-------------------------------------------------------------------------------}
+
+majorTriads :: Ly.Score
+majorTriads = Ly.Score{
+      header = Ly.ScoreHeader{
+          piece = "Major triads, root position"
+        }
+    , elems =
+        allChordsOfType
+          Note.middleOctave
+          Chord.MajorTriad
+          Chord.rootPosition
+    }
+
+majorSeventh :: Ly.Score
+majorSeventh = Ly.Score{
+      header = Ly.ScoreHeader{
+          piece = "Major seventh chords, root position"
+        }
+    , elems =
+        allChordsOfType
+          Note.middleOctave
+          Chord.MajorSeventh
+          Chord.rootPosition
+    }
+
+dominantSeventh :: Ly.Score
+dominantSeventh = Ly.Score{
+      header = Ly.ScoreHeader{
+          piece = "Dominant seventh chords, seventh in the bass"
+        }
+    , elems =
+        allChordsOfType
+          (pred Note.middleOctave) -- Start lower, to make room for inversion
+          Chord.DominantSeventh
+          (Chord.Inversion 3)
+    }
+
+minorSeventh :: Ly.Score
+minorSeventh = Ly.Score{
+      header = Ly.ScoreHeader{
+          piece = "Minor seventh chords, seventh in the bass"
+        }
+    , elems =
+        allChordsOfType
+          (pred Note.middleOctave) -- Start lower, to make room for inversion
+          Chord.MinorSeventh
+          (Chord.Inversion 3)
+    }
+
+{-------------------------------------------------------------------------------
+  Internal auxiliary
+-------------------------------------------------------------------------------}
+
+allChordsOfType :: Note.Octave -> Chord.Type -> Chord.Inversion -> Ly.ScoreElem
+allChordsOfType octave typ inversion = Ly.Staff $ mconcat [
+      chordsOfTypeIn octave typ inversion firstHalf
+    , [Ly.StaffLinebreak]
+    , chordsOfTypeIn octave typ inversion secondHalf
+    ]
+
+chordsOfTypeIn ::
+     Note.Octave      -- ^ Octave to start the chord in
+  -> Chord.Type       -- ^ Chord type
+  -> Chord.Inversion  -- ^ Chord inversion
+  -> [Scale.Name]     -- ^ Scales
+  -> [Ly.StaffElem]
+chordsOfTypeIn octave typ inversion scales = [
+      Ly.StaffChord $ Ly.Chord{
+          name     = Just $ Ly.ChordName (Scale.rootNote scale) typ
+        , notes    = Chord.invert inversion $
+                       Chord.wrtMajorScale octave typ scale
+        , duration = Ly.Whole
+        }
+    | scale <- scales
+    ]
+
+-- | Split the scales into two halves
+--
+-- We repeat "C" at the end for nice symmetry.
+firstHalf, secondHalf :: [Scale.Name]
+firstHalf  = [ "C"  , "G"  , "D"  , "A"  , "E"  , "B" , "F♯" ]
+secondHalf = [ "G♭" , "D♭" , "A♭" , "E♭" , "B♭" , "F" , "C"  ]

@@ -3,7 +3,7 @@ module Exercises (exercises) where
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
 
-import Exercises.Chords qualified as Chords
+import Exercises.Chords.Basic qualified as Chords.Basic
 
 exercises :: Lilypond
 exercises = Ly.Lilypond{
@@ -11,9 +11,5 @@ exercises = Ly.Lilypond{
           title    = "Music Theory Exercises"
         , composer = "edsko@edsko.net"
         }
-    , scores = [
-          Chords.majorTriads
-        , Chords.majorSeventh
-        , Chords.dominantSeventh
-        ]
+    , scores = Chords.Basic.exercises
     }
