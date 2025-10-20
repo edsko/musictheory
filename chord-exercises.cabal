@@ -56,6 +56,10 @@ library lilypond
       -- Internal dependencies
     , musictheory
 
+  build-depends:
+      -- External dependencies
+    , data-default >= 0.8 && < 0.9
+
 executable music-theory-exercises
   import:         lang
   main-is:        Main.hs
@@ -65,6 +69,10 @@ executable music-theory-exercises
       -- Internal dependencies
     , musictheory
     , lilypond
+
+  build-depends:
+      -- Inherited dependencies
+    , data-default
 
   build-depends:
       -- External dependencies

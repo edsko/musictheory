@@ -10,11 +10,14 @@ module Lilypond (
   , ScoreHeader(..)
   , ScoreElem(..)
     -- * Staff elements
+  , StaffProps(..)
   , StaffElem(..)
   , Chord(..)
   , ChordName(..)
   , Duration(..)
   ) where
+
+import Data.Default
 
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Note qualified as Note
@@ -43,11 +46,20 @@ data ScoreHeader = ScoreHeader{
     }
 
 data ScoreElem =
-    Staff [StaffElem]
+    Staff StaffProps [StaffElem]
 
 {-------------------------------------------------------------------------------
-  Notes
+  Staff elements
 -------------------------------------------------------------------------------}
+
+data StaffProps = StaffProps{
+      hideTimeSignature :: Bool
+    }
+
+instance Default StaffProps where
+  def = StaffProps{
+        hideTimeSignature = False
+      }
 
 data StaffElem =
     StaffChord Chord

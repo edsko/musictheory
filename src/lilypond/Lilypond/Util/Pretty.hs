@@ -7,12 +7,15 @@
 module Lilypond.Util.Pretty (
     Doc -- opaque
     -- * Construction
-  , fromString
-  , fromStrings
+  , line
+  , lines
   , indent
+  , when
     -- * Rendering
   , render
   ) where
+
+import Prelude hiding (lines)
 
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
@@ -25,11 +28,11 @@ import Data.String qualified as String
 -------------------------------------------------------------------------------}
 
 data Doc =
-    FromString String -- ^ String without newlines
-  | MConcat [Doc]     -- ^ Vertical composition
-  | Indent Doc        -- ^ Indent
+    Line String   -- ^ String without newlines
+  | MConcat [Doc] -- ^ Vertical composition
+  | Indent Doc    -- ^ Indent
 
-instance IsString  Doc where fromString = FromString
+instance IsString  Doc where fromString = Line
 instance Monoid    Doc where mconcat    = MConcat
 instance Semigroup Doc where sconcat    = MConcat . NonEmpty.toList
 
@@ -40,11 +43,15 @@ instance Semigroup Doc where sconcat    = MConcat . NonEmpty.toList
 indent :: Doc -> Doc
 indent = Indent
 
-fromString :: String -> Doc
-fromString = String.fromString
+line :: String -> Doc
+line = Line
 
-fromStrings :: [String] -> Doc
-fromStrings = mconcat . map fromString
+lines :: [String] -> Doc
+lines = mconcat . map line
+
+when :: Bool -> Doc -> Doc
+when False = mempty
+when True  = id
 
 {-------------------------------------------------------------------------------
   Rendering
@@ -52,9 +59,9 @@ fromStrings = mconcat . map fromString
 
 renderLines :: Doc -> [String]
 renderLines = \case
-    FromString str -> [str]
-    MConcat docs   -> mconcat $ map renderLines docs
-    Indent doc     -> map ("  " ++) $ renderLines doc
+    Line str     -> [str]
+    MConcat docs -> mconcat $ map renderLines docs
+    Indent doc   -> map ("  " ++) $ renderLines doc
 
 render :: Doc -> String
 render = List.intercalate "\n" . renderLines

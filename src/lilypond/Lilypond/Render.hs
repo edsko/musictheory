@@ -69,19 +69,18 @@ instance ToDoc Ly.ScoreHeader where
       ]
 
 instance ToDoc Ly.ScoreElem where
-  toDoc (Ly.Staff content) = mconcat [
-        "<<"
-      , Doc.indent $ Doc.fromStrings [
-            concat [
-                "\\chords {"
-              , renderChordNames content
-              , "}"
-              ]
-          , concat [
-                "\\new Staff {"
-              , renderNotes content
-              , "}"
-              ]
+  toDoc (Ly.Staff props content) = mconcat [
+        Doc.when props.hideTimeSignature $
+          section "layout" $
+            section "context" $
+              -- https://lilypond.org/doc/v2.23/Documentation/notation/visibility-of-objects
+              Doc.line "\\Staff \\override TimeSignature.stencil = ##f"
+      , "<<"
+      , Doc.indent $ mconcat [
+            section "chords" $
+              Doc.line $ renderChordNames content
+          , section "new Staff" $
+              Doc.line $ renderNotes content
           ]
       , ">>"
       ]
@@ -210,13 +209,13 @@ renderOctave o
 
 section :: String -> Doc -> Doc
 section name body = mconcat [
-      Doc.fromString $ "\\" ++ name ++ "{"
+      Doc.line $ "\\" ++ name ++ "{"
     , Doc.indent body
     , "}"
     ]
 
 assign :: String -> String -> Doc
-assign var value = Doc.fromString $ var ++ " = \"" ++ value ++ "\""
+assign var value = Doc.line $ var ++ " = \"" ++ value ++ "\""
 
 assignReal :: String -> Double -> Doc
-assignReal var value = Doc.fromString $ var ++ " = " ++ show value
+assignReal var value = Doc.line $ var ++ " = " ++ show value

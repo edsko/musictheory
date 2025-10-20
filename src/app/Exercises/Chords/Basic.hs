@@ -1,5 +1,7 @@
 module Exercises.Chords.Basic (exercises) where
 
+import Data.Default
+
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Note  qualified as Note
 import MusicTheory.Scale qualified as Scale
@@ -75,11 +77,16 @@ minorSeventh = Ly.Score{
 -------------------------------------------------------------------------------}
 
 allChordsOfType :: Note.Octave -> Chord.Type -> Chord.Inversion -> Ly.ScoreElem
-allChordsOfType octave typ inversion = Ly.Staff $ mconcat [
+allChordsOfType octave typ inversion = Ly.Staff props $ mconcat [
       chordsOfTypeIn octave typ inversion firstHalf
     , [Ly.StaffLinebreak]
     , chordsOfTypeIn octave typ inversion secondHalf
     ]
+  where
+    props :: Ly.StaffProps
+    props = def{
+          Ly.hideTimeSignature = True
+        }
 
 chordsOfTypeIn ::
      Note.Octave      -- ^ Octave to start the chord in
