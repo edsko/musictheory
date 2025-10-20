@@ -96,9 +96,9 @@ chordsOfTypeIn ::
   -> [Ly.StaffElem]
 chordsOfTypeIn octave typ inversion scales = [
       Ly.StaffChord $ Ly.Chord{
-          name     = Just $ Ly.ChordName (Scale.rootNote scale) typ
+          name     = Just $ Chord.Name (Scale.rootNote scale) typ
         , notes    = Chord.invert inversion $
-                       Chord.wrtMajorScale octave typ scale
+                       Chord.wrtMajorScale octave scale typ
         , duration = Ly.Whole
         }
     | scale <- scales

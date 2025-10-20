@@ -7,17 +7,24 @@
 module MusicTheory.Chord (
     -- * Basic definitions
     Chord(..)
+  , size
+    -- * Construction
   , fromOctave
+  , fromScaleDegrees
     -- * Chord types
   , Type(..)
   , wrtMajorScale
-  , majorScaleDegrees
     -- * Inversions
   , Inversion(..)
   , rootPosition
   , invert
+    -- * Chord names
+  , Name(..)
+    -- * Distance
+  , distance
   ) where
 
+import MusicTheory
 import MusicTheory.Note (Note)
 import MusicTheory.Note qualified as Note
 import MusicTheory.Scale qualified as Scale
@@ -28,6 +35,17 @@ import MusicTheory.Scale qualified as Scale
 
 data Chord = Chord [Note.InOctave]
   deriving stock (Show)
+
+instance TransposeOctave Chord where
+  transposeOctave d (Chord ns) = Chord $ map (transposeOctave d) ns
+
+-- | Number of notes in the chord
+size :: Chord -> Word
+size (Chord ns) = fromIntegral $ length ns
+
+{-------------------------------------------------------------------------------
+  Construction
+-------------------------------------------------------------------------------}
 
 -- | Helper function for constructing a chord, given octave for first note
 fromOctave :: Note.Octave -> [Note] -> Chord
@@ -65,6 +83,13 @@ nextOctave n n' =
       Note.normalize (Note.noteName n )
     > Note.normalize (Note.noteName n')
 
+fromScaleDegrees :: Note.Octave -> Scale.Name -> [Scale.Degree] -> Chord
+fromScaleDegrees octave scale =
+    fromOctave octave . map fromDegree
+  where
+    fromDegree :: Scale.Degree -> Note
+    fromDegree = Scale.wrtScale (Scale.majorScale scale) . Scale.fromDegree
+
 {-------------------------------------------------------------------------------
   Chord types
 -------------------------------------------------------------------------------}
@@ -75,6 +100,7 @@ data Type =
   | MajorSeventh
   | MinorSeventh
   | DominantSeventh
+  deriving stock (Show)
 
 -- | Scale degrees for chord, wrt to the corresponding /major/ scale
 --
@@ -94,18 +120,14 @@ majorScaleDegrees = \case
 -- > wrtMajorScale TriadMinor "C" == Chord ["C4","E♭4","G4"]
 -- > wrtMajorScale TriadMajor "A" == Chord ["A4","C♯5","E5"]
 -- > wrtMajorScale TriadMinor "A" == Chord ["A4","C♮5","E5"]
-wrtMajorScale :: Note.Octave -> Type -> Scale.Name -> Chord
-wrtMajorScale octave typ scale = fromOctave octave $
-    map fromDegree $ majorScaleDegrees typ
-  where
-    fromDegree :: Scale.Degree -> Note
-    fromDegree = Scale.wrtScale (Scale.majorScale scale) . Scale.fromDegree
+wrtMajorScale :: Note.Octave -> Scale.Name -> Type -> Chord
+wrtMajorScale octave scale = fromScaleDegrees octave scale . majorScaleDegrees
 
 {-------------------------------------------------------------------------------
   Inversions
 -------------------------------------------------------------------------------}
 
-newtype Inversion = Inversion Int
+newtype Inversion = Inversion Word
 
 rootPosition :: Inversion
 rootPosition = Inversion 0
@@ -113,7 +135,24 @@ rootPosition = Inversion 0
 invert :: Inversion -> Chord -> Chord
 invert = \(Inversion i) (Chord ns) -> Chord $ go [] i ns
   where
-    go :: [Note.InOctave] -> Int -> [Note.InOctave] -> [Note.InOctave]
-    go acc _ []     = acc
-    go acc 0 ns     = ns ++ acc
-    go acc i (n:ns) = go (Note.transposeOctave 1 n : acc) (i - 1) ns
+    go :: [Note.InOctave] -> Word -> [Note.InOctave] -> [Note.InOctave]
+    go acc _ []     = reverse acc
+    go acc 0 ns     = ns ++ reverse acc
+    go acc i (n:ns) = go (transposeOctave 1 n : acc) (i - 1) ns
+
+{-------------------------------------------------------------------------------
+  Chord names
+-------------------------------------------------------------------------------}
+
+data Name = Name Note.Simple Type
+
+{-------------------------------------------------------------------------------
+  Distance
+-------------------------------------------------------------------------------}
+
+-- | Distance between two chords
+--
+-- For now this is a pretty simplistic definition: we merely compute the
+-- distance in semitones between corresponding pairs of notes.
+distance :: Chord -> Chord -> Word
+distance (Chord as) (Chord bs) = sum $ zipWith Note.distance as bs

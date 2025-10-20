@@ -1,103 +1,37 @@
+-- | Miscellaneous utilities
 module MusicTheory.Util (
-    -- * String tables
-    StringTable(..)
-  , stringTableLookup
-  , stringTableReverse
-  , HasStringTable(..)
-  , UseShow(..)
-    -- ** Construction
-  , stringTableEnum
-  , stringTableMaybe
-  , stringTablePair
-    -- * 'Show' vs 'IsString' instances
-  , UseStringTable(..)
-  , IsString(..)
+    shiftIntegral
+  , minimize
   ) where
 
-import Data.String
-import Data.Tuple (swap)
+import Data.Map (Map)
+import Data.Map qualified as Map
 
-{-------------------------------------------------------------------------------
-  String tables
--------------------------------------------------------------------------------}
-
-newtype StringTable a = StringTable{
-      entries :: [(a, String)]
-    }
-  deriving stock (Functor)
-
-stringTableLookup :: Eq a => StringTable a -> a -> String
-stringTableLookup table x =
-    case lookup x table.entries of
-      Just str -> str
-      Nothing  -> "Missing string table entry"
-
-stringTableReverse :: StringTable a -> String -> a
-stringTableReverse table str =
-    case lookup str (map swap table.entries) of
-      Just x  -> x
-      Nothing -> error $ "Missing string table entry for " ++ show str
-
-class Eq a => HasStringTable a where
-  stringTable :: StringTable a
-
--- | Derive 'StringTable' using stock-derived 'Show'
+-- | Shift integral value by specified delta
 --
--- Usage example:
+-- The point is that this allows to shift unsigned values down:
 --
--- > data NoteName = C | D | E | F | G | A | B
--- >   deriving stock (Show, Eq, Ord, Enum, Bounded)
--- >   deriving StringTable via UseShow NoteName
--- >   deriving IsString via UseStringTable NoteName
-newtype UseShow a = UseShow a
-  deriving newtype (Eq)
+-- > shiftIntegral (-3) (4 :: Word)
+shiftIntegral :: (Integral b, Integral a) => b -> a -> a
+shiftIntegral delta x = fromInteger $ toInteger x + toInteger delta
 
-instance (Show a, Eq a, Enum a, Bounded a) => HasStringTable (UseShow a) where
-  stringTable = UseShow <$> stringTableEnum show
-
-{-------------------------------------------------------------------------------
-  String table construction
--------------------------------------------------------------------------------}
-
-stringTableEnum :: (Enum a, Bounded a) => (a -> String) -> StringTable a
-stringTableEnum f = StringTable [(x, f x) | x <- [minBound .. maxBound]]
-
--- | String table for 'Maybe'
+-- | Find the unique option that minimizes the given measure
 --
--- All 'Just' values are directly mapped to the string for the value; 'Nothing'
--- is mapped to the specified string.
-stringTableMaybe :: String -> StringTable a -> StringTable (Maybe a)
-stringTableMaybe nothing table = StringTable $
-      (Nothing, nothing)
-    : (Just <$> table).entries
-
--- | String table for pairs
+-- > minimize (fromIntegral . length) ["abc", "de", "fghi"] == "de"
 --
--- We simply concatenate the strings for the values in the pair.
-stringTablePair :: StringTable a -> StringTable b -> StringTable (a, b)
-stringTablePair tableA tableB = StringTable [
-      ((a, b), strA ++ strB)
-    | (a, strA) <- tableA.entries
-    , (b, strB) <- tableB.entries
-    ]
-
-{-------------------------------------------------------------------------------
-  'Show' vs 'IsString' instances
--------------------------------------------------------------------------------}
-
--- | Derive 'Show' and 'IsString' using the string table
+-- Throws an exception if there is no unique answer.
 --
--- This ensures that they are consistent with each other.
+-- > minimize (fromIntegral . length) ["abc", "de", "fghi", "XY"]
 --
--- Intended usage example:
+-- throws
 --
--- > data Note = Note NoteName (Maybe Accidental)
--- >   deriving stock (Eq)
--- >   deriving (Show, IsString) via UseStringTable Note
-newtype UseStringTable a = UseStringTable a
-
-instance HasStringTable a => Show (UseStringTable a) where
-  show (UseStringTable x) = "\"" ++ stringTableLookup stringTable x ++ "\""
-
-instance HasStringTable a => IsString (UseStringTable a) where
-  fromString = UseStringTable . stringTableReverse stringTable
+-- > "*** Exception: no unique best option: ["XY","de"]
+minimize :: forall a. Show a => (a -> Word) -> [a] -> a
+minimize f xs =
+    case Map.lookupMin xs' of
+      Nothing        -> error "empty list"
+      Just (_, [x])  -> x
+      Just (_, opts) -> error $ "no unique best option: " ++ show opts
+  where
+    xs' :: Map Word [a]
+    xs' = Map.fromListWith (++) $ map (\x -> (f x, [x])) xs

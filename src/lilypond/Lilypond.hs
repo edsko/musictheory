@@ -13,14 +13,12 @@ module Lilypond (
   , StaffProps(..)
   , StaffElem(..)
   , Chord(..)
-  , ChordName(..)
   , Duration(..)
   ) where
 
 import Data.Default
 
 import MusicTheory.Chord qualified as Chord
-import MusicTheory.Note qualified as Note
 
 {-------------------------------------------------------------------------------
   Document structure
@@ -66,12 +64,10 @@ data StaffElem =
   | StaffLinebreak
 
 data Chord = Chord{
-      name     :: Maybe ChordName
+      name     :: Maybe Chord.Name
     , notes    :: Chord.Chord
     , duration :: Duration
     }
-
-data ChordName = ChordName Note.Simple Chord.Type
 
 data Duration =
     Whole

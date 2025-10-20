@@ -28,7 +28,7 @@ import Data.List ((!?))
 
 import MusicTheory.Note (Note)
 import MusicTheory.Note qualified as Note
-import MusicTheory.Util
+import MusicTheory.Util.StringTable
 
 {-------------------------------------------------------------------------------
   Basic definitions

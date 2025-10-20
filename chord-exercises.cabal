@@ -31,15 +31,19 @@ library musictheory
   hs-source-dirs: src/musictheory
 
   exposed-modules:
+      MusicTheory
       MusicTheory.Chord
       MusicTheory.Note
+      MusicTheory.Progression
       MusicTheory.Scale
 
   other-modules:
       MusicTheory.Util
+      MusicTheory.Util.StringTable
 
   build-depends:
-    , mtl >= 2.3 && < 2.4
+    , containers >= 0.7 && < 0.8
+    , mtl        >= 2.3 && < 2.4
 
 library lilypond
   import:         lang

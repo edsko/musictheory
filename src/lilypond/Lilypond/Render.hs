@@ -128,8 +128,8 @@ renderDuration = \case
   Chords
 -------------------------------------------------------------------------------}
 
-renderChordName :: Ly.ChordName -> Ly.Duration -> String
-renderChordName (Ly.ChordName note typ) d = concat [
+renderChordName :: Chord.Name -> Ly.Duration -> String
+renderChordName (Chord.Name note typ) d = concat [
       renderSimpleNote note
     , renderDuration d
     , renderChordType typ

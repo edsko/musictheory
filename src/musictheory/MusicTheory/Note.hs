@@ -15,19 +15,19 @@ module MusicTheory.Note (
   , fromSimpleAccidental
   , Simple(..)
   , simpleWithAccidental
-    -- * Normal forms
-  , Norm(..)
-  , Normalize(..)
-    -- * Transposition
-  , Transpose(..)
     -- * Octaves
   , InOctave(..)
   , Octave(..)
-  , TransposeOctave(..)
   , middleOctave
   , aboveMiddleOctave
+    -- * Normal forms
+  , Normalize(..)
+  , Norm(..)
+  , distance
   ) where
 
+import MusicTheory
+import MusicTheory.Util.StringTable
 import MusicTheory.Util
 
 {-------------------------------------------------------------------------------
@@ -107,75 +107,6 @@ simpleWithAccidental = \(Simple note atal) atal' ->
           (SimpleFlat,  SimpleFlat)  -> DoubleFlat
 
 {-------------------------------------------------------------------------------
-  Normal form
-
-  There are many enharmonic notes (E♯ == F, F𝄪 = G, etc.); how we denote these
-  can only be determined in relation to a particular context (e.g. a scale).
-  The normal form, intentially abstract, assigns a unique number to each note.
-
-  (Throughout this development we assume no microtonality.)
--------------------------------------------------------------------------------}
-
--- | Note normal form
---
--- C = 0, C#/Db = 1, D = 2, .., B = 11.
-newtype Norm = Norm Word
-  deriving stock (Show, Eq, Ord)
-
-{-------------------------------------------------------------------------------
-  Transposition
--------------------------------------------------------------------------------}
-
-class Transpose a where
-  -- | Transpose by @n@ semitones (up or down)
-  transpose :: Int -> a -> a
-
-instance Transpose Norm where
-  transpose n (Norm norm) = Norm . fromIntegral $
-      (fromIntegral norm + n) `mod` 12
-
-{-------------------------------------------------------------------------------
-  To normalized notes
-
-  NOTE: There is no meaningful operation in the reverse direction! Starting
-  from normalized note @5@, should we call this @F@, or @E#@?
--------------------------------------------------------------------------------}
-
-class Normalize a where
-  normalize :: a -> Norm
-
-instance Normalize Name where
-  normalize = \case
-      C -> Norm 0
-      D -> Norm 2
-      E -> Norm 4
-      F -> Norm 5
-      G -> Norm 7
-      A -> Norm 9
-      B -> Norm 11
-
-instance Normalize Note where
-  normalize (Note name acc) =
-      transpose (maybe 0 shift acc) $ normalize name
-    where
-      shift :: Accidental -> Int
-      shift = \case
-          Sharp       ->  1
-          Flat        -> -1
-          DoubleSharp ->  2
-          DoubleFlat  -> -2
-          Natural     ->  0
-
-instance Normalize Simple where
-  normalize (Simple name acc) =
-      transpose (maybe 0 shift acc) $ normalize name
-    where
-      shift :: SimpleAccidental -> Int
-      shift = \case
-          SimpleSharp ->  1
-          SimpleFlat  -> -1
-
-{-------------------------------------------------------------------------------
   Octaves
 -------------------------------------------------------------------------------}
 
@@ -212,13 +143,9 @@ instance HasStringTable Octave where
         9 -> "9"
         _ -> error "Invalid Octave"
 
-class TransposeOctave a where
-  -- | Move to higher or lower octave
-  transposeOctave :: Int -> a -> a
-
 instance TransposeOctave InOctave where
   transposeOctave d (InOctave n (Octave o)) =
-      InOctave n . Octave . fromIntegral $ fromIntegral o + d
+      InOctave n . Octave $ shiftIntegral d o
 
 -- | Octave containing middle C
 middleOctave :: Octave
@@ -227,3 +154,75 @@ middleOctave = Octave 4
 -- | How many octaves is the specified octave about the middle octave?
 aboveMiddleOctave :: Octave -> Int
 aboveMiddleOctave (Octave o) = fromIntegral o - 4
+
+{-------------------------------------------------------------------------------
+  Normalization
+-------------------------------------------------------------------------------}
+
+-- | Normal form
+--
+-- The sole purpose of normalization is to be able to easily compute the
+-- distance in semitones between two notes. Normalized forms of different types
+-- should be considered incomparable.
+--
+-- (Throughout this development we assume no microtonality.)
+class Normalize a where
+  normalize :: a -> Norm a
+
+-- | Normal form
+--
+-- See 'Normalize'
+newtype Norm a = Norm { semitones :: Word }
+  deriving stock (Show, Eq, Ord)
+
+distance :: Normalize a => a -> a -> Word
+distance a b = fromIntegral $ abs (semA - semB)
+  where
+    semA, semB :: Int
+    semA = fromIntegral . semitones $ normalize a
+    semB = fromIntegral . semitones $ normalize b
+
+instance Normalize Name where
+  normalize = Norm . \case
+      C -> 0
+      D -> 2
+      E -> 4
+      F -> 5
+      G -> 7
+      A -> 9
+      B -> 11
+
+-- | Normalize 'Note'
+--
+-- > C = 0, C#/Db = 1, D = 2, .., B = 11.
+--
+-- There is no meaningful operation in the reverse direction! Starting from
+-- normalized note @5@, should we call this @F@, or @E#@?
+instance Normalize Note where
+  normalize (Note name atal) = Norm $
+      shiftIntegral (maybe 0 shift atal) $ semitones (normalize name)
+    where
+      shift :: Accidental -> Int
+      shift = \case
+          Sharp       ->  1
+          Flat        -> -1
+          DoubleSharp ->  2
+          DoubleFlat  -> -2
+          Natural     ->  0
+
+instance Normalize Simple where
+  normalize (Simple name atal) = Norm $
+      shiftIntegral (maybe 0 shift atal) $ semitones (normalize name)
+    where
+      shift :: SimpleAccidental -> Int
+      shift = \case
+          SimpleSharp ->  1
+          SimpleFlat  -> -1
+
+instance Normalize Octave where
+  normalize (Octave o) = Norm $ o * 12
+
+instance Normalize InOctave where
+  normalize (InOctave note octave) = Norm $
+        semitones (normalize octave)
+      + semitones (normalize note)
