@@ -9,6 +9,7 @@ module MusicTheory.Note (
     Name(..)
   , Accidental(..)
   , Note(..)
+  , noteName
     -- * \"Simple\" notes
   , SimpleAccidental(..)
   , fromSimpleAccidental
@@ -22,6 +23,7 @@ module MusicTheory.Note (
     -- * Octaves
   , InOctave(..)
   , Octave(..)
+  , TransposeOctave(..)
   , middleOctave
   , aboveMiddleOctave
   ) where
@@ -56,6 +58,9 @@ data Note = Note Name (Maybe Accidental)
 instance HasStringTable Note where
   stringTable = uncurry Note <$>
       stringTablePair stringTable (stringTableMaybe "" stringTable)
+
+noteName :: Note -> Name
+noteName (Note name _atal) = name
 
 {-------------------------------------------------------------------------------
   "Simple" notes
@@ -128,9 +133,6 @@ class Transpose a where
 instance Transpose Norm where
   transpose n (Norm norm) = Norm . fromIntegral $
       (fromIntegral norm + n) `mod` 12
-
-instance Transpose a => Transpose [a] where
-  transpose = map . transpose
 
 {-------------------------------------------------------------------------------
   To normalized notes
@@ -209,6 +211,14 @@ instance HasStringTable Octave where
         8 -> "8"
         9 -> "9"
         _ -> error "Invalid Octave"
+
+class TransposeOctave a where
+  -- | Move to higher or lower octave
+  transposeOctave :: Int -> a -> a
+
+instance TransposeOctave InOctave where
+  transposeOctave d (InOctave n (Octave o)) =
+      InOctave n . Octave . fromIntegral $ fromIntegral o + d
 
 -- | Octave containing middle C
 middleOctave :: Octave

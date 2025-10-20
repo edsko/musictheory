@@ -12,6 +12,10 @@ module MusicTheory.Chord (
   , Type(..)
   , wrtMajorScale
   , majorScaleDegrees
+    -- * Inversions
+  , Inversion(..)
+  , rootPosition
+  , invert
   ) where
 
 import MusicTheory.Note (Note)
@@ -33,20 +37,44 @@ fromOctave = \o ns -> Chord $ go o ns
     go _ []        = []
     go o [n]       = [Note.InOctave n o]
     go o (n:n':ns) = Note.InOctave n o
-                   : if Note.normalize n <= Note.normalize n'
-                       then go       o  (n':ns)
-                       else go (succ o) (n':ns)
+                   : if nextOctave n n' then go (succ o) (n':ns)
+                                        else go       o  (n':ns)
+
+-- | Should we jump to the next octave?
+--
+-- This is a bit subtle. Consider
+--
+-- > G B D
+--
+-- In this case, we want to jump to the next octave when we see the D.
+-- Intuitively, this is because D is a \"lower\" note than B, and so it should
+-- be placed in the octave up. However, we should not just call 'normalize' on
+-- the notes to see which note is \"lower\"; consider:
+--
+-- > D♭ F A♭ C♭
+--
+-- Here we want to jump to the next octave on the C♭, even though C♭ is not a
+-- \"lower\" note than A♭. Indeed, if this was
+--
+-- > D♭ F A♭ B
+--
+-- we would /not/ want to jump to the next octave, even though C♭ and B are the
+-- same note: the spelling matters, and we should ignore accidentals.
+nextOctave :: Note -> Note -> Bool
+nextOctave n n' =
+      Note.normalize (Note.noteName n )
+    > Note.normalize (Note.noteName n')
 
 {-------------------------------------------------------------------------------
   Chord types
 -------------------------------------------------------------------------------}
 
 data Type =
-    TriadMajor
-  | TriadMinor
-  | SeventhMajor
-  | SeventhMinor
-  | Dominant
+    MajorTriad
+  | MinorTriad
+  | MajorSeventh
+  | MinorSeventh
+  | DominantSeventh
 
 -- | Scale degrees for chord, wrt to the corresponding /major/ scale
 --
@@ -54,11 +82,11 @@ data Type =
 -- > majorScaleDegrees TriadMinor == ["I","III♭","V"]
 majorScaleDegrees :: Type -> [Scale.Degree]
 majorScaleDegrees = \case
-    TriadMajor   -> ["I", "III" , "V"]
-    TriadMinor   -> ["I", "III♭", "V"]
-    SeventhMajor -> ["I", "III" , "V", "VII"]
-    SeventhMinor -> ["I", "III♭", "V", "VII♭"]
-    Dominant     -> ["I", "III" , "V", "VII♭"]
+    MajorTriad      -> ["I", "III" , "V"]
+    MinorTriad      -> ["I", "III♭", "V"]
+    MajorSeventh    -> ["I", "III" , "V", "VII"]
+    MinorSeventh    -> ["I", "III♭", "V", "VII♭"]
+    DominantSeventh -> ["I", "III" , "V", "VII♭"]
 
 -- | Construct chord, using note names wrt the corresponding /major/ scale
 --
@@ -66,9 +94,26 @@ majorScaleDegrees = \case
 -- > wrtMajorScale TriadMinor "C" == Chord ["C4","E♭4","G4"]
 -- > wrtMajorScale TriadMajor "A" == Chord ["A4","C♯5","E5"]
 -- > wrtMajorScale TriadMinor "A" == Chord ["A4","C♮5","E5"]
-wrtMajorScale :: Type -> Scale.Name -> Chord
-wrtMajorScale typ scale = fromOctave Note.middleOctave $
+wrtMajorScale :: Note.Octave -> Type -> Scale.Name -> Chord
+wrtMajorScale octave typ scale = fromOctave octave $
     map fromDegree $ majorScaleDegrees typ
   where
     fromDegree :: Scale.Degree -> Note
     fromDegree = Scale.wrtScale (Scale.majorScale scale) . Scale.fromDegree
+
+{-------------------------------------------------------------------------------
+  Inversions
+-------------------------------------------------------------------------------}
+
+newtype Inversion = Inversion Int
+
+rootPosition :: Inversion
+rootPosition = Inversion 0
+
+invert :: Inversion -> Chord -> Chord
+invert = \(Inversion i) (Chord ns) -> Chord $ go [] i ns
+  where
+    go :: [Note.InOctave] -> Int -> [Note.InOctave] -> [Note.InOctave]
+    go acc _ []     = acc
+    go acc 0 ns     = ns ++ acc
+    go acc i (n:ns) = go (Note.transposeOctave 1 n : acc) (i - 1) ns

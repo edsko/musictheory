@@ -47,6 +47,9 @@ instance ToDoc Lilypond where
   toDoc lilypond = mconcat [
         "\\version \"2.24.3\""
       , "\\language \"english\""
+      , section "layout" $ mconcat [
+            assignReal "indent" 0.0
+          ]
       , toDoc lilypond.header
       , toDoc lilypond.scores
       ]
@@ -133,11 +136,11 @@ renderChordName (ChordName note typ) d = concat [
 -- <https://lilypond.org/doc/v2.24/Documentation/notation/common-chord-modifiers>
 renderChordType :: Chord.Type -> String
 renderChordType = \case
-    Chord.TriadMajor   -> ""
-    Chord.TriadMinor   -> ":m"
-    Chord.SeventhMajor -> ":maj7"
-    Chord.SeventhMinor -> ":m7"
-    Chord.Dominant     -> ":7"
+    Chord.MajorTriad      -> ""
+    Chord.MinorTriad      -> ":m"
+    Chord.MajorSeventh    -> ":maj7"
+    Chord.MinorSeventh    -> ":m7"
+    Chord.DominantSeventh -> ":7"
 
 renderChord :: Chord -> String
 renderChord (Chord ns) =
@@ -211,3 +214,6 @@ section name body = mconcat [
 
 assign :: String -> String -> Doc
 assign var value = Doc.fromString $ var ++ " = \"" ++ value ++ "\""
+
+assignReal :: String -> Double -> Doc
+assignReal var value = Doc.fromString $ var ++ " = " ++ show value

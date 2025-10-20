@@ -14,5 +14,6 @@ exercises = Ly.Lilypond{
     , scores = [
           Chords.majorTriads
         , Chords.majorSeventh
+        , Chords.dominantSeventh
         ]
     }
