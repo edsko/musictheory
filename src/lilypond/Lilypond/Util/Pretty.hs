@@ -10,8 +10,6 @@ module Lilypond.Util.Pretty (
   , line
   , lines
   , indent
-  , when
-  , whenJust
     -- * Rendering
   , render
   ) where
@@ -21,8 +19,7 @@ import Prelude hiding (lines)
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Semigroup
-import Data.String (IsString)
-import Data.String qualified as String
+import Data.String (IsString(..))
 
 {-------------------------------------------------------------------------------
   Definition
@@ -49,14 +46,6 @@ line = Line
 
 lines :: [String] -> Doc
 lines = mconcat . map line
-
-when :: Bool -> Doc -> Doc
-when False = mempty
-when True  = id
-
-whenJust :: Maybe a -> (a -> Doc) -> Doc
-whenJust Nothing  _ = mempty
-whenJust (Just x) f = f x
 
 {-------------------------------------------------------------------------------
   Rendering

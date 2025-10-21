@@ -55,10 +55,15 @@ library lilypond
 
   other-modules:
       Lilypond.Util.Pretty
+      Lilypond.Render.Monad
 
   build-depends:
       -- Internal dependencies
     , musictheory
+
+  build-depends:
+      -- Inherited dependencies
+    , mtl
 
   build-depends:
       -- External dependencies

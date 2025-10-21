@@ -1,7 +1,5 @@
 module Exercises (exercises) where
 
-import Data.Default
-
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
 
@@ -9,28 +7,21 @@ import Exercises.Chords.Basic qualified as Chords.Basic
 
 exercises :: Lilypond
 exercises = Ly.Lilypond{
-      header = def
-    , books = [
+      books = [
           Ly.Book{
-              header = def{
-                  Ly.title    = Just "Music Theory Exercises"
-                , Ly.arranger = Just "edsko@edsko.net"
-                , Ly.tagline  = Just ""
-                }
-            , parts = [
+              title  = "Music Theory Exercises"
+            , author = "Edsko de Vries <edsko@edsko.net>"
+            , parts  = [
                   chordExercises
                 ]
             }
         ]
     }
 
-chordExercises :: Ly.BookPart
-chordExercises = Ly.BookPart{
-      Ly.header = def{
-          Ly.title    = Just "Chord Exercises"
-        , Ly.arranger = Just ""
-        }
-    , Ly.elems = mconcat [
+chordExercises :: Ly.Bookpart
+chordExercises = Ly.Bookpart{
+      title    = "Chord Exercises"
+    , sections = [
           Chords.Basic.exercises
         ]
     }

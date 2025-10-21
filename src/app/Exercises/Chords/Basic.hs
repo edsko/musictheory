@@ -12,13 +12,16 @@ import Lilypond qualified as Ly
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: [Ly.BookPartElem]
-exercises = [
-      Ly.BookPartScore majorTriads
-    , Ly.BookPartScore majorSeventh
-    , Ly.BookPartScore dominantSeventh
-    , Ly.BookPartScore minorSeventh
-    ]
+exercises :: Ly.Section
+exercises = Ly.Section{
+      title  = "Basic chord exercises"
+    , scores = [
+          majorTriads
+        , majorSeventh
+        , dominantSeventh
+        , minorSeventh
+        ]
+    }
 
 {-------------------------------------------------------------------------------
   Individual exercises
@@ -26,9 +29,7 @@ exercises = [
 
 majorTriads :: Ly.Score
 majorTriads = Ly.Score{
-      header = def{
-          Ly.piece = Just "Major triads, root position"
-        }
+      title = "Major triads, root position"
     , elems =
         allChordsOfType
           Note.middleOctave
@@ -38,9 +39,7 @@ majorTriads = Ly.Score{
 
 majorSeventh :: Ly.Score
 majorSeventh = Ly.Score{
-      header = def{
-          Ly.piece = Just "Major seventh chords, root position"
-        }
+      title = "Major seventh chords, root position"
     , elems =
         allChordsOfType
           Note.middleOctave
@@ -50,9 +49,7 @@ majorSeventh = Ly.Score{
 
 dominantSeventh :: Ly.Score
 dominantSeventh = Ly.Score{
-      header = def{
-          Ly.piece = Just "Dominant seventh chords, seventh in the bass"
-        }
+      title = "Dominant seventh chords, seventh in the bass"
     , elems =
         allChordsOfType
           (pred Note.middleOctave) -- Start lower, to make room for inversion
@@ -62,9 +59,7 @@ dominantSeventh = Ly.Score{
 
 minorSeventh :: Ly.Score
 minorSeventh = Ly.Score{
-      header = def{
-          Ly.piece = Just "Minor seventh chords, seventh in the bass"
-        }
+      title = "Minor seventh chords, seventh in the bass"
     , elems =
         allChordsOfType
           (pred Note.middleOctave) -- Start lower, to make room for inversion

@@ -6,12 +6,10 @@ module Lilypond (
     -- * Document structure
     Lilypond(..)
   , Book(..)
-  , BookPart(..)
-  , BookPartElem(..)
+  , Bookpart(..)
+  , Section(..)
   , Score(..)
   , ScoreElem(..)
-    -- * Header
-  , Header(..)
     -- * Staff elements
   , StaffProps(..)
   , StaffElem(..)
@@ -28,71 +26,32 @@ import MusicTheory.Chord qualified as Chord
 -------------------------------------------------------------------------------}
 
 data Lilypond = Lilypond{
-      header :: Header
-    , books  :: [Book]
+      books  :: [Book]
     }
 
 data Book = Book{
-      header :: Header
-    , parts  :: [BookPart]
+      title  :: String
+    , author :: String
+    , parts  :: [Bookpart]
     }
 
-data BookPart = BookPart{
-      header :: Header
-    , elems  :: [BookPartElem]
+data Bookpart = Bookpart{
+      title    :: String
+    , sections :: [Section]
     }
 
-data BookPartElem =
-    BookPartScore Score
+data Section = Section{
+      title  :: String
+    , scores :: [Score]
+    }
 
 data Score = Score{
-      header :: Header
-    , elems  :: ScoreElem
+      title :: String
+    , elems :: ScoreElem
     }
 
 data ScoreElem =
     ScoreStaff StaffProps [StaffElem]
-
-{-------------------------------------------------------------------------------
-  Header
--------------------------------------------------------------------------------}
-
--- | Header
---
--- TODO: These should not be strings: they support markup.
--- <https://lilypond.org/doc/v2.24/Documentation/notation/creating-titles-headers-and-footers#default-layout-of-bookpart-and-score-titles>
-data Header = Header{
-      dedication  :: Maybe String
-    , title       :: Maybe String
-    , subtitle    :: Maybe String
-    , subsubtitle :: Maybe String
-    , instrument  :: Maybe String
-    , poet        :: Maybe String
-    , composer    :: Maybe String
-    , meter       :: Maybe String
-    , arranger    :: Maybe String
-    , tagline     :: Maybe String
-    , copyright   :: Maybe String
-    , piece       :: Maybe String
-    , opus        :: Maybe String
-    }
-
-instance Default Header where
-  def = Header{
-        dedication  = Nothing
-      , title       = Nothing
-      , subtitle    = Nothing
-      , subsubtitle = Nothing
-      , instrument  = Nothing
-      , poet        = Nothing
-      , composer    = Nothing
-      , meter       = Nothing
-      , arranger    = Nothing
-      , tagline     = Nothing
-      , copyright   = Nothing
-      , piece       = Nothing
-      , opus        = Nothing
-      }
 
 {-------------------------------------------------------------------------------
   Staff elements
