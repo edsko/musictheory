@@ -5,27 +5,30 @@ module Exercises.Chords (
 
 import Data.Default
 
-import MusicTheory.Chord qualified as Chord
-import MusicTheory.Note  qualified as Note
+import MusicTheory
+import MusicTheory.Chord.Named qualified as Chord.Named
+import MusicTheory.Chord.Named qualified as Named (Chord(..))
+import MusicTheory.Chord.Type qualified as Chord (Type)
+import MusicTheory.Note qualified as Note
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
-import MusicTheory
 
 chordExercise ::
      Chord.Type
      -- ^ Chord type
-  -> [(Chord.Inversion, Int)]
+  -> [(Inversion, OctaveShift)]
      -- ^ Inversions to show for each chord
      --
      -- For each inversion, we also allow for an octave shift, to ensure that
      -- the inversions don't result in chords too high up the stave.
   -> Ly.ScoreElem
-chordExercise typ inversions = Ly.ScoreStaff props $ mconcat [
-      chordsOfTypeIn typ inversions firstHalf
-    , [Ly.StaffLinebreak]
-    , chordsOfTypeIn typ inversions secondHalf
-    ]
+chordExercise typ inversions =
+    Ly.ScoreStaff props $ mconcat [
+        chordsOfTypeIn typ inversions firstHalf
+      , [Ly.StaffLinebreak]
+      , chordsOfTypeIn typ inversions secondHalf
+      ]
   where
     props :: Ly.StaffProps
     props = def{
@@ -35,35 +38,34 @@ chordExercise typ inversions = Ly.ScoreStaff props $ mconcat [
 
 chordsOfTypeIn ::
      Chord.Type
-  -> [(Chord.Inversion, Int)]
+  -> [(Inversion, OctaveShift)]
   -> [Scale.Name]
   -> [Ly.StaffElem]
 chordsOfTypeIn typ inversions scales = concat [
       -- Show the chord name only once
-      zipWith
-        (aux scale)
-        ( Just (Chord.Name (Scale.rootNote scale) typ)
-        : repeat Nothing
-        )
-        inversions
+      zipWith (aux scale) (True : repeat False) inversions
     | scale <- scales
     ]
   where
     aux ::
          Scale.Name
-      -> Maybe Chord.Name
-      -> (Chord.Inversion, Int)
+      -> Bool       -- ^ Show the chord name
+      -> (Inversion, OctaveShift)
       -> Ly.StaffElem
-    aux scale mName (inversion, octaveShift) = Ly.StaffChord $ Ly.Chord{
-          name  = mName
-        , notes = transposeOctave octaveShift . Chord.invert inversion $
-                    Chord.wrtMajorScale Note.middleOctave scale typ
+    aux scale showChordName (inversion, octaveShift) =
+        if showChordName
+          then Ly.StaffNamedChord   chord       duration
+          else Ly.StaffUnnamedChord chord.notes duration
+      where
+        chord :: Named.Chord
+        chord = transposeOctave octaveShift . invert inversion $
+                  Chord.Named.wrtMajorScale Note.middleOctave scale typ
 
-          -- Make sure all inversions fit within a single measure
-          --
-          -- This ensures accidentals are not shown more than once.
-        , duration = Ly.OneOver (fromIntegral $ length inversions)
-        }
+        -- Make sure all inversions fit within a single measure
+        --
+        -- This ensures accidentals are not shown more than once.
+        duration :: Ly.Duration
+        duration = Ly.OneOver (fromIntegral $ length inversions)
 
 -- | Split the scales into two halves
 --

@@ -12,18 +12,10 @@ module MusicTheory.Scale (
   , Scale(..)
     -- * Standard scales
   , majorScale
-    -- * Operations that only make sense in the context of a specific scale
-  , InScale -- opaque
-  , inScale
-  , wrtScale
     -- * Scale degrees
   , Degree(..)
   , fromDegree
   ) where
-
-import Control.Monad.Reader (Reader)
-import Control.Monad.Reader qualified as Reader
-import Data.Functor.Identity
 
 import MusicTheory.Note (Note)
 import MusicTheory.Note qualified as Note
@@ -89,20 +81,6 @@ majorScale = Scale . \case
     F  -> ["F"  , "G"  , "A"  , "B♭" , "C"  , "D"  , "E" ]
 
 {-------------------------------------------------------------------------------
-  Operations that only make sense in the context of a specific scale
--------------------------------------------------------------------------------}
-
-newtype InScale a = WrapInScale{
-      unwrapInScale :: Reader Scale a
-    }
-
-inScale :: (Scale -> a) -> InScale a
-inScale f = WrapInScale $ Reader.ReaderT $ Identity . f
-
-wrtScale :: Scale -> InScale a -> a
-wrtScale scale = flip Reader.runReader scale . unwrapInScale
-
-{-------------------------------------------------------------------------------
   Scale degrees
 -------------------------------------------------------------------------------}
 
@@ -139,8 +117,8 @@ stringTableDegree = StringTable [
     , (14, "14")
     ]
 
-fromDegree :: Degree -> InScale Note
-fromDegree (Degree degree atal) = inScale $ \Scale{notes = scale} ->
+fromDegree :: Scale -> Degree -> Note
+fromDegree Scale{notes = scale} (Degree degree atal) =
     Note.simpleWithAccidental
       (scale !! ((fromIntegral degree - 1) `mod` length scale))
       atal

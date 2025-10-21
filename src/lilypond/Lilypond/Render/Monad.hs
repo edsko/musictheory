@@ -14,7 +14,9 @@ module Lilypond.Render.Monad (
     -- * Conditionals
   , when
   , whenJust
-    -- * Sections
+    -- * Document structure
+  , scope
+    -- * Table of contents
   , bookPart
   , section
   , score
@@ -85,6 +87,17 @@ whenJust Nothing  _ = mempty
 whenJust (Just x) f = f x
 
 {-------------------------------------------------------------------------------
+  Document structure
+-------------------------------------------------------------------------------}
+
+scope :: String -> RenderM Doc -> RenderM Doc
+scope name body = mconcat [
+      line $ "\\" ++ name ++ "{"
+    , indent body
+    , "}"
+    ]
+
+{-------------------------------------------------------------------------------
   Table of contents
 
   Lilypond has only rudimentary support for a table of contents. We need to
@@ -125,7 +138,7 @@ nest label (WrapRenderM doc) = WrapRenderM $ Reader.local aux doc
 bookPart :: String -> RenderM Doc -> RenderM Doc
 bookPart title contents = do
     tocLabel <- newTocLabel
-    mconcat [
+    scope "bookpart" $ mconcat [
         line $ List.intercalate " " [
             "\\tocBookpart"
           , renderTocPath [tocLabel]
@@ -134,6 +147,10 @@ bookPart title contents = do
       , nest tocLabel contents
       ]
 
+-- | Section
+--
+-- Sections are concept /we/ introduce; they do not exist as an actual Lilypond
+-- structure.
 section :: String -> RenderM Doc -> RenderM Doc
 section title contents = do
     tocLabel <- newTocLabel
@@ -147,8 +164,20 @@ section title contents = do
       , nest tocLabel contents
       ]
 
-score :: String -> RenderM Doc
-score title = section title mempty
+score :: String -> RenderM Doc -> RenderM Doc
+score title contents = do
+    tocLabel <- newTocLabel
+    parents  <- getParents
+    mconcat [
+        -- @tocItem@ must be outside the @score@ scope
+        line $ List.intercalate " " [
+            "\\tocItem"
+          , renderTocPath (tocLabel : parents)
+          , "\"" ++ title ++ "\""
+          ]
+      , scope "score" $ nest tocLabel contents
+      ]
+
 
 -- | Setup necessary Lilypond infrastructure to render the ToC
 --

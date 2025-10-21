@@ -3,8 +3,9 @@ module Exercises (exercises) where
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
 
-import Exercises.Chords.Basic qualified as Chords.Basic
-import Exercises.Chords.Ninth qualified as Chords.Ninth
+import Exercises.Chords.Basic         qualified as Chords.Basic
+import Exercises.Chords.StdJazz       qualified as Chords.StdJazz
+import Exercises.Progressions.StdJazz qualified as Progressions.StdJazz
 
 exercises :: Lilypond
 exercises = Ly.Lilypond{
@@ -13,17 +14,26 @@ exercises = Ly.Lilypond{
               title  = "Music Theory Exercises"
             , author = "Edsko de Vries <edsko@edsko.net>"
             , parts  = [
-                  chordExercises
+                  chords
+                , progressions
                 ]
             }
         ]
     }
 
-chordExercises :: Ly.Bookpart
-chordExercises = Ly.Bookpart{
-      title    = "Chord Exercises"
+chords :: Ly.Bookpart
+chords = Ly.Bookpart{
+      title    = "Chords"
     , sections = [
           Chords.Basic.exercises
-        , Chords.Ninth.exercises
+        , Chords.StdJazz.exercises
+        ]
+    }
+
+progressions :: Ly.Bookpart
+progressions = Ly.Bookpart{
+      title    = "Progressions"
+    , sections = [
+          Progressions.StdJazz.exercises
         ]
     }

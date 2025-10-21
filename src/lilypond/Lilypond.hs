@@ -13,13 +13,13 @@ module Lilypond (
     -- * Staff elements
   , StaffProps(..)
   , StaffElem(..)
-  , Chord(..)
   , Duration(..)
   ) where
 
 import Data.Default
 
-import MusicTheory.Chord qualified as Chord
+import MusicTheory.Chord.Named qualified as Named (Chord)
+import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord)
 
 {-------------------------------------------------------------------------------
   Document structure
@@ -70,14 +70,9 @@ instance Default StaffProps where
       }
 
 data StaffElem =
-    StaffChord Chord
+    StaffNamedChord Named.Chord Duration
+  | StaffUnnamedChord Unnamed.Chord Duration
   | StaffLinebreak
-
-data Chord = Chord{
-      name     :: Maybe Chord.Name
-    , notes    :: Chord.Chord
-    , duration :: Duration
-    }
 
 data Duration =
     OneOver Word

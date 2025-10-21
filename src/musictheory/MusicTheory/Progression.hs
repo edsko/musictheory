@@ -6,19 +6,24 @@
 -- > import MusicTheory.Progression qualified as Progression
 module MusicTheory.Progression (
     Progression(..)
-    -- * Standard progressions
-  , Type(..)
+    -- * Construction
   , wrtMajorScale
-    -- * Voice leading
+    -- * Combinators
   , voiceLeading
   ) where
 
-import Data.Bifunctor
+import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty qualified as NE
 
 import MusicTheory
-import MusicTheory.Chord (Chord)
-import MusicTheory.Chord qualified as Chord
+import MusicTheory.Chord.Name qualified as Chord.Name
+import MusicTheory.Chord.Named qualified as Chord.Named
+import MusicTheory.Chord.Named qualified as Named (Chord(..))
+import MusicTheory.Chord.Type qualified as Chord (Type)
+import MusicTheory.Chord.Unnamed qualified as Chord.Unnamed
 import MusicTheory.Note qualified as Note
+import MusicTheory.Progression.Name qualified as Progression (Name)
+import MusicTheory.Progression.Name qualified as Progression.Name
 import MusicTheory.Scale qualified as Scale
 import MusicTheory.Util
 
@@ -26,74 +31,51 @@ import MusicTheory.Util
   Basic definitions
 -------------------------------------------------------------------------------}
 
-newtype Progression = Progression [(Chord.Type, Chord)]
+newtype Progression = Progression (NonEmpty Named.Chord)
   deriving stock (Show)
 
 {-------------------------------------------------------------------------------
-  Standard progressions
-
-  TODO: There is duplicated logic between here and "MusicProgression.Chord",
-  but it's not trivial to avoid it, for two reasons:
-
-  - A progression such as 2-5-1 is all with respect to a /single/ scale;
-    we should not think of these as chords in different scales, with potentially
-    different note spellings.
-  - We cannot easily shift scale degrees, without knowing what the underlying
-    scale looks like. For example, shifting degree "3" by one semitone in a
-    major scale results in degree "4", but shifting degree "2" should either
-    result in "♯2" or "♭2" -- and it's unclear which.
-
-  This requires more thought, but for now my conclusion is that how we think
-  of these chords as relating to notes in the context key is non-obvious.
+  Construction
 -------------------------------------------------------------------------------}
 
--- | Standard progression with choice of voicing
-data Type =
-    Major251_Seventh
-
-majorScaleDegrees :: Type -> [(Chord.Type, [Scale.Degree])]
-majorScaleDegrees = \case
-    Major251_Seventh -> [
-      ]
-
-wrtMajorScale :: Note.Octave -> Scale.Name -> Type -> Progression
+wrtMajorScale :: Note.Octave -> Scale.Name -> Progression.Name -> Progression
 wrtMajorScale octave scale =
-      Progression
-    . map (second $ Chord.fromScaleDegrees octave scale)
-    . majorScaleDegrees
+    Progression . fmap aux . Progression.Name.wrtMajorScale
+  where
+    aux :: (Chord.Type, NonEmpty Scale.Degree) -> Named.Chord
+    aux (chordType, scaleDegrees) = Named.Chord{
+          name  = Chord.Name.chordNth (Scale.majorScale scale) root chordType
+        , notes = Chord.Unnamed.fromScaleDegrees octave scale scaleDegrees
+        }
+      where
+        root :: Scale.Degree
+        root = NE.head scaleDegrees
 
 {-------------------------------------------------------------------------------
-  Voice leading
+  Combinators
 -------------------------------------------------------------------------------}
 
 -- | Choose inversions to minimize distance between successive chords
 --
 -- Fails if there is no unique solution.
-voiceLeading :: Progression -> Progression
-voiceLeading = \(Progression chords) -> Progression $
+voiceLeading :: [Inversion] -> Progression -> Progression
+voiceLeading permissibleInversions = \(Progression chords) -> Progression $
     case chords of
-      []         -> []
-      (typ, c):cs -> (typ, c) : go c cs
+      c :| cs -> c :| go c cs
   where
-    go :: Chord -> [(Chord.Type, Chord)] -> [(Chord.Type, Chord)]
-    go _    []               = []
-    go prev ((typ, next):cs) =
-        let next' = minimize (Chord.distance prev) allOptions
-         in (typ, next') : go next' cs
+    go :: Named.Chord -> [Named.Chord] -> [Named.Chord]
+    go _    []        = []
+    go prev (next:cs) =
+        let next' = minimize (distance prev) allOptions
+         in next' : go next' cs
       where
-        numNotes :: Word
-        numNotes = Chord.size next
-
-        possibleInversions :: [Chord]
-        possibleInversions = [
-              Chord.invert (Chord.Inversion n) next
-            | n <- [0 .. numNotes - 1]
-            ]
+        possibleInversions :: [Named.Chord]
+        possibleInversions = map (flip invert next) permissibleInversions
 
         -- We consider all inversions in their \"natural\" octave, as well as
         -- one octave longer (because inversion tends to move everything up).
-        allOptions :: [Chord]
+        allOptions :: [Named.Chord]
         allOptions = concatMap addOctaveDown possibleInversions
           where
-            addOctaveDown :: Chord -> [Chord]
-            addOctaveDown c = [c, transposeOctave (-1) c]
+            addOctaveDown :: Named.Chord -> [Named.Chord]
+            addOctaveDown c = [c, transposeOctave (OctaveShift (-1)) c]

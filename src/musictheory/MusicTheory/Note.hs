@@ -15,15 +15,12 @@ module MusicTheory.Note (
   , fromSimpleAccidental
   , Simple(..)
   , simpleWithAccidental
+  , fromSimple
     -- * Octaves
   , InOctave(..)
   , Octave(..)
   , middleOctave
   , aboveMiddleOctave
-    -- * Normal forms
-  , Normalize(..)
-  , Norm(..)
-  , distance
   ) where
 
 import MusicTheory
@@ -34,8 +31,11 @@ import MusicTheory.Util
   Basic definitions
 -------------------------------------------------------------------------------}
 
+-- | Note names
+--
+-- The 'Ord' instance corresponds to the relative position in the major scale.
 data Name = C | D | E | F | G | A | B
-  deriving stock (Show, Eq, Enum, Bounded)
+  deriving stock (Show, Eq, Ord, Enum, Bounded)
   deriving HasStringTable via UseShow Name
   deriving IsString via UseStringTable Name
 
@@ -106,6 +106,9 @@ simpleWithAccidental = \(Simple note atal) atal' ->
           (SimpleFlat,  SimpleSharp) -> Natural
           (SimpleFlat,  SimpleFlat)  -> DoubleFlat
 
+fromSimple :: Simple -> Note
+fromSimple (Simple name atal) = Note name (fromSimpleAccidental <$> atal)
+
 {-------------------------------------------------------------------------------
   Octaves
 -------------------------------------------------------------------------------}
@@ -144,7 +147,7 @@ instance HasStringTable Octave where
         _ -> error "Invalid Octave"
 
 instance TransposeOctave InOctave where
-  transposeOctave d (InOctave n (Octave o)) =
+  transposeOctave (OctaveShift d) (InOctave n (Octave o)) =
       InOctave n . Octave $ shiftIntegral d o
 
 -- | Octave containing middle C
@@ -156,10 +159,10 @@ aboveMiddleOctave :: Octave -> Int
 aboveMiddleOctave (Octave o) = fromIntegral o - 4
 
 {-------------------------------------------------------------------------------
-  Normalization
+  Distance
 -------------------------------------------------------------------------------}
 
--- | Normal form
+-- | Internal: normal form
 --
 -- The sole purpose of normalization is to be able to easily compute the
 -- distance in semitones between two notes. Normalized forms of different types
@@ -174,13 +177,6 @@ class Normalize a where
 -- See 'Normalize'
 newtype Norm a = Norm { semitones :: Word }
   deriving stock (Show, Eq, Ord)
-
-distance :: Normalize a => a -> a -> Word
-distance a b = fromIntegral $ abs (semA - semB)
-  where
-    semA, semB :: Int
-    semA = fromIntegral . semitones $ normalize a
-    semB = fromIntegral . semitones $ normalize b
 
 instance Normalize Name where
   normalize = Norm . \case
@@ -226,3 +222,19 @@ instance Normalize InOctave where
   normalize (InOctave note octave) = Norm $
         semitones (normalize octave)
       + semitones (normalize note)
+
+-- | Deriving-via helper to derive 'Distance'
+newtype NormalForm a = NormalForm a
+
+instance Normalize a => Distance (NormalForm a) where
+  distance (NormalForm a) (NormalForm b) =
+      fromIntegral $ abs (semA - semB)
+    where
+      semA, semB :: Int
+      semA = fromIntegral . semitones $ normalize a
+      semB = fromIntegral . semitones $ normalize b
+
+deriving via NormalForm Name     instance Distance Name
+deriving via NormalForm Note     instance Distance Note
+deriving via NormalForm Simple   instance Distance Simple
+deriving via NormalForm InOctave instance Distance InOctave

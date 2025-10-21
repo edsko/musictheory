@@ -9,8 +9,14 @@ import Prelude hiding (elem)
 
 import Data.Char (toLower)
 import Data.List (intercalate)
+import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.List.NonEmpty qualified as NE
 
-import MusicTheory.Chord qualified as Chord
+import MusicTheory.Chord.Name qualified as Chord (Name(..))
+import MusicTheory.Chord.Named qualified as Chord.Named
+import MusicTheory.Chord.Type qualified as Chord (Type)
+import MusicTheory.Chord.Type qualified as Chord.Type
+import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Note qualified as Note
 
 import Lilypond (Lilypond)
@@ -41,7 +47,7 @@ instance ToDoc Lilypond where
   toDoc lilypond = mconcat [
          "\\version \"2.24.3\""
        , "\\language \"english\""
-      , scope "layout" $ mconcat [
+      , RenderM.scope "layout" $ mconcat [
             assignReal "indent" 0.0
           ]
       , toDoc emptyHeader{tagline = Just ""}
@@ -50,7 +56,7 @@ instance ToDoc Lilypond where
       ]
 
 instance ToDoc Ly.Book where
-  toDoc book = scope "book" $ mconcat [
+  toDoc book = RenderM.scope "book" $ mconcat [
         toDoc emptyHeader{
             title    = Just book.title
           , arranger = Just book.author
@@ -62,14 +68,13 @@ instance ToDoc Ly.Book where
       ]
 
 instance ToDoc Ly.Bookpart where
-  toDoc bookPart = RenderM.bookPart bookPart.title $
-      scope "bookpart" $ mconcat [
-          toDoc emptyHeader{
-              title    = Just bookPart.title
-            , arranger = Just ""
-            }
-        , foldMap toDoc bookPart.sections
-        ]
+  toDoc bookPart = RenderM.bookPart bookPart.title $ mconcat [
+        toDoc emptyHeader{
+            title    = Just bookPart.title
+          , arranger = Just ""
+          }
+      , foldMap toDoc bookPart.sections
+      ]
 
 instance ToDoc Ly.Section where
   toDoc section = RenderM.section section.title $ mconcat [
@@ -81,7 +86,7 @@ instance ToDoc Ly.Section where
           , "}"
           ]
       , RenderM.whenJust section.intro $ \intro -> RenderM.lines [
-            "\\markup {"
+            "\\markup \\wordwrap {"
           , "  " ++ intro
           , "}"
           , "\\markup \\center-column {"
@@ -93,33 +98,30 @@ instance ToDoc Ly.Section where
       ]
 
 instance ToDoc Ly.Score where
-  toDoc score = mconcat [
-        RenderM.score score.title
-      , scope "score" $ mconcat [
-          toDoc emptyHeader{piece = Just score.title}
-        , toDoc score.elems
-        ]
+  toDoc score = RenderM.score score.title $ mconcat [
+        toDoc emptyHeader{piece = Just score.title}
+      , toDoc score.elems
       ]
 
 instance ToDoc Ly.ScoreElem where
   toDoc (Ly.ScoreStaff props content) = mconcat [
-        scope "layout" $ mconcat [
-            scope "context" $
+        RenderM.scope "layout" $ mconcat [
+            RenderM.scope "context" $
               RenderM.when props.hideTimeSignature $
                 -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
                 RenderM.line "\\Staff \\override TimeSignature.stencil = ##f"
-          , scope "context" $
+          , RenderM.scope "context" $
               RenderM.when props.omitMeasureNumbers $
                 -- <https://lilypond.org/doc/v2.24/Documentation/snippets/rhythms#rhythms-removing-bar-numbers-from-a-score>
                 RenderM.line "\\Score \\omit BarNumber"
           ]
       , "<<"
       , RenderM.indent $ mconcat [
-            scope "chords" $ mconcat [
+            RenderM.scope "chords" $ mconcat [
                 RenderM.line $ "\\set noChordSymbol = \"\""
               , RenderM.line $ renderChordNames content
               ]
-          , scope "new Staff" $
+          , RenderM.scope "new Staff" $
               RenderM.line $ renderNotes content
           ]
       , ">>"
@@ -167,7 +169,7 @@ emptyHeader = Header{
     }
 
 instance ToDoc Header where
-  toDoc header = scope "header" $ mconcat [
+  toDoc header = RenderM.scope "header" $ mconcat [
         RenderM.whenJust header.dedication  $ assign "dedication"
       , RenderM.whenJust header.title       $ assign "title"
       , RenderM.whenJust header.subtitle    $ assign "subtitle"
@@ -192,22 +194,25 @@ renderChordNames = \elems ->
     intercalate " " $ map aux elems
   where
     aux :: Ly.StaffElem -> String
-    aux (Ly.StaffChord chord) =
-        case chord.name of
-          Nothing   -> "r" ++ renderDuration chord.duration
-          Just name -> renderChordName name chord.duration
+    aux (Ly.StaffNamedChord chord duration) =
+        renderChordName chord.name duration
+    aux (Ly.StaffUnnamedChord _chord duration) =
+        "r" ++ renderDuration duration -- No chord name
     aux (Ly.StaffLinebreak) =
-        -- We generate the linebreak when rendering the staff itself
-        ""
+        "" -- We generate the linebreak when rendering the staff itself
 
 renderNotes :: [Ly.StaffElem] -> String
 renderNotes = \elems -> intercalate " " $
     map aux elems
   where
     aux :: Ly.StaffElem -> String
-    aux (Ly.StaffChord chord) = concat [
-          renderChord    chord.notes
-        , renderDuration chord.duration
+    aux (Ly.StaffNamedChord chord duration) = concat [
+          renderUnnamed  chord.notes
+        , renderDuration duration
+        ]
+    aux (Ly.StaffUnnamedChord chord duration) = concat [
+          renderUnnamed  chord
+        , renderDuration duration
         ]
     aux (Ly.StaffLinebreak) =
         "\\break"
@@ -220,8 +225,15 @@ renderDuration (Ly.OneOver n) = show n
 -------------------------------------------------------------------------------}
 
 renderChordName :: Chord.Name -> Ly.Duration -> String
-renderChordName (Chord.Name note typ) d = concat [
-      renderSimpleNote note
+renderChordName (Chord.Name (Note.Note name atal) typ) d = concat [
+      renderNoteName name
+    , case atal of
+        Nothing               -> ""
+        Just Note.Sharp       -> "-sharp"
+        Just Note.Flat        -> "-flat"
+        Just Note.DoubleSharp -> "-sharpsharp"
+        Just Note.DoubleFlat  -> "-flatflat"
+        Just Note.Natural     -> "!"
     , renderDuration d
     , renderChordType typ
     ]
@@ -234,43 +246,27 @@ renderChordName (Chord.Name note typ) d = concat [
 -- do that so far.
 renderChordType :: Chord.Type -> String
 renderChordType = \case
-    Chord.Basic_MajorTriad        -> ""
-    Chord.Basic_MinorTriad        -> ":m"
-    Chord.Basic_MajorSeventh      -> ":maj7"
-    Chord.Basic_MinorSeventh      -> ":m7"
-    Chord.Basic_DominantSeventh   -> ":7"
+    Chord.Type.Basic_MajorTriad        -> ""
+    Chord.Type.Basic_MinorTriad        -> ":m"
+    Chord.Type.Basic_MajorSeventh      -> ":maj7"
+    Chord.Type.Basic_MinorSeventh      -> ":m7"
+    Chord.Type.Basic_DominantSeventh   -> ":7"
 
-    Chord.StdNinth_Major          -> ":maj7"
-    Chord.StdNinth_Minor          -> ":m7"
-    Chord.StdNinth_Dominant       -> ":7"
-    Chord.StdNinth_HalfDiminished -> ":m7.5-"
-    Chord.StdNinth_Altered        -> ":3.5+.7.9+"
+    Chord.Type.StdJazz_Major          -> ":maj7"
+    Chord.Type.StdJazz_Minor          -> ":m7"
+    Chord.Type.StdJazz_Dominant       -> ":7"
+    Chord.Type.StdJazz_HalfDiminished -> ":m7.5-"
+    Chord.Type.StdJazz_Altered        -> ":3.5+.7.9+"
 
-renderChord :: Chord.Chord -> String
-renderChord (Chord.Chord ns) =
+renderUnnamed :: Unnamed.Chord -> String
+renderUnnamed (Unnamed.Chord ns) =
     case ns of
-      [n] -> renderInOctave n
-      _   -> "<" ++ intercalate " " (map renderInOctave ns) ++ ">"
-
-{-------------------------------------------------------------------------------
-  Simple notes
--------------------------------------------------------------------------------}
-
-renderSimpleNote :: Note.Simple -> String
-renderSimpleNote (Note.Simple n ma) = concat [
-      renderNoteName n
-    , renderSimpleAccidental ma
-    ]
-
-renderNoteName :: Note.Name -> String
-renderNoteName = map toLower . show
-
-renderSimpleAccidental :: Maybe Note.SimpleAccidental -> String
-renderSimpleAccidental Nothing  = ""
-renderSimpleAccidental (Just a) =
-    case a of
-      Note.SimpleSharp -> "-sharp"
-      Note.SimpleFlat  -> "-flat"
+      n :| []    -> renderInOctave n
+      _otherwise -> concat [
+          "<"
+        , intercalate " " (map renderInOctave $ NE.toList ns)
+        , ">"
+        ]
 
 {-------------------------------------------------------------------------------
   Notes
@@ -281,6 +277,9 @@ renderInOctave (Note.InOctave (Note.Note n ma) o) = concat [
       renderNoteName n
     , renderAccidental ma o
     ]
+
+renderNoteName :: Note.Name -> String
+renderNoteName = map toLower . show
 
 -- The syntax for accidentals is a bit strange: to force an accidental to
 -- be shown (independent from clef), the "!" must come /after/ the octave;
@@ -308,13 +307,6 @@ renderOctave o
 {-------------------------------------------------------------------------------
   Internal auxiliary
 -------------------------------------------------------------------------------}
-
-scope :: String -> RenderM Doc -> RenderM Doc
-scope name body = mconcat [
-      RenderM.line $ "\\" ++ name ++ "{"
-    , RenderM.indent body
-    , "}"
-    ]
 
 assign :: String -> String -> RenderM Doc
 assign var value = RenderM.line $ var ++ " = \"" ++ value ++ "\""

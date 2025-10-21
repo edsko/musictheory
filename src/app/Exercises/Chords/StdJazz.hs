@@ -1,6 +1,7 @@
-module Exercises.Chords.Ninth (exercises) where
+module Exercises.Chords.StdJazz (exercises) where
 
-import MusicTheory.Chord qualified as Chord
+import MusicTheory
+import MusicTheory.Chord.Type qualified as Chord (Type(..))
 
 import Lilypond qualified as Ly
 
@@ -12,8 +13,8 @@ import Exercises.Chords
 
 exercises :: Ly.Section
 exercises = Ly.Section{
-      title  = "Standard rootless ninth voicings"
-    , intro  = Just "Seventh or third in the bass."
+      title  = "Standard Jazz voicings"
+    , intro  = Just "All chords shown with the seventh and the third in the bass."
     , scores = [
           major
         , minor
@@ -32,8 +33,8 @@ major = Ly.Score{
       title = "Major seventh"
     , elems =
         chordExercise
-          Chord.StdNinth_Major
-          [(Chord.Inversion 3, (-1)), (Chord.Inversion 1, 0)]
+          Chord.StdJazz_Major
+          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
     }
 
 minor :: Ly.Score
@@ -41,8 +42,8 @@ minor = Ly.Score{
       title = "Minor seventh"
     , elems =
         chordExercise
-          Chord.StdNinth_Minor
-          [(Chord.Inversion 3, (-1)), (Chord.Inversion 1, 0)]
+          Chord.StdJazz_Minor
+          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
     }
 
 dominant :: Ly.Score
@@ -50,8 +51,8 @@ dominant = Ly.Score{
       title = "Dominant seventh"
     , elems =
         chordExercise
-          Chord.StdNinth_Dominant
-          [(Chord.Inversion 3, (-1)), (Chord.Inversion 1, 0)]
+          Chord.StdJazz_Dominant
+          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
     }
 
 halfDiminished :: Ly.Score
@@ -59,8 +60,8 @@ halfDiminished = Ly.Score{
       title = "Half-diminished"
     , elems =
         chordExercise
-          Chord.StdNinth_HalfDiminished
-          [(Chord.Inversion 3, (-1)), (Chord.Inversion 1, 0)]
+          Chord.StdJazz_HalfDiminished
+          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
     }
 
 altered :: Ly.Score
@@ -68,6 +69,6 @@ altered = Ly.Score{
       title = "Altered"
     , elems =
         chordExercise
-          Chord.StdNinth_Altered
-          [(Chord.Inversion 3, (-1)), (Chord.Inversion 1, 0)]
+          Chord.StdJazz_Altered
+          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
     }

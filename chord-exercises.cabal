@@ -30,11 +30,21 @@ library musictheory
   import:         lang
   hs-source-dirs: src/musictheory
 
+  other-extensions:
+      OverloadedLists
+
   exposed-modules:
+      -- Listed first, for use in @cabal repl@
+      MusicTheory.Interactive
+
       MusicTheory
-      MusicTheory.Chord
+      MusicTheory.Chord.Name
+      MusicTheory.Chord.Named
+      MusicTheory.Chord.Type
+      MusicTheory.Chord.Unnamed
       MusicTheory.Note
       MusicTheory.Progression
+      MusicTheory.Progression.Name
       MusicTheory.Scale
 
   other-modules:
@@ -43,7 +53,6 @@ library musictheory
 
   build-depends:
     , containers >= 0.7 && < 0.8
-    , mtl        >= 2.3 && < 2.4
 
 library lilypond
   import:         lang
@@ -93,4 +102,6 @@ executable music-theory-exercises
       Exercises
       Exercises.Chords
       Exercises.Chords.Basic
-      Exercises.Chords.Ninth
+      Exercises.Chords.StdJazz
+      Exercises.Progressions
+      Exercises.Progressions.StdJazz
