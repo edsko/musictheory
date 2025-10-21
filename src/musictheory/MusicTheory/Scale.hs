@@ -24,7 +24,6 @@ module MusicTheory.Scale (
 import Control.Monad.Reader (Reader)
 import Control.Monad.Reader qualified as Reader
 import Data.Functor.Identity
-import Data.List ((!?))
 
 import MusicTheory.Note (Note)
 import MusicTheory.Note qualified as Note
@@ -108,16 +107,13 @@ wrtScale scale = flip Reader.runReader scale . unwrapInScale
 -------------------------------------------------------------------------------}
 
 -- | Scale degrees
---
--- NOTE: We use programmer's convention here, not musical convention: we count
--- from /zero/, not /one/.
 data Degree = Degree Word (Maybe Note.SimpleAccidental)
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable Degree
 
 instance HasStringTable Degree where
-  stringTable = uncurry Degree <$>
-      stringTablePair stringTableDegree (stringTableMaybe "" stringTable)
+  stringTable = uncurry (flip Degree) <$>
+      stringTablePair (stringTableMaybe "" stringTable) stringTableDegree
 
 -- | String table for scale degrees
 --
@@ -127,20 +123,24 @@ instance HasStringTable Degree where
 -- notes in a scale.
 stringTableDegree :: StringTable Word
 stringTableDegree = StringTable [
-      (0, "I")
-    , (1, "II")
-    , (2, "III")
-    , (3, "IV")
-    , (4, "V")
-    , (5, "VI")
-    , (6, "VII")
+      ( 1,  "1")
+    , ( 2,  "2")
+    , ( 3,  "3")
+    , ( 4,  "4")
+    , ( 5,  "5")
+    , ( 6,  "6")
+    , ( 7,  "7")
+    , ( 8,  "8")
+    , ( 9,  "9")
+    , (10, "10")
+    , (11, "11")
+    , (12, "12")
+    , (13, "13")
+    , (14, "14")
     ]
 
 fromDegree :: Degree -> InScale Note
-fromDegree (Degree degree atal) = inScale $ \scale ->
-    case scale.notes !? fromIntegral degree of
-      Just note -> Note.simpleWithAccidental note atal
-      Nothing   -> error $ concat [
-          "Invalid scale degree " ++ show degree
-        , " in scale " ++ show scale
-        ]
+fromDegree (Degree degree atal) = inScale $ \Scale{notes = scale} ->
+    Note.simpleWithAccidental
+      (scale !! ((fromIntegral degree - 1) `mod` length scale))
+      atal

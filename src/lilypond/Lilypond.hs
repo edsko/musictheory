@@ -42,6 +42,7 @@ data Bookpart = Bookpart{
 
 data Section = Section{
       title  :: String
+    , intro  :: Maybe String
     , scores :: [Score]
     }
 
@@ -79,9 +80,4 @@ data Chord = Chord{
     }
 
 data Duration =
-    Whole
-  | Half
-  | Quarter
-  | Eighth
-  | Sixteenth
-  | Thirtysecond
+    OneOver Word

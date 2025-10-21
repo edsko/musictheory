@@ -96,24 +96,40 @@ fromScaleDegrees octave scale =
 -------------------------------------------------------------------------------}
 
 data Type =
-    MajorTriad
-  | MinorTriad
-  | MajorSeventh
-  | MinorSeventh
-  | DominantSeventh
+    -- Basic chords
+    Basic_MajorTriad
+  | Basic_MinorTriad
+  | Basic_MajorSeventh
+  | Basic_MinorSeventh
+  | Basic_DominantSeventh
+
+    -- Standard rootless ninth voicings
+  | StdNinth_Major
+  | StdNinth_Minor
+  | StdNinth_Dominant
+  | StdNinth_HalfDiminished
+  | StdNinth_Altered
   deriving stock (Show)
 
 -- | Scale degrees for chord, wrt to the corresponding /major/ scale
 --
--- > majorScaleDegrees TriadMajor == ["I","III" ,"V"]
--- > majorScaleDegrees TriadMinor == ["I","III♭","V"]
+-- > majorScaleDegrees TriadMajor == [ "1" ,  "3" , "5" ]
+-- > majorScaleDegrees TriadMinor == [ "1" , "♭3" , "5" ]
 majorScaleDegrees :: Type -> [Scale.Degree]
 majorScaleDegrees = \case
-    MajorTriad      -> ["I", "III" , "V"]
-    MinorTriad      -> ["I", "III♭", "V"]
-    MajorSeventh    -> ["I", "III" , "V", "VII"]
-    MinorSeventh    -> ["I", "III♭", "V", "VII♭"]
-    DominantSeventh -> ["I", "III" , "V", "VII♭"]
+    --- Basic chords
+    Basic_MajorTriad      -> [ "1" ,  "3" , "5"       ]
+    Basic_MinorTriad      -> [ "1" , "♭3" , "5"       ]
+    Basic_MajorSeventh    -> [ "1" ,  "3" , "5",  "7" ]
+    Basic_MinorSeventh    -> [ "1" , "♭3" , "5", "♭7" ]
+    Basic_DominantSeventh -> [ "1" ,  "3" , "5", "♭7" ]
+
+    -- Standard rootless ninth voicings
+    StdNinth_Major          -> [ "3" ,  "5" ,  "7" ,  "9" ]
+    StdNinth_Minor          -> [ "3" , "♭5" , "♭7" ,  "9" ]
+    StdNinth_Dominant       -> [ "3" , "13" , "♭7" ,  "9" ]
+    StdNinth_HalfDiminished -> [ "1" , "♭3" , "♭5" , "♭7" ]
+    StdNinth_Altered        -> [ "3" , "♯5" , "♭7" , "♯9" ]
 
 -- | Construct chord, using note names wrt the corresponding /major/ scale
 --

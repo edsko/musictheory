@@ -55,6 +55,7 @@ instance ToDoc Ly.Book where
             title    = Just book.title
           , arranger = Just book.author
           }
+      , "\\markup \\vspace #2"
       , "\\markuplist \\table-of-contents"
       , "\\pageBreak"
       , foldMap toDoc book.parts
@@ -63,20 +64,32 @@ instance ToDoc Ly.Book where
 instance ToDoc Ly.Bookpart where
   toDoc bookPart = RenderM.bookPart bookPart.title $
       scope "bookpart" $ mconcat [
-          toDoc emptyHeader{title = Just bookPart.title}
+          toDoc emptyHeader{
+              title    = Just bookPart.title
+            , arranger = Just ""
+            }
         , foldMap toDoc bookPart.sections
         ]
 
 instance ToDoc Ly.Section where
   toDoc section = RenderM.section section.title $ mconcat [
         RenderM.lines [
-            "  \\markup \\center-column {"
+            "\\markup \\center-column {"
           , "  \\vspace #1"
           , "  \\abs-fontsize #16 \\italic \"" ++ section.title ++ "\""
           , "  \\vspace #1"
           , "}"
           ]
+      , RenderM.whenJust section.intro $ \intro -> RenderM.lines [
+            "\\markup {"
+          , "  " ++ intro
+          , "}"
+          , "\\markup \\center-column {"
+          , "  \\vspace #1"
+          , "}"
+          ]
       , foldMap toDoc section.scores
+      , "\\pageBreak"
       ]
 
 instance ToDoc Ly.Score where
@@ -102,8 +115,10 @@ instance ToDoc Ly.ScoreElem where
           ]
       , "<<"
       , RenderM.indent $ mconcat [
-            scope "chords" $
-              RenderM.line $ renderChordNames content
+            scope "chords" $ mconcat [
+                RenderM.line $ "\\set noChordSymbol = \"\""
+              , RenderM.line $ renderChordNames content
+              ]
           , scope "new Staff" $
               RenderM.line $ renderNotes content
           ]
@@ -176,10 +191,10 @@ renderChordNames :: [Ly.StaffElem] -> String
 renderChordNames = \elems ->
     intercalate " " $ map aux elems
   where
-    aux :: Ly.StaffElem -> [Char]
+    aux :: Ly.StaffElem -> String
     aux (Ly.StaffChord chord) =
         case chord.name of
-          Nothing   -> error "TODO" -- should be a rest
+          Nothing   -> "r" ++ renderDuration chord.duration
           Just name -> renderChordName name chord.duration
     aux (Ly.StaffLinebreak) =
         -- We generate the linebreak when rendering the staff itself
@@ -198,13 +213,7 @@ renderNotes = \elems -> intercalate " " $
         "\\break"
 
 renderDuration :: Ly.Duration -> String
-renderDuration = \case
-    Ly.Whole        -> "1"
-    Ly.Half         -> "2"
-    Ly.Quarter      -> "4"
-    Ly.Eighth       -> "8"
-    Ly.Sixteenth    -> "16"
-    Ly.Thirtysecond -> "32"
+renderDuration (Ly.OneOver n) = show n
 
 {-------------------------------------------------------------------------------
   Chords
@@ -217,14 +226,25 @@ renderChordName (Chord.Name note typ) d = concat [
     , renderChordType typ
     ]
 
+-- Render chord type
+--
 -- <https://lilypond.org/doc/v2.24/Documentation/notation/common-chord-modifiers>
+--
+-- TODO: Ideally we'd render the altered chord as "alt", but haven't managed to
+-- do that so far.
 renderChordType :: Chord.Type -> String
 renderChordType = \case
-    Chord.MajorTriad      -> ""
-    Chord.MinorTriad      -> ":m"
-    Chord.MajorSeventh    -> ":maj7"
-    Chord.MinorSeventh    -> ":m7"
-    Chord.DominantSeventh -> ":7"
+    Chord.Basic_MajorTriad        -> ""
+    Chord.Basic_MinorTriad        -> ":m"
+    Chord.Basic_MajorSeventh      -> ":maj7"
+    Chord.Basic_MinorSeventh      -> ":m7"
+    Chord.Basic_DominantSeventh   -> ":7"
+
+    Chord.StdNinth_Major          -> ":maj7"
+    Chord.StdNinth_Minor          -> ":m7"
+    Chord.StdNinth_Dominant       -> ":7"
+    Chord.StdNinth_HalfDiminished -> ":m7.5-"
+    Chord.StdNinth_Altered        -> ":3.5+.7.9+"
 
 renderChord :: Chord.Chord -> String
 renderChord (Chord.Chord ns) =

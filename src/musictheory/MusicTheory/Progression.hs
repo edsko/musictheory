@@ -39,9 +39,9 @@ newtype Progression = Progression [(Chord.Type, Chord)]
     we should not think of these as chords in different scales, with potentially
     different note spellings.
   - We cannot easily shift scale degrees, without knowing what the underlying
-    scale looks like. For example, shifting degree "III" by one semitone in a
-    major scale results in degree "IV", but shifting degree "II" should either
-    result in "II♯" or "III♭" -- and it's unclear which.
+    scale looks like. For example, shifting degree "3" by one semitone in a
+    major scale results in degree "4", but shifting degree "2" should either
+    result in "♯2" or "♭2" -- and it's unclear which.
 
   This requires more thought, but for now my conclusion is that how we think
   of these chords as relating to notes in the context key is non-obvious.
@@ -54,9 +54,6 @@ data Type =
 majorScaleDegrees :: Type -> [(Chord.Type, [Scale.Degree])]
 majorScaleDegrees = \case
     Major251_Seventh -> [
-        (Chord.MinorSeventh,    ["II", "IV", "VI", "I"])
-      , (Chord.DominantSeventh, ["V", "VII", "II", "IV"])
-      , (Chord.MajorSeventh,    ["I", "III", "V", "VII"])
       ]
 
 wrtMajorScale :: Note.Octave -> Scale.Name -> Type -> Progression

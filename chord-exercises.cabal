@@ -91,4 +91,6 @@ executable music-theory-exercises
   other-modules:
       Cmdline
       Exercises
+      Exercises.Chords
       Exercises.Chords.Basic
+      Exercises.Chords.Ninth
