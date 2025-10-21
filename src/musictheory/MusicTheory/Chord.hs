@@ -13,6 +13,7 @@ module MusicTheory.Chord (
   , fromScaleDegrees
     -- * Chord types
   , Type(..)
+  , majorScaleDegrees
   , wrtMajorScale
     -- * Inversions
   , Inversion(..)

@@ -12,12 +12,12 @@ import Lilypond qualified as Ly
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: [Ly.Score]
+exercises :: [Ly.BookPartElem]
 exercises = [
-      majorTriads
-    , majorSeventh
-    , dominantSeventh
-    , minorSeventh
+      Ly.BookPartScore majorTriads
+    , Ly.BookPartScore majorSeventh
+    , Ly.BookPartScore dominantSeventh
+    , Ly.BookPartScore minorSeventh
     ]
 
 {-------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ exercises = [
 
 majorTriads :: Ly.Score
 majorTriads = Ly.Score{
-      header = Ly.ScoreHeader{
-          piece = "Major triads, root position"
+      header = def{
+          Ly.piece = Just "Major triads, root position"
         }
     , elems =
         allChordsOfType
@@ -38,8 +38,8 @@ majorTriads = Ly.Score{
 
 majorSeventh :: Ly.Score
 majorSeventh = Ly.Score{
-      header = Ly.ScoreHeader{
-          piece = "Major seventh chords, root position"
+      header = def{
+          Ly.piece = Just "Major seventh chords, root position"
         }
     , elems =
         allChordsOfType
@@ -50,8 +50,8 @@ majorSeventh = Ly.Score{
 
 dominantSeventh :: Ly.Score
 dominantSeventh = Ly.Score{
-      header = Ly.ScoreHeader{
-          piece = "Dominant seventh chords, seventh in the bass"
+      header = def{
+          Ly.piece = Just "Dominant seventh chords, seventh in the bass"
         }
     , elems =
         allChordsOfType
@@ -62,8 +62,8 @@ dominantSeventh = Ly.Score{
 
 minorSeventh :: Ly.Score
 minorSeventh = Ly.Score{
-      header = Ly.ScoreHeader{
-          piece = "Minor seventh chords, seventh in the bass"
+      header = def{
+          Ly.piece = Just "Minor seventh chords, seventh in the bass"
         }
     , elems =
         allChordsOfType
@@ -77,7 +77,7 @@ minorSeventh = Ly.Score{
 -------------------------------------------------------------------------------}
 
 allChordsOfType :: Note.Octave -> Chord.Type -> Chord.Inversion -> Ly.ScoreElem
-allChordsOfType octave typ inversion = Ly.Staff props $ mconcat [
+allChordsOfType octave typ inversion = Ly.ScoreStaff props $ mconcat [
       chordsOfTypeIn octave typ inversion firstHalf
     , [Ly.StaffLinebreak]
     , chordsOfTypeIn octave typ inversion secondHalf
@@ -85,7 +85,8 @@ allChordsOfType octave typ inversion = Ly.Staff props $ mconcat [
   where
     props :: Ly.StaffProps
     props = def{
-          Ly.hideTimeSignature = True
+          Ly.hideTimeSignature  = True
+        , Ly.omitMeasureNumbers = True
         }
 
 chordsOfTypeIn ::

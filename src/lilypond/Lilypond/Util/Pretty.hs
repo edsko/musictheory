@@ -11,6 +11,7 @@ module Lilypond.Util.Pretty (
   , lines
   , indent
   , when
+  , whenJust
     -- * Rendering
   , render
   ) where
@@ -52,6 +53,10 @@ lines = mconcat . map line
 when :: Bool -> Doc -> Doc
 when False = mempty
 when True  = id
+
+whenJust :: Maybe a -> (a -> Doc) -> Doc
+whenJust Nothing  _ = mempty
+whenJust (Just x) f = f x
 
 {-------------------------------------------------------------------------------
   Rendering

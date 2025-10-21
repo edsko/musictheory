@@ -47,15 +47,25 @@ instance ToDoc Lilypond where
             assignReal "indent" 0.0
           ]
       , toDoc lilypond.header
-      , foldMap toDoc lilypond.scores
+      , foldMap toDoc lilypond.books
       ]
 
-instance ToDoc Ly.Header where
-  toDoc header = section "header" $ mconcat [
-        assign "title"    header.title
-      , assign "composer" header.composer
-      , assign "tagline"  ""
+instance ToDoc Ly.Book where
+  toDoc book = section "book" $ mconcat [
+        toDoc book.header
+      , "\\pageBreak"
+      , foldMap toDoc book.parts
       ]
+
+instance ToDoc Ly.BookPart where
+  toDoc bookPart = section "bookpart" $ mconcat [
+        toDoc bookPart.header
+      , foldMap toDoc bookPart.elems
+      ]
+
+instance ToDoc Ly.BookPartElem where
+  toDoc (Ly.BookPartScore score) =
+      toDoc score
 
 instance ToDoc Ly.Score where
   toDoc score = section "score" $ mconcat [
@@ -63,18 +73,18 @@ instance ToDoc Ly.Score where
       , toDoc score.elems
       ]
 
-instance ToDoc Ly.ScoreHeader where
-  toDoc header = section "header" $ mconcat [
-        assign "piece" header.piece
-      ]
-
 instance ToDoc Ly.ScoreElem where
-  toDoc (Ly.Staff props content) = mconcat [
-        Doc.when props.hideTimeSignature $
-          section "layout" $
+  toDoc (Ly.ScoreStaff props content) = mconcat [
+        section "layout" $ mconcat [
             section "context" $
-              -- https://lilypond.org/doc/v2.23/Documentation/notation/visibility-of-objects
-              Doc.line "\\Staff \\override TimeSignature.stencil = ##f"
+              Doc.when props.hideTimeSignature $
+                -- https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects
+                Doc.line "\\Staff \\override TimeSignature.stencil = ##f"
+          , section "context" $
+              Doc.when props.omitMeasureNumbers $
+                -- https://lilypond.org/doc/v2.24/Documentation/snippets/rhythms#rhythms-removing-bar-numbers-from-a-score
+                Doc.line "\\Score \\omit BarNumber"
+          ]
       , "<<"
       , Doc.indent $ mconcat [
             section "chords" $
@@ -87,7 +97,28 @@ instance ToDoc Ly.ScoreElem where
     where
 
 {-------------------------------------------------------------------------------
-  Auxiliary: render a single 'Staff'
+  Header
+-------------------------------------------------------------------------------}
+
+instance ToDoc Ly.Header where
+  toDoc header = section "header" $ mconcat [
+        Doc.whenJust header.dedication  $ assign "dedication"
+      , Doc.whenJust header.title       $ assign "title"
+      , Doc.whenJust header.subtitle    $ assign "subtitle"
+      , Doc.whenJust header.subsubtitle $ assign "subsubtitle"
+      , Doc.whenJust header.instrument  $ assign "instrument"
+      , Doc.whenJust header.poet        $ assign "poet"
+      , Doc.whenJust header.composer    $ assign "composer"
+      , Doc.whenJust header.meter       $ assign "meter"
+      , Doc.whenJust header.arranger    $ assign "arranger"
+      , Doc.whenJust header.tagline     $ assign "tagline"
+      , Doc.whenJust header.copyright   $ assign "copyright"
+      , Doc.whenJust header.piece       $ assign "piece"
+      , Doc.whenJust header.opus        $ assign "opus"
+      ]
+
+{-------------------------------------------------------------------------------
+  Render a single 'Staff'
 -------------------------------------------------------------------------------}
 
 renderChordNames :: [Ly.StaffElem] -> String
