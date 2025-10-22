@@ -19,6 +19,7 @@ import MusicTheory.Note qualified as Note
 import MusicTheory.Note.Octave (Octave(..))
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Reference
+import MusicTheory.Scale qualified as Scale
 
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
@@ -120,10 +121,15 @@ instance ToDoc Ly.ScoreElem where
       , RenderM.indent $ mconcat [
             RenderM.scope "chords" $ mconcat [
                 RenderM.line $ "\\set noChordSymbol = \"\""
-              , RenderM.line $ renderChordNames content
+              , RenderM.lines $ renderChordNames content
               ]
-          , RenderM.scope "new Staff" $
-              RenderM.line $ renderNotes content
+          , RenderM.scope "new Staff" $ mconcat [
+                -- Don't show key changes at the end of the line
+                -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
+                "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
+              , "\\set Staff.printKeyCancellation = ##f"
+              , RenderM.lines $ renderNotes content
+              ]
           ]
       , ">>"
       ]
@@ -190,9 +196,9 @@ instance ToDoc Header where
   Render a single 'Staff'
 -------------------------------------------------------------------------------}
 
-renderChordNames :: [Ly.StaffElem] -> String
+renderChordNames :: [Ly.StaffElem] -> [String]
 renderChordNames = \elems ->
-    intercalate " " $ map aux elems
+    map aux elems
   where
     aux :: Ly.StaffElem -> String
     aux (Ly.StaffNamedChord chord duration) =
@@ -201,9 +207,13 @@ renderChordNames = \elems ->
         "r" ++ renderDuration duration -- No chord name
     aux (Ly.StaffLinebreak) =
         "" -- We generate the linebreak when rendering the staff itself
+    aux (Ly.StaffComment comment) =
+        "% " ++ comment
+    aux (Ly.StaffKeySignature scaleName) =
+        "% " ++ show scaleName
 
-renderNotes :: [Ly.StaffElem] -> String
-renderNotes = \elems -> intercalate " " $
+renderNotes :: [Ly.StaffElem] -> [String]
+renderNotes = \elems ->
     map aux elems
   where
     aux :: Ly.StaffElem -> String
@@ -217,9 +227,38 @@ renderNotes = \elems -> intercalate " " $
         ]
     aux (Ly.StaffLinebreak) =
         "\\break"
+    aux (Ly.StaffComment comment) =
+        "% " ++ comment
+    aux (Ly.StaffKeySignature scaleName) =
+        renderKeySignature scaleName
 
 renderDuration :: Ly.Duration -> String
 renderDuration (Ly.OneOver n) = show n
+
+renderKeySignature :: Scale.Name -> String
+renderKeySignature (Scale.Name root typ) = intercalate " " [
+      "\\key"
+    , case typ of
+        Scale.Major -> renderSimpleNote (Scale.rootNote root) ++ " \\major"
+    ]
+
+{-------------------------------------------------------------------------------
+  Simple notes
+-------------------------------------------------------------------------------}
+
+renderSimpleNote :: Note.Simple -> String
+renderSimpleNote (Note.Simple name atal) = concat [
+      renderNoteName name
+    , maybe "" renderSimpleAccidental atal
+    ]
+
+renderNoteName :: Note.Name -> String
+renderNoteName = map toLower . show
+
+renderSimpleAccidental :: Note.SimpleAccidental -> [Char]
+renderSimpleAccidental = \case
+    Note.SimpleSharp -> "-sharp"
+    Note.SimpleFlat  -> "-flat"
 
 {-------------------------------------------------------------------------------
   Chords
@@ -279,9 +318,6 @@ renderInOctave (Note.InOctave o (Note.Note n ma)) = concat [
       renderNoteName n
     , renderAccidental ma o
     ]
-
-renderNoteName :: Note.Name -> String
-renderNoteName = map toLower . show
 
 -- The syntax for accidentals is a bit strange: to force an accidental to
 -- be shown (independent from clef), the "!" must come /after/ the octave;

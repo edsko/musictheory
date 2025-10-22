@@ -12,7 +12,7 @@ import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Progression (Progression(..))
 import MusicTheory.Progression qualified as Progression
 import MusicTheory.Reference
-import MusicTheory.Scale (Scale)
+import MusicTheory.Scale (Scale(..))
 
 import Lilypond qualified as Ly
 
@@ -43,7 +43,8 @@ progressionExercise progression initInversions permissibleInversions scales =
     -- .. for each scale
     goScale :: Scale -> [Ly.StaffElem]
     goScale scale = concat [
-          concatMap (goInitInversion progression') initInversions
+          [Ly.StaffKeySignature scale.name]
+        , concatMap (goInitInversion progression') initInversions
         , [Ly.StaffLinebreak]
         ]
       where

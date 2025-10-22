@@ -21,6 +21,7 @@ import Data.Default
 import MusicTheory.Chord.Named qualified as Named (Chord)
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Reference
+import MusicTheory.Scale qualified as Scale
 
 {-------------------------------------------------------------------------------
   Document structure
@@ -74,6 +75,8 @@ data StaffElem =
     StaffNamedChord   (  Named.Chord Absolute) Duration
   | StaffUnnamedChord (Unnamed.Chord Absolute) Duration
   | StaffLinebreak
+  | StaffComment String
+  | StaffKeySignature Scale.Name
 
 data Duration =
     OneOver Word
