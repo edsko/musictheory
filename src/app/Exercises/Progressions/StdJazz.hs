@@ -1,7 +1,8 @@
 module Exercises.Progressions.StdJazz (exercises) where
 
 import MusicTheory
-import MusicTheory.Progression.Name qualified as Progression (Name(..))
+import MusicTheory.Progression qualified as Progression
+import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
 
@@ -34,7 +35,8 @@ major251 = Ly.Score{
       title = "Major 2-5-1"
     , elems =
         progressionExercise
-          Progression.StdJazz_Major251
+          (Progression.named Progression.StdJazz_Major251)
           [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]
           [Inversion 1, Inversion 3]
+          (Scale.allOfType Scale.Major)
     }

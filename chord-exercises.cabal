@@ -25,6 +25,8 @@ common lang
       MagicHash
       OverloadedRecordDot
       OverloadedStrings
+      TypeFamilies
+      UndecidableInstances
 
 library musictheory
   import:         lang
@@ -38,13 +40,13 @@ library musictheory
       MusicTheory.Interactive
 
       MusicTheory
-      MusicTheory.Chord.Name
+      MusicTheory.Chord
       MusicTheory.Chord.Named
-      MusicTheory.Chord.Type
       MusicTheory.Chord.Unnamed
       MusicTheory.Note
+      MusicTheory.Note.Octave
       MusicTheory.Progression
-      MusicTheory.Progression.Name
+      MusicTheory.Reference
       MusicTheory.Scale
 
   other-modules:

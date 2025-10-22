@@ -3,20 +3,21 @@
 -- | Module for use in ghci
 module MusicTheory.Interactive where
 
+-- To re-generate this list:
+--
+-- grep -rIh '> import' src/musictheory/
+
 import MusicTheory
-import MusicTheory.Chord.Name qualified as Chord (Name(..))
-import MusicTheory.Chord.Name qualified as Chord.Name
+import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
-import MusicTheory.Chord.Named qualified as Named (Chord(..))
-import MusicTheory.Chord.Type qualified as Chord (Type(..))
-import MusicTheory.Chord.Type qualified as Chord.Type
+import MusicTheory.Chord.Named qualified as Named (Chord)
 import MusicTheory.Chord.Unnamed qualified as Chord.Unnamed
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Note (Note(Note))
 import MusicTheory.Note qualified as Note
-import MusicTheory.Progression (Progression(Progression))
+import MusicTheory.Note.Octave (Octave(..))
+import MusicTheory.Note.Octave qualified as Octave
+import MusicTheory.Progression (Progression(..))
 import MusicTheory.Progression qualified as Progression
-import MusicTheory.Progression.Name qualified as Progression (Name(..))
-import MusicTheory.Progression.Name qualified as Progression.Name
-import MusicTheory.Scale (Scale)
+import MusicTheory.Reference
 import MusicTheory.Scale qualified as Scale

@@ -7,26 +7,32 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.NonEmpty qualified as NE
 
 import MusicTheory
-import MusicTheory.Chord.Named qualified as Named (Chord(..))
-import MusicTheory.Note qualified as Note
-import MusicTheory.Progression (Progression(Progression))
+import MusicTheory.Chord.Named qualified as Named (Chord)
+import MusicTheory.Note.Octave qualified as Octave
+import MusicTheory.Progression (Progression(..))
 import MusicTheory.Progression qualified as Progression
-import MusicTheory.Progression.Name qualified as Progression (Name)
-import MusicTheory.Scale qualified as Scale
+import MusicTheory.Reference
+import MusicTheory.Scale (Scale)
 
 import Lilypond qualified as Ly
 
+{-------------------------------------------------------------------------------
+  Construct chord progression exercise
+-------------------------------------------------------------------------------}
+
 progressionExercise ::
-     Progression.Name
+     Progression Relative
      -- ^ Progression type
   -> [(Inversion, OctaveShift)]
      -- ^ Inversion and octave shift for initial chord
   -> [Inversion]
      -- ^ Permissable inversions (for voice leading)
+  -> [Scale]
+     -- ^ Scales to show the progression in
   -> Ly.ScoreElem
-progressionExercise typ initInversions permissibleInversions =
+progressionExercise progression initInversions permissibleInversions scales =
     Ly.ScoreStaff props $
-      concatMap goScale Scale.scaleNames
+      concatMap goScale scales
   where
     props :: Ly.StaffProps
     props = def{
@@ -35,29 +41,32 @@ progressionExercise typ initInversions permissibleInversions =
         }
 
     -- .. for each scale
-    goScale :: Scale.Name -> [Ly.StaffElem]
+    goScale :: Scale -> [Ly.StaffElem]
     goScale scale = concat [
-          concatMap (goInitInversion progression) initInversions
+          concatMap (goInitInversion progression') initInversions
         , [Ly.StaffLinebreak]
         ]
       where
-        progression :: Progression
-        progression = Progression.wrtMajorScale Note.middleOctave scale typ
+        progression' :: Progression Absolute
+        progression' = wrtScale Octave.middle scale progression
 
     -- .. and for each choice of initial inversion
-    goInitInversion :: Progression -> (Inversion, OctaveShift) -> [Ly.StaffElem]
-    goInitInversion progression (initInversion, initOctaveShift) =
+    goInitInversion ::
+         Progression Absolute
+      -> (Inversion, OctaveShift)
+      -> [Ly.StaffElem]
+    goInitInversion progression' (initInversion, initOctaveShift) =
         map goChord (NE.toList withVoiceLeading)
       where
-        Progression (first :| rest) = progression
+        Progression (first :| rest) = progression'
 
-        first' :: Named.Chord
+        first' :: Named.Chord Absolute
         first' = transposeOctave initOctaveShift $ invert initInversion first
 
-        withVoiceLeading :: NonEmpty Named.Chord
+        withVoiceLeading :: NonEmpty (Named.Chord Absolute)
         Progression withVoiceLeading =
             Progression.voiceLeading permissibleInversions $
               Progression (first' :| rest)
 
-    goChord :: Named.Chord -> Ly.StaffElem
+    goChord :: Named.Chord Absolute -> Ly.StaffElem
     goChord chord = Ly.StaffNamedChord chord (Ly.OneOver 1)

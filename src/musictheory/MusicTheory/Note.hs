@@ -18,14 +18,13 @@ module MusicTheory.Note (
   , fromSimple
     -- * Octaves
   , InOctave(..)
-  , Octave(..)
-  , middleOctave
-  , aboveMiddleOctave
   ) where
 
 import MusicTheory
-import MusicTheory.Util.StringTable
+import MusicTheory.Note.Octave (Octave(..))
 import MusicTheory.Util
+import MusicTheory.Util.StringTable
+import Data.Tuple (swap)
 
 {-------------------------------------------------------------------------------
   Basic definitions
@@ -114,49 +113,19 @@ fromSimple (Simple name atal) = Note name (fromSimpleAccidental <$> atal)
 -------------------------------------------------------------------------------}
 
 -- | Scientific pitch notation
-data InOctave = InOctave Note Octave
+data InOctave = InOctave Octave Note
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable InOctave
 
 instance HasStringTable InOctave where
-  stringTable = uncurry InOctave <$> stringTablePair stringTable stringTable
-
--- | Octave
-newtype Octave = Octave Word
-  deriving stock (Eq)
-  deriving newtype (Enum)
-  deriving (Show, IsString) via UseStringTable Octave
-
-instance Bounded Octave where
-  minBound = Octave 0
-  maxBound = Octave 9
-
-instance HasStringTable Octave where
-  stringTable = stringTableEnum $ \(Octave o) ->
-      case o of
-        0 -> "0"
-        1 -> "1"
-        2 -> "2"
-        3 -> "3"
-        4 -> "4"
-        5 -> "5"
-        6 -> "6"
-        7 -> "7"
-        8 -> "8"
-        9 -> "9"
-        _ -> error "Invalid Octave"
+  stringTable =
+      -- Show the octave /after/ the note
+      uncurry InOctave . swap <$>
+        stringTablePair stringTable stringTable
 
 instance TransposeOctave InOctave where
-  transposeOctave (OctaveShift d) (InOctave n (Octave o)) =
-      InOctave n . Octave $ shiftIntegral d o
-
--- | Octave containing middle C
-middleOctave :: Octave
-middleOctave = Octave 4
-
--- | How many octaves is the specified octave about the middle octave?
-aboveMiddleOctave :: Octave -> Int
-aboveMiddleOctave (Octave o) = fromIntegral o - 4
+  transposeOctave (OctaveShift d) (InOctave (Octave o) n) =
+      InOctave (Octave $ shiftIntegral d o) n
 
 {-------------------------------------------------------------------------------
   Distance
@@ -215,13 +184,9 @@ instance Normalize Simple where
           SimpleSharp ->  1
           SimpleFlat  -> -1
 
-instance Normalize Octave where
-  normalize (Octave o) = Norm $ o * 12
-
 instance Normalize InOctave where
-  normalize (InOctave note octave) = Norm $
-        semitones (normalize octave)
-      + semitones (normalize note)
+  normalize (InOctave (Octave o) note) = Norm $
+        (o * 12) + semitones (normalize note)
 
 -- | Deriving-via helper to derive 'Distance'
 newtype NormalForm a = NormalForm a

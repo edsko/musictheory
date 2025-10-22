@@ -12,12 +12,13 @@ import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.List.NonEmpty qualified as NE
 
-import MusicTheory.Chord.Name qualified as Chord (Name(..))
+import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
-import MusicTheory.Chord.Type qualified as Chord (Type)
-import MusicTheory.Chord.Type qualified as Chord.Type
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Note qualified as Note
+import MusicTheory.Note.Octave (Octave(..))
+import MusicTheory.Note.Octave qualified as Octave
+import MusicTheory.Reference
 
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
@@ -195,7 +196,7 @@ renderChordNames = \elems ->
   where
     aux :: Ly.StaffElem -> String
     aux (Ly.StaffNamedChord chord duration) =
-        renderChordName chord.name duration
+        renderChordName (Chord.Named.getName chord) duration
     aux (Ly.StaffUnnamedChord _chord duration) =
         "r" ++ renderDuration duration -- No chord name
     aux (Ly.StaffLinebreak) =
@@ -207,7 +208,7 @@ renderNotes = \elems -> intercalate " " $
   where
     aux :: Ly.StaffElem -> String
     aux (Ly.StaffNamedChord chord duration) = concat [
-          renderUnnamed  chord.notes
+          renderUnnamed  (Chord.Named.getNotes chord)
         , renderDuration duration
         ]
     aux (Ly.StaffUnnamedChord chord duration) = concat [
@@ -224,19 +225,20 @@ renderDuration (Ly.OneOver n) = show n
   Chords
 -------------------------------------------------------------------------------}
 
-renderChordName :: Chord.Name -> Ly.Duration -> String
-renderChordName (Chord.Name (Note.Note name atal) typ) d = concat [
-      renderNoteName name
-    , case atal of
-        Nothing               -> ""
-        Just Note.Sharp       -> "-sharp"
-        Just Note.Flat        -> "-flat"
-        Just Note.DoubleSharp -> "-sharpsharp"
-        Just Note.DoubleFlat  -> "-flatflat"
-        Just Note.Natural     -> "!"
-    , renderDuration d
-    , renderChordType typ
-    ]
+renderChordName :: Chord.Name Absolute -> Ly.Duration -> String
+renderChordName (Chord.Name (Note.InOctave _o (Note.Note n a)) typ) d =
+    concat [
+        renderNoteName n
+      , case a of
+          Nothing               -> ""
+          Just Note.Sharp       -> "-sharp"
+          Just Note.Flat        -> "-flat"
+          Just Note.DoubleSharp -> "-sharpsharp"
+          Just Note.DoubleFlat  -> "-flatflat"
+          Just Note.Natural     -> "!"
+      , renderDuration d
+      , renderChordType typ
+      ]
 
 -- Render chord type
 --
@@ -246,19 +248,19 @@ renderChordName (Chord.Name (Note.Note name atal) typ) d = concat [
 -- do that so far.
 renderChordType :: Chord.Type -> String
 renderChordType = \case
-    Chord.Type.Basic_MajorTriad        -> ""
-    Chord.Type.Basic_MinorTriad        -> ":m"
-    Chord.Type.Basic_MajorSeventh      -> ":maj7"
-    Chord.Type.Basic_MinorSeventh      -> ":m7"
-    Chord.Type.Basic_DominantSeventh   -> ":7"
+    Chord.Basic_MajorTriad        -> ""
+    Chord.Basic_MinorTriad        -> ":m"
+    Chord.Basic_MajorSeventh      -> ":maj7"
+    Chord.Basic_MinorSeventh      -> ":m7"
+    Chord.Basic_DominantSeventh   -> ":7"
 
-    Chord.Type.StdJazz_Major          -> ":maj7"
-    Chord.Type.StdJazz_Minor          -> ":m7"
-    Chord.Type.StdJazz_Dominant       -> ":7"
-    Chord.Type.StdJazz_HalfDiminished -> ":m7.5-"
-    Chord.Type.StdJazz_Altered        -> ":3.5+.7.9+"
+    Chord.StdJazz_Major          -> ":maj7"
+    Chord.StdJazz_Minor          -> ":m7"
+    Chord.StdJazz_Dominant       -> ":7"
+    Chord.StdJazz_HalfDiminished -> ":m7.5-"
+    Chord.StdJazz_Altered        -> ":3.5+.7.9+"
 
-renderUnnamed :: Unnamed.Chord -> String
+renderUnnamed :: Unnamed.Chord Absolute -> String
 renderUnnamed (Unnamed.Chord ns) =
     case ns of
       n :| []    -> renderInOctave n
@@ -273,7 +275,7 @@ renderUnnamed (Unnamed.Chord ns) =
 -------------------------------------------------------------------------------}
 
 renderInOctave :: Note.InOctave -> String
-renderInOctave (Note.InOctave (Note.Note n ma) o) = concat [
+renderInOctave (Note.InOctave o (Note.Note n ma)) = concat [
       renderNoteName n
     , renderAccidental ma o
     ]
@@ -285,7 +287,7 @@ renderNoteName = map toLower . show
 -- be shown (independent from clef), the "!" must come /after/ the octave;
 -- this is the only way to explicitly show a \"natural\" accidental.
 -- However, other accidentals must come /before/ the octave.
-renderAccidental :: Maybe Note.Accidental -> Note.Octave -> String
+renderAccidental :: Maybe Note.Accidental -> Octave -> String
 renderAccidental Nothing  o = renderOctave o
 renderAccidental (Just a) o =
     case a of
@@ -295,14 +297,14 @@ renderAccidental (Just a) o =
       Note.DoubleFlat  -> "-flatflat"   ++ renderOctave o
       Note.Natural     ->                  renderOctave o ++ "!"
 
-renderOctave :: Note.Octave -> String
+renderOctave :: Octave -> String
 renderOctave o
   | o' < 0    = replicate (abs o') ','
   | o' > 0    = replicate      o'  '\''
   | otherwise = ""
   where
     -- Lilypond uses the octave /below/ middle C as the default
-    o' = Note.aboveMiddleOctave o + 1
+    o' = Octave.aboveMiddle o + 1
 
 {-------------------------------------------------------------------------------
   Internal auxiliary

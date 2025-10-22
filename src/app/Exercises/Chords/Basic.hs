@@ -1,7 +1,7 @@
 module Exercises.Chords.Basic (exercises) where
 
 import MusicTheory
-import MusicTheory.Chord.Type qualified as Chord (Type(..))
+import MusicTheory.Chord qualified as Chord
 
 import Lilypond qualified as Ly
 

@@ -1,6 +1,8 @@
 -- | General purpose definitions
 --
 -- Intended for unqualified import.
+--
+-- > import MusicTheory
 module MusicTheory (
     -- * Classes
     -- ** Transposition

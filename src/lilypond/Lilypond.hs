@@ -19,7 +19,8 @@ module Lilypond (
 import Data.Default
 
 import MusicTheory.Chord.Named qualified as Named (Chord)
-import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord)
+import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
+import MusicTheory.Reference
 
 {-------------------------------------------------------------------------------
   Document structure
@@ -70,8 +71,8 @@ instance Default StaffProps where
       }
 
 data StaffElem =
-    StaffNamedChord Named.Chord Duration
-  | StaffUnnamedChord Unnamed.Chord Duration
+    StaffNamedChord   (  Named.Chord Absolute) Duration
+  | StaffUnnamedChord (Unnamed.Chord Absolute) Duration
   | StaffLinebreak
 
 data Duration =
