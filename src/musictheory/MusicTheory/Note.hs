@@ -10,12 +10,7 @@ module MusicTheory.Note (
   , Accidental(..)
   , Note(..)
   , noteName
-    -- * \"Simple\" notes
-  , SimpleAccidental(..)
-  , fromSimpleAccidental
-  , Simple(..)
-  , simpleWithAccidental
-  , fromSimple
+  , withAccidental
     -- * Octaves
   , InOctave(..)
   ) where
@@ -61,52 +56,25 @@ instance HasStringTable Note where
 noteName :: Note -> Name
 noteName (Note name _atal) = name
 
-{-------------------------------------------------------------------------------
-  "Simple" notes
--------------------------------------------------------------------------------}
-
-data SimpleAccidental = SimpleSharp | SimpleFlat
-  deriving stock (Eq, Enum, Bounded)
-  deriving (Show, IsString) via UseStringTable SimpleAccidental
-
-fromSimpleAccidental :: SimpleAccidental -> Accidental
-fromSimpleAccidental SimpleSharp = Sharp
-fromSimpleAccidental SimpleFlat  = Flat
-
-instance HasStringTable SimpleAccidental where
-  stringTable = stringTableEnum $ \case
-      SimpleSharp -> "♯"
-      SimpleFlat  -> "♭"
-
--- | \"Simple\" notes
+-- | Add accidental
 --
--- Simple notes have simple accidentals: at most a single sharp or a single
--- flat. This is a useful concept, because when we sharpen or flatten a simple
--- note, we at most need a double sharp or double flat.
-data Simple = Simple Name (Maybe SimpleAccidental)
-  deriving stock (Eq)
-  deriving (Show, IsString) via UseStringTable Simple
-
-instance HasStringTable Simple where
-  stringTable = uncurry Simple <$>
-      stringTablePair stringTable (stringTableMaybe "" stringTable)
-
-simpleWithAccidental :: Simple -> Maybe SimpleAccidental -> Note
-simpleWithAccidental = \(Simple note atal) atal' ->
-    Note note (aux atal atal')
+-- NOTE: This is a partial function: we only support up to double sharps and
+-- flats (sharpening something that is already a double sharp results in an
+-- exception).
+withAccidental :: Note -> Maybe Accidental -> Note
+withAccidental = \(Note name atal) atal' ->
+    Note name (aux atal atal')
   where
-    aux :: Maybe SimpleAccidental -> Maybe SimpleAccidental -> Maybe Accidental
-    aux atal        Nothing      = fromSimpleAccidental <$> atal
-    aux Nothing     atal'        = fromSimpleAccidental <$> atal'
+    aux :: Maybe Accidental -> Maybe Accidental -> Maybe Accidental
+    aux atal        Nothing      = atal
+    aux Nothing     atal'        = atal'
     aux (Just atal) (Just atal') = Just $
         case (atal, atal') of
-          (SimpleSharp, SimpleSharp) -> DoubleSharp
-          (SimpleSharp, SimpleFlat)  -> Natural
-          (SimpleFlat,  SimpleSharp) -> Natural
-          (SimpleFlat,  SimpleFlat)  -> DoubleFlat
-
-fromSimple :: Simple -> Note
-fromSimple (Simple name atal) = Note name (fromSimpleAccidental <$> atal)
+          (Sharp, Sharp) -> DoubleSharp
+          (Sharp, Flat)  -> Natural
+          (Flat,  Sharp) -> Natural
+          (Flat,  Flat)  -> DoubleFlat
+          _otherwise     -> error $ "Unsupported " ++ show (atal, atal')
 
 {-------------------------------------------------------------------------------
   Octaves
@@ -175,15 +143,6 @@ instance Normalize Note where
           DoubleFlat  -> -2
           Natural     ->  0
 
-instance Normalize Simple where
-  normalize (Simple name atal) = Norm $
-      shiftIntegral (maybe 0 shift atal) $ semitones (normalize name)
-    where
-      shift :: SimpleAccidental -> Int
-      shift = \case
-          SimpleSharp ->  1
-          SimpleFlat  -> -1
-
 instance Normalize InOctave where
   normalize (InOctave (Octave o) note) = Norm $
         (o * 12) + semitones (normalize note)
@@ -201,5 +160,4 @@ instance Normalize a => Distance (NormalForm a) where
 
 deriving via NormalForm Name     instance Distance Name
 deriving via NormalForm Note     instance Distance Note
-deriving via NormalForm Simple   instance Distance Simple
 deriving via NormalForm InOctave instance Distance InOctave

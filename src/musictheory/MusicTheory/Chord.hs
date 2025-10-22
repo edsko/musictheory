@@ -29,6 +29,7 @@ data Type =
   | StdJazz_Dominant
   | StdJazz_HalfDiminished
   | StdJazz_Altered
+  | StdJazz_AlteredFlat9
   deriving stock (Show)
 
 data Name r = Name{

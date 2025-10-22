@@ -1,6 +1,11 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 -- | Module for use in ghci
+--
+-- Some things to try:
+--
+-- > Scale.named (Scale.Name "F♯" Scale.Major)
+-- > wrtScale Octave.middle (Scale.named $ Scale.Name "C" Scale.Minor) $ Progression.named Progression.StdJazz_Minor251
 module MusicTheory.Interactive where
 
 -- To re-generate this list:

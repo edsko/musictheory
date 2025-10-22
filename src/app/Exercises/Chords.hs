@@ -64,7 +64,7 @@ chordsOfTypeIn chordType inversions scales =
       where
         -- .. always use a major scale as context
         scale :: Scale
-        scale = Scale.withName $ Scale.Name scaleRoot Scale.Major
+        scale = Scale.named $ Scale.Name scaleRoot Scale.Major
 
         -- .. and always show the I chord in that scale
         chord :: Named.Chord Relative

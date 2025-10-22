@@ -14,7 +14,11 @@ import Exercises.Chords
 exercises :: Ly.Section
 exercises = Ly.Section{
       title  = "Standard Jazz voicings"
-    , intro  = Just "All chords shown with the seventh and the third in the bass."
+    , intro  = Just $ concat [
+          "Every chord shown twice: "
+        , "first with the seventh in the bass, "
+        , " then with the third in the bass. "
+        ]
     , scores = [
           major
         , minor

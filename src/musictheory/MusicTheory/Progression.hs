@@ -78,6 +78,7 @@ voiceLeading permissibleInversions = \(Progression chords) -> Progression $
 data Name =
     -- | Using standard Jazz voicing
     StdJazz_Major251
+  | StdJazz_Minor251
 
 named :: Name -> Progression Relative
 named = Progression . fmap Chord.Named.relative . \case
@@ -85,4 +86,9 @@ named = Progression . fmap Chord.Named.relative . \case
         Chord.Name "2" Chord.StdJazz_Minor
       , Chord.Name "5" Chord.StdJazz_Dominant
       , Chord.Name "1" Chord.StdJazz_Major
+      ]
+    StdJazz_Minor251 -> [
+        Chord.Name "2" Chord.StdJazz_HalfDiminished
+      , Chord.Name "5" Chord.StdJazz_AlteredFlat9
+      , Chord.Name "1" Chord.StdJazz_Minor
       ]

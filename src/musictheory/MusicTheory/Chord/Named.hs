@@ -94,6 +94,7 @@ instance MakeAbsolute Chord where
 
 scaleDegrees :: Scale.Type -> Chord.Type -> Scale.Degree -> NonEmpty Scale.Degree
 scaleDegrees Scale.Major = scaleDegreesMajor
+scaleDegrees Scale.Minor = scaleDegreesMinor
 
 -- | Scale degrees for chord, wrt to the corresponding /major/ scale
 --
@@ -116,11 +117,12 @@ scaleDegreesMajor typ (Scale.Degree 1 Nothing) =
       Chord.StdJazz_Dominant       -> [ "3" , "13" , "♭7" ,  "9" ]
       Chord.StdJazz_HalfDiminished -> [ "1" , "♭3" , "♭5" , "♭7" ]
       Chord.StdJazz_Altered        -> [ "3" , "♯5" , "♭7" , "♯9" ]
+      Chord.StdJazz_AlteredFlat9   -> [ "3" ,  "5" , "♭7" , "♭9" ]
 
 -- Chords with their root at different scale degrees
 scaleDegreesMajor typ root =
     case (typ, root) of
-      -- 2-5-1 using standard jazz voicing:
+      -- Major 2-5-1 using standard jazz voicing:
       --
       -- >  1    2    3    4    5    6    7   (8)   9  (10)  11  (12)  13  (14)
       -- >  C    D    E    F    G    A    B   (C)   D  ( E)   F  ( G)   A  ( B)
@@ -130,6 +132,31 @@ scaleDegreesMajor typ root =
       -- >  ._________*_________*_________*_________*                         (Imaj7)
       (Chord.StdJazz_Minor    , "2") -> [ "4" , "6" ,  "8" , "10" ]
       (Chord.StdJazz_Dominant , "5") -> [ "7" , "9" , "11" , "13" ]
+
+      -- We don't implement all possible combinations here
+      _otherwise -> error $ "TODO: " ++ show (typ, root)
+
+scaleDegreesMinor :: Chord.Type -> Scale.Degree -> NonEmpty Scale.Degree
+scaleDegreesMinor typ root =
+    case (typ, root) of
+      -- Minor 2-5-1 using standard jazz voicing
+      --
+      -- >  1    2    3    4    5    6    7   (8)   9  (10)  11  (12)  13  (14)
+      -- >  C    D    E♭   F    G    A♭   B♭  (C)   D  (E♭)   F  ( G)  A♭  (B♭)
+      -- > ------------------------------------------------
+      -- >       *_________*_________*_________*                              (iim7.-5)
+      -- >                      ._________*_________*_________*_________*     (V7.-9)
+      -- >  ._________*_________*_________*_________*                         (Imaj7)
+      --
+      -- NOTE: "AlteredFlat9" is the name of this chord in reference to a
+      -- /major/ scale. In a minor scale, that flat 9 is just the second degree
+      -- of the scale (in this case, the 13, since we are dealing with the V
+      -- chord). In addition, in the context of the (natural) minor scale, we
+      -- need to sharpen the 7, to get the dominant chord (rather than a minor
+      -- chord).
+      (Chord.StdJazz_HalfDiminished , "2") -> [  "2" , "4" ,  "6" ,  "8" ]
+      (Chord.StdJazz_AlteredFlat9   , "5") -> [ "♯7" , "9" , "11" , "13" ]
+      (Chord.StdJazz_Minor          , "1") -> [  "3" , "5" ,  "7" ,  "9" ]
 
       -- We don't implement all possible combinations here
       _otherwise -> error $ "TODO: " ++ show (typ, root)

@@ -17,7 +17,7 @@ module MusicTheory.Scale (
   , Type(..)
   , Name(..)
     -- * Construction
-  , withName
+  , named
   , allOfType
   ) where
 
@@ -31,13 +31,13 @@ import MusicTheory.Util.StringTable
 
 data Scale = Scale{
       name  :: Name
-    , notes :: [Note.Simple]
+    , notes :: [Note]
     }
   deriving stock (Show)
 
 at :: Scale -> Degree -> Note
 at scale (Degree degree atal) =
-    Note.simpleWithAccidental
+    Note.withAccidental
       (scale.notes !! ((fromIntegral degree - 1) `mod` length scale.notes))
       atal
 
@@ -46,7 +46,7 @@ at scale (Degree degree atal) =
 -------------------------------------------------------------------------------}
 
 -- | Scale degrees
-data Degree = Degree Word (Maybe Note.SimpleAccidental)
+data Degree = Degree Word (Maybe Note.Accidental)
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable Degree
 
@@ -84,7 +84,7 @@ data Root = C | G | D | A | E | B | F# | Gb | Db | Ab | Eb | Bb | F
 instance HasStringTable Root where
   stringTable = stringTableEnum $ stringTableLookup stringTable . rootNote
 
-rootNote :: Root -> Note.Simple
+rootNote :: Root -> Note
 rootNote = \case
     C  -> "C"
     G  -> "G"
@@ -109,6 +109,7 @@ allRoots = [minBound .. maxBound]
 
 data Type =
     Major
+  | Minor
   deriving stock (Show)
 
 data Name = Name{
@@ -121,12 +122,13 @@ data Name = Name{
   Construction
 -------------------------------------------------------------------------------}
 
-withName :: Name -> Scale
-withName (Name root typ) = Scale (Name root typ) $
+named :: Name -> Scale
+named (Name root typ) = Scale (Name root typ) $
     case typ of
-      Major -> majorScale root
+      Major -> majorScale   root
+      Minor -> naturalMinor root
 
-majorScale :: Root -> [Note.Simple]
+majorScale :: Root -> [Note]
 majorScale = \case
     C  -> ["C"  , "D"  , "E"  , "F"  , "G"  , "A"  , "B" ]
     G  -> ["G"  , "A"  , "B"  , "C"  , "D"  , "E"  , "F♯"]
@@ -142,5 +144,24 @@ majorScale = \case
     Bb -> ["B♭" , "C"  , "D"  , "E♭" , "F"  , "G"  , "A" ]
     F  -> ["F"  , "G"  , "A"  , "B♭" , "C"  , "D"  , "E" ]
 
+-- | Natural minor scale
+--
+-- This introduces double-flats in some scales (G♭ and D♭).
+naturalMinor :: Root -> [Note]
+naturalMinor = \case
+    C  -> ["C"  , "D"  , "E♭" , "F"  , "G"  , "A♭" , "B♭"]
+    G  -> ["G"  , "A"  , "B♭" , "C"  , "D"  , "E♭" , "F" ]
+    D  -> ["D"  , "E"  , "F"  , "G"  , "A"  , "B♭" , "C" ]
+    A  -> ["A"  , "B"  , "C"  , "D"  , "E"  , "F"  , "G" ]
+    E  -> ["E"  , "F♯" , "G"  , "A"  , "B"  , "C"  , "D" ]
+    B  -> ["B"  , "C♯" , "D"  , "E"  , "F♯" , "G"  , "A" ]
+    F# -> ["F♯" , "G♯" , "A"  , "B"  , "C♯" , "D"  , "E" ]
+    Gb -> ["G♭" , "A♭" , "B𝄫" , "C♭" , "D♭" , "E𝄫" , "F♭"]
+    Db -> ["D♭" , "E♭" , "F♭" , "G♭" , "A♭" , "B𝄫" , "C♭"]
+    Ab -> ["A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F♭" , "G♭"]
+    Eb -> ["E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C♭" , "D♭"]
+    Bb -> ["B♭" , "C"  , "D♭" , "E♭" , "F"  , "G♭" , "A♭"]
+    F  -> ["F"  , "G"  , "A♭" , "B♭" , "C"  , "D♭" , "E♭"]
+
 allOfType :: Type -> [Scale]
-allOfType typ = [withName (Name root typ) | root <- allRoots]
+allOfType typ = [named (Name root typ) | root <- allRoots]

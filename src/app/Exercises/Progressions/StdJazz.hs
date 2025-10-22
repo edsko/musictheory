@@ -23,6 +23,7 @@ exercises = Ly.Section{
         ]
     , scores = [
           major251
+        , minor251
         ]
     }
 
@@ -39,4 +40,15 @@ major251 = Ly.Score{
           [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]
           [Inversion 1, Inversion 3]
           (Scale.allOfType Scale.Major)
+    }
+
+minor251 :: Ly.Score
+minor251 = Ly.Score{
+      title = "Minor 2-5-1"
+    , elems =
+        progressionExercise
+          (Progression.named Progression.StdJazz_Minor251)
+          [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]
+          [Inversion 1, Inversion 3]
+          (Scale.allOfType Scale.Minor)
     }
