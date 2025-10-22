@@ -148,12 +148,11 @@ scaleDegreesMinor typ root =
       -- >                      ._________*_________*_________*_________*     (V7.-9)
       -- >  ._________*_________*_________*_________*                         (Imaj7)
       --
-      -- NOTE: "AlteredFlat9" is the name of this chord in reference to a
-      -- /major/ scale. In a minor scale, that flat 9 is just the second degree
-      -- of the scale (in this case, the 13, since we are dealing with the V
-      -- chord). In addition, in the context of the (natural) minor scale, we
-      -- need to sharpen the 7, to get the dominant chord (rather than a minor
-      -- chord).
+      -- NOTE: The "Flat9" "AlteredFlat9" does not refer to scale degrees, but
+      -- rather to the interval between its nineth (second).
+      --
+      -- NOTE: In the context of the (natural) minor scale, we need to sharpen
+      -- scale degree 7 to get the dominant chord (rather than a minor chord).
       (Chord.StdJazz_HalfDiminished , "2") -> [  "2" , "4" ,  "6" ,  "8" ]
       (Chord.StdJazz_AlteredFlat9   , "5") -> [ "♯7" , "9" , "11" , "13" ]
       (Chord.StdJazz_Minor          , "1") -> [  "3" , "5" ,  "7" ,  "9" ]
