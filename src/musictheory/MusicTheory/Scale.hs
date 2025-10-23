@@ -9,6 +9,7 @@ module MusicTheory.Scale (
   , at
     -- * Scale degrees
   , Degree(..)
+  , firstDegree
     -- * Roots
   , Root(..)
   , rootNote
@@ -50,6 +51,9 @@ data Degree = Degree Word (Maybe Note.Accidental)
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable Degree
 
+firstDegree :: Degree
+firstDegree = Degree 1 Nothing
+
 instance HasStringTable Degree where
   stringTable = uncurry (flip Degree) <$>
       stringTablePair (stringTableMaybe "" stringTable) stringTableDegree
@@ -82,7 +86,7 @@ data Root = C | G | D | A | E | B | F# | Gb | Db | Ab | Eb | Bb | F
   deriving (Show, IsString) via UseStringTable Root
 
 instance HasStringTable Root where
-  stringTable = stringTableEnum $ stringTableLookup stringTable . rootNote
+  stringTable = stringTableEnum $ stringTableEntry . rootNote
 
 rootNote :: Root -> Note
 rootNote = \case

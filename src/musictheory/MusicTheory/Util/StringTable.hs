@@ -1,8 +1,10 @@
+-- | 'Show' and 'IsString' using a lookup table
+--
+-- Intended for unqualified import.
 module MusicTheory.Util.StringTable (
     -- * String tables
     StringTable(..)
-  , stringTableLookup
-  , stringTableReverse
+  , stringTableEntry
   , HasStringTable(..)
   , UseShow(..)
     -- ** Construction
@@ -40,6 +42,9 @@ stringTableReverse table str =
 
 class Eq a => HasStringTable a where
   stringTable :: StringTable a
+
+stringTableEntry :: HasStringTable a => a -> String
+stringTableEntry = stringTableLookup stringTable
 
 -- | Derive 'StringTable' using stock-derived 'Show'
 --

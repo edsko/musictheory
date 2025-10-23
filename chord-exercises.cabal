@@ -48,10 +48,10 @@ library musictheory
       MusicTheory.Progression
       MusicTheory.Reference
       MusicTheory.Scale
+      MusicTheory.Util.StringTable
 
   other-modules:
       MusicTheory.Util
-      MusicTheory.Util.StringTable
 
   build-depends:
     , containers >= 0.7 && < 0.8

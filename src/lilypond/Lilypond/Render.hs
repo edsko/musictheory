@@ -22,6 +22,7 @@ import MusicTheory.Note.Octave (Octave(..))
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Reference
 import MusicTheory.Scale qualified as Scale
+import MusicTheory.Util.StringTable
 
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
@@ -116,21 +117,16 @@ instance LilypondToDoc Ly.Staff where
                 -- <https://lilypond.org/doc/v2.24/Documentation/snippets/rhythms#rhythms-removing-bar-numbers-from-a-score>
                 RenderM.line "\\Score \\omit BarNumber"
           ]
-      , "<<"
-      , RenderM.indent $ mconcat [
-            RenderM.withinScope "chords" $ mconcat [
-                RenderM.line $ "\\set noChordSymbol = \"\""
-              , RenderM.lines $ renderChordNames staff.elems
-              ]
-          , RenderM.withinScope "new Staff" $ mconcat [
-                -- Don't show key changes at the end of the line
-                -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
-                "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
-              , "\\set Staff.printKeyCancellation = ##f"
-              , RenderM.lines $ renderNotes staff.elems
-              ]
+      , RenderM.withinScope "new Staff" $ mconcat [
+            -- Don't show key changes at the end of the line
+            -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
+            "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
+          , "\\set Staff.printKeyCancellation = ##f"
+            -- Ensure chord annotations are aligned
+            -- <https://lilypond.org/doc/v2.24/Documentation/snippets/tweaks-and-overrides#tweaks-and-overrides-vertically-aligned-dynamics-and-textscripts>
+          , "\\override TextScript.staff-padding = 3"
+          , RenderM.lines $ renderNotes staff.elems
           ]
-      , ">>"
       ]
 
 {-------------------------------------------------------------------------------
@@ -138,9 +134,6 @@ instance LilypondToDoc Ly.Staff where
 -------------------------------------------------------------------------------}
 
 -- | Header
---
--- TODO: These should not be strings: they support markup.
--- <https://lilypond.org/doc/v2.24/Documentation/notation/creating-titles-headers-and-footers#default-layout-of-Bookpart-and-score-titles>
 data Header cls = Header{
       dedication  :: Maybe (Ly.Markup cls)
     , title       :: Maybe (Ly.Markup cls)
@@ -195,30 +188,15 @@ instance LilypondToDoc Header where
   Render a single 'Staff'
 -------------------------------------------------------------------------------}
 
-renderChordNames :: [Ly.StaffElem] -> [String]
-renderChordNames = \elems ->
-    map aux elems
-  where
-    aux :: Ly.StaffElem -> String
-    aux (Ly.StaffNamedChord chord duration) =
-        renderChordName (Chord.Named.getName chord) duration
-    aux (Ly.StaffUnnamedChord _chord duration) =
-        "r" ++ renderDuration duration -- No chord name
-    aux (Ly.StaffLinebreak) =
-        "" -- We generate the linebreak when rendering the staff itself
-    aux (Ly.StaffComment comment) =
-        "% " ++ comment
-    aux (Ly.StaffKeySignature scaleName) =
-        "% " ++ show scaleName
-
 renderNotes :: [Ly.StaffElem] -> [String]
 renderNotes = \elems ->
     map aux elems
   where
     aux :: Ly.StaffElem -> String
     aux (Ly.StaffNamedChord chord duration) = concat [
-          renderUnnamed  (Chord.Named.getNotes chord)
-        , renderDuration duration
+          renderUnnamed   (Chord.Named.getNotes chord)
+        , renderDuration  duration
+        , renderChordName (Chord.Named.getName chord)
         ]
     aux (Ly.StaffUnnamedChord chord duration) = concat [
           renderUnnamed  chord
@@ -297,36 +275,35 @@ renderOctave o
 
 {-------------------------------------------------------------------------------
   Chords
+
+  Although Lilypond has explicit support for chord names, it's not really that
+  suited to our purpose: because it wants to be able to interpret the chords
+  as notes, chord names must be chosen from a specific set, and it's not easy
+  to change notation.
 -------------------------------------------------------------------------------}
 
-renderChordName :: Chord.Name Absolute -> Ly.Duration -> String
-renderChordName (Chord.Name (Note.InOctave _o note) typ) d =
-    concat [
-        renderNote note
-      , renderDuration d
-      , renderChordType typ
-      ]
-
--- Render chord type
---
--- <https://lilypond.org/doc/v2.24/Documentation/notation/common-chord-modifiers>
---
--- TODO: Ideally we'd render the altered chord as "alt", but haven't managed to
--- do that so far.
-renderChordType :: Chord.Type -> String
-renderChordType = \case
-    Chord.Basic_MajorTriad        -> ""
-    Chord.Basic_MinorTriad        -> ":m"
-    Chord.Basic_MajorSeventh      -> ":maj7"
-    Chord.Basic_MinorSeventh      -> ":m7"
-    Chord.Basic_DominantSeventh   -> ":7"
-
-    Chord.StdJazz_Major          -> ":maj7"
-    Chord.StdJazz_Minor          -> ":m7"
-    Chord.StdJazz_Dominant       -> ":7"
-    Chord.StdJazz_HalfDiminished -> ":m7.5-"
-    Chord.StdJazz_Altered        -> ":3.5+.7.9+"
-    Chord.StdJazz_AlteredFlat9   -> ":3.5.7.9-"
+renderChordName :: Chord.Name Absolute -> String
+renderChordName (Chord.Name (Note.InOctave _o note) typ) = concat [
+      "^\\markup{"
+    , stringTableEntry note
+    , case typ of
+        Chord.Basic_MajorTriad       -> ""
+        Chord.Basic_MinorTriad       -> "m"
+        Chord.Basic_MajorSeventh     -> sup "maj7"
+        Chord.Basic_MinorSeventh     -> "m" ++ sup "7"
+        Chord.Basic_DominantSeventh  -> sup "7"
+        Chord.StdJazz_Major          -> sup "maj7"
+        Chord.StdJazz_Minor          -> "m" ++ sup "7"
+        Chord.StdJazz_Dominant       -> sup "7"
+        Chord.StdJazz_HalfDiminished -> sup "ø"
+        Chord.StdJazz_Altered        -> sup "alt"
+        Chord.StdJazz_AlteredFlat9   -> sup "alt(♭9)"
+        Chord.StdJazz_Sus            -> sup "sus"
+    , "}"
+    ]
+  where
+    sup :: String -> String
+    sup text = "\\hspace #-0.5 \\normal-size-super{" ++ text ++ "}"
 
 renderUnnamed :: Unnamed.Chord Absolute -> String
 renderUnnamed (Unnamed.Chord ns) =
