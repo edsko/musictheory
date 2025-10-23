@@ -25,11 +25,15 @@ exercises = Ly.Section{
         , " then with the seventh in the bass. "
         , "Basic voice leading is applied in both cases."
         ]
-    , elems = [
+    , elems = concatMap addPageBreak [
           Ly.SectionScore major251
         , Ly.SectionScore minor251
         ]
     }
+  where
+    -- By adding a page break just before all 12 scales fit on a page
+    addPageBreak :: Ly.SectionElem Style.Class -> [Ly.SectionElem Style.Class]
+    addPageBreak e = [Ly.SectionPageBreak, e]
 
 {-------------------------------------------------------------------------------
   Individual exercises
