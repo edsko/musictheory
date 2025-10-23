@@ -87,9 +87,14 @@ instance LilypondToDoc Ly.Section where
   toDoc section = RenderM.section section.title $ mconcat [
         RenderM.markup section.title
       , RenderM.whenJust section.intro $ renderIntro
-      , foldMap toDoc section.scores
+      , foldMap toDoc section.elems
       , "\\pageBreak"
       ]
+
+instance LilypondToDoc Ly.SectionElem where
+  toDoc = \case
+      Ly.SectionScore score -> toDoc score
+      Ly.SectionPageBreak   -> "\\pageBreak"
 
 instance LilypondToDoc Ly.Score where
   toDoc score = mconcat [

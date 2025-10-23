@@ -16,18 +16,20 @@ import Exercises.Lilypond.Style qualified as Style
 
 exercises :: Ly.Section Style.Class
 exercises = Ly.Section{
-      title  = sectionTitle "Standard Jazz voicings"
-    , intro  = Just $ Markup.Wordwrap $ mconcat [
+      title = sectionTitle "Standard Jazz voicings"
+    , intro = Just $ Markup.Wordwrap $ mconcat [
           "Every chord shown twice: "
         , "first with the third in the bass, "
         , " then with the seventh in the bass. "
         ]
-    , scores = [
-          major
-        , minor
-        , dominant
-        , halfDiminished
-        , altered
+    , elems = [
+          Ly.SectionScore major
+        , Ly.SectionScore minor
+        , Ly.SectionScore dominant
+        , Ly.SectionPageBreak
+
+        , Ly.SectionScore halfDiminished
+        , Ly.SectionScore altered
         ]
     }
 

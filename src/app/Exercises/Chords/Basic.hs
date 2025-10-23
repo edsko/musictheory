@@ -15,13 +15,13 @@ import Exercises.Lilypond.Style qualified as Style
 
 exercises :: Ly.Section Style.Class
 exercises = Ly.Section{
-      title  = sectionTitle "Basic chord exercises"
-    , intro  = Nothing
-    , scores = [
-          majorTriads
-        , majorSeventh
-        , dominantSeventh
-        , minorSeventh
+      title = sectionTitle "Basic chord exercises"
+    , intro = Nothing
+    , elems = [
+          Ly.SectionScore majorTriads
+        , Ly.SectionScore majorSeventh
+        , Ly.SectionScore dominantSeventh
+        , Ly.SectionScore minorSeventh
         ]
     }
 

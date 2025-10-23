@@ -8,6 +8,7 @@ module Lilypond (
   , Book(..)
   , Bookpart(..)
   , Section(..)
+  , SectionElem(..)
   , Score(..)
   , Staff(..)
     -- * Staff elements
@@ -47,8 +48,12 @@ data Bookpart cls = Bookpart{
 data Section cls = Section{
       title  :: Ly.Markup cls
     , intro  :: Maybe (Ly.Markup cls)
-    , scores :: [Score cls]
+    , elems  :: [SectionElem cls]
     }
+
+data SectionElem cls =
+    SectionScore (Score cls)
+  | SectionPageBreak
 
 data Score cls = Score{
       title :: Ly.Markup cls

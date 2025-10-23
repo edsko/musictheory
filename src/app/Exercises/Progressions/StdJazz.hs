@@ -18,16 +18,16 @@ import Exercises.Progressions
 
 exercises :: Ly.Section Style.Class
 exercises = Ly.Section{
-      title  = sectionTitle "Using standard Jazz voicings"
-    , intro  = Just $ Ly.Markup.Wordwrap $ mconcat [
+      title = sectionTitle "Using standard Jazz voicings"
+    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every progression shown twice: "
         , "first with the third in the bass of the first chord, "
         , " then with the seventh in the bass. "
         , "Basic voice leading is applied in both cases."
         ]
-    , scores = [
-          major251
-        , minor251
+    , elems = [
+          Ly.SectionScore major251
+        , Ly.SectionScore minor251
         ]
     }
 
