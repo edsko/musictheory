@@ -97,8 +97,6 @@ chordsOfTypeIn chordType inversions scales =
 -------------------------------------------------------------------------------}
 
 -- | Split the scales into two halves
---
--- We repeat "C" at the end for nice symmetry.
 firstHalf, secondHalf :: [Scale.Root]
-firstHalf  = [ "C"  , "G"  , "D"  , "A"  , "E"  , "B" , "F♯" ]
-secondHalf = [ "G♭" , "D♭" , "A♭" , "E♭" , "B♭" , "F" , "C"  ]
+firstHalf  = take 6 Scale.allMajorRoots
+secondHalf = drop 6 Scale.allMajorRoots

@@ -45,7 +45,7 @@ major251 = Ly.Score{
           -- Starts on a rootless minor chord
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
           permissibleInversions
-          (Scale.allOfType Scale.Major)
+          Scale.allMajorScales
     }
 
 minor251 :: Ly.Score Style.Class
@@ -58,7 +58,7 @@ minor251 = Ly.Score{
           -- This starts on a half-dimished chord, which we voice with a root.
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
           permissibleInversions
-          (Scale.allOfType Scale.Minor)
+          Scale.allMinorScales
     }
 
 -- | Possible inversions

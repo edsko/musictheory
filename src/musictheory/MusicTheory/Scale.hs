@@ -13,13 +13,16 @@ module MusicTheory.Scale (
     -- * Roots
   , Root(..)
   , rootNote
-  , allRoots
     -- * Scale names
   , Type(..)
   , Name(..)
     -- * Construction
   , named
-  , allOfType
+    -- * Enumeration
+  , allMajorRoots
+  , allMinorRoots
+  , allMajorScales
+  , allMinorScales
   ) where
 
 import MusicTheory.Note (Note)
@@ -81,8 +84,20 @@ instance HasStringTable Degree where
 -------------------------------------------------------------------------------}
 
 -- | Scale roots along the circle of fifths
-data Root = C | G | D | A | E | B | F# | Gb | Db | Ab | Eb | Bb | F
-  deriving stock (Eq, Ord, Enum, Bounded)
+data Root =
+    C
+  | G
+  | D
+  | A
+  | E
+  | B
+  | F# | Gb
+  | Db | C#
+  | Ab
+  | Eb
+  | Bb
+  | F
+  deriving stock (Eq, Enum, Bounded)
   deriving (Show, IsString) via UseStringTable Root
 
 instance HasStringTable Root where
@@ -96,16 +111,17 @@ rootNote = \case
     A  -> "A"
     E  -> "E"
     B  -> "B"
+
     F# -> "F♯"
     Gb -> "G♭"
+
     Db -> "D♭"
+    C# -> "C♯"
+
     Ab -> "A♭"
     Eb -> "E♭"
     Bb -> "B♭"
     F  -> "F"
-
-allRoots :: [Root]
-allRoots = [minBound .. maxBound]
 
 {-------------------------------------------------------------------------------
   Scale names
@@ -140,9 +156,13 @@ majorScale = \case
     A  -> ["A"  , "B"  , "C♯" , "D"  , "E"  , "F♯" , "G♯"]
     E  -> ["E"  , "F♯" , "G♯" , "A"  , "B"  , "C♯" , "D♯"]
     B  -> ["B"  , "C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A♯"]
+
     F# -> ["F♯" , "G♯" , "A♯" , "B"  , "C♯" , "D♯" , "E♯"]
     Gb -> ["G♭" , "A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F" ]
+
     Db -> ["D♭" , "E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C" ]
+    C# -> ["C♯" , "D♯" , "E♯" , "F♯" , "G♯" , "A♯" , "B♯"]
+
     Ab -> ["A♭" , "B♭" , "C"  , "D♭" , "E♭" , "F"  , "G" ]
     Eb -> ["E♭" , "F"  , "G"  , "A♭" , "B♭" , "C"  , "D" ]
     Bb -> ["B♭" , "C"  , "D"  , "E♭" , "F"  , "G"  , "A" ]
@@ -159,13 +179,32 @@ naturalMinor = \case
     A  -> ["A"  , "B"  , "C"  , "D"  , "E"  , "F"  , "G" ]
     E  -> ["E"  , "F♯" , "G"  , "A"  , "B"  , "C"  , "D" ]
     B  -> ["B"  , "C♯" , "D"  , "E"  , "F♯" , "G"  , "A" ]
+
     F# -> ["F♯" , "G♯" , "A"  , "B"  , "C♯" , "D"  , "E" ]
     Gb -> ["G♭" , "A♭" , "B𝄫" , "C♭" , "D♭" , "E𝄫" , "F♭"]
+
     Db -> ["D♭" , "E♭" , "F♭" , "G♭" , "A♭" , "B𝄫" , "C♭"]
+    C# -> ["C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A"  , "B" ]
+
     Ab -> ["A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F♭" , "G♭"]
     Eb -> ["E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C♭" , "D♭"]
     Bb -> ["B♭" , "C"  , "D♭" , "E♭" , "F"  , "G♭" , "A♭"]
     F  -> ["F"  , "G"  , "A♭" , "B♭" , "C"  , "D♭" , "E♭"]
 
-allOfType :: Type -> [Scale]
-allOfType typ = [named (Name root typ) | root <- allRoots]
+{-------------------------------------------------------------------------------
+  Choice of roots
+
+  For the minor scale we pick roots so that double-flats are avoided. For a
+  sense of duality, we then pick their enharmonic equivalents for major scales.
+
+  For the minor scales, we start the circle of fifths on A, to get a similar
+  progression in terms of sharps and flats as for the major scales.
+-------------------------------------------------------------------------------}
+
+allMinorRoots, allMajorRoots :: [Root]
+allMajorRoots = [C, G, D, A, E, B,   Gb, Db,   Ab, Eb, Bb, F]
+allMinorRoots = [         A, E, B,   F#, C#,   Ab, Eb, Bb, F, C, G, D]
+
+allMajorScales, allMinorScales :: [Scale]
+allMajorScales = [named (Name root Major) | root <- allMajorRoots]
+allMinorScales = [named (Name root Minor) | root <- allMinorRoots]
