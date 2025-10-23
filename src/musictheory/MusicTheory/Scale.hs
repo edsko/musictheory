@@ -35,7 +35,7 @@ import MusicTheory.Util.StringTable
 
 data Scale = Scale{
       name  :: Name
-    , notes :: [Note]
+    , notes :: [Note.Simple]
     }
   deriving stock (Show)
 
@@ -50,7 +50,7 @@ at scale (Degree degree atal) =
 -------------------------------------------------------------------------------}
 
 -- | Scale degrees
-data Degree = Degree Word (Maybe Note.Accidental)
+data Degree = Degree Word (Maybe Note.SimpleAccidental)
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable Degree
 
@@ -148,7 +148,7 @@ named (Name root typ) = Scale (Name root typ) $
       Major -> majorScale   root
       Minor -> naturalMinor root
 
-majorScale :: Root -> [Note]
+majorScale :: Root -> [Note.Simple]
 majorScale = \case
     C  -> ["C"  , "D"  , "E"  , "F"  , "G"  , "A"  , "B" ]
     G  -> ["G"  , "A"  , "B"  , "C"  , "D"  , "E"  , "F♯"]
@@ -157,11 +157,11 @@ majorScale = \case
     E  -> ["E"  , "F♯" , "G♯" , "A"  , "B"  , "C♯" , "D♯"]
     B  -> ["B"  , "C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A♯"]
 
-    F# -> ["F♯" , "G♯" , "A♯" , "B"  , "C♯" , "D♯" , "E♯"]
+    F# -> error "use Gb instead"
     Gb -> ["G♭" , "A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F" ]
 
     Db -> ["D♭" , "E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C" ]
-    C# -> ["C♯" , "D♯" , "E♯" , "F♯" , "G♯" , "A♯" , "B♯"]
+    C# -> error "use Db instead"
 
     Ab -> ["A♭" , "B♭" , "C"  , "D♭" , "E♭" , "F"  , "G" ]
     Eb -> ["E♭" , "F"  , "G"  , "A♭" , "B♭" , "C"  , "D" ]
@@ -170,8 +170,11 @@ majorScale = \case
 
 -- | Natural minor scale
 --
--- This introduces double-flats in some scales (G♭ and D♭).
-naturalMinor :: Root -> [Note]
+-- We do not provide values for Gb and Db; these scales have double flats:
+--
+-- > Gb -> ["G♭" , "A♭" , "B𝄫" , "C♭" , "D♭" , "E𝄫" , "F♭"]
+-- > Db -> ["D♭" , "E♭" , "F♭" , "G♭" , "A♭" , "B𝄫" , "C♭"]
+naturalMinor :: Root -> [Note.Simple]
 naturalMinor = \case
     C  -> ["C"  , "D"  , "E♭" , "F"  , "G"  , "A♭" , "B♭"]
     G  -> ["G"  , "A"  , "B♭" , "C"  , "D"  , "E♭" , "F" ]
@@ -181,9 +184,9 @@ naturalMinor = \case
     B  -> ["B"  , "C♯" , "D"  , "E"  , "F♯" , "G"  , "A" ]
 
     F# -> ["F♯" , "G♯" , "A"  , "B"  , "C♯" , "D"  , "E" ]
-    Gb -> ["G♭" , "A♭" , "B𝄫" , "C♭" , "D♭" , "E𝄫" , "F♭"]
+    Gb -> error "use F♯ instead"
 
-    Db -> ["D♭" , "E♭" , "F♭" , "G♭" , "A♭" , "B𝄫" , "C♭"]
+    Db -> error "use C♯ instead"
     C# -> ["C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A"  , "B" ]
 
     Ab -> ["A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F♭" , "G♭"]
