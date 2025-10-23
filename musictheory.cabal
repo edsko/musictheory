@@ -1,5 +1,5 @@
 cabal-version:   3.0
-name:            music-theory-exercises
+name:            musictheory
 version:         0.1.0
 license:         BSD-3-Clause
 license-file:    LICENSE
@@ -28,7 +28,7 @@ common lang
       TypeFamilies
       UndecidableInstances
 
-library musictheory
+library
   import:         lang
   hs-source-dirs: src/musictheory
 
