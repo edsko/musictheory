@@ -16,6 +16,8 @@ import MusicTheory.Scale (Scale(..))
 
 import Lilypond qualified as Ly
 
+import Exercises.Lilypond.Style qualified as Style
+
 {-------------------------------------------------------------------------------
   Construct chord progression exercise
 -------------------------------------------------------------------------------}
@@ -29,17 +31,16 @@ progressionExercise ::
      -- ^ Permissable inversions (for voice leading)
   -> [Scale]
      -- ^ Scales to show the progression in
-  -> Ly.ScoreElem
+  -> Ly.Staff Style.Class
 progressionExercise progression initInversions permissibleInversions scales =
-    Ly.ScoreStaff props $
-      concatMap goScale scales
+    Ly.Staff{
+        props = def{
+            Ly.hideTimeSignature  = True
+          , Ly.omitMeasureNumbers = True
+          }
+      , elems = concatMap goScale scales
+      }
   where
-    props :: Ly.StaffProps
-    props = def{
-          Ly.hideTimeSignature  = True
-        , Ly.omitMeasureNumbers = True
-        }
-
     -- .. for each scale
     goScale :: Scale -> [Ly.StaffElem]
     goScale scale = concat [

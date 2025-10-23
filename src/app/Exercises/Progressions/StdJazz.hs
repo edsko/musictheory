@@ -5,17 +5,20 @@ import MusicTheory.Progression qualified as Progression
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
+import Lilypond.Markup qualified as Ly.Markup
 
+import Exercises.Lilypond
+import Exercises.Lilypond.Style qualified as Style
 import Exercises.Progressions
 
 {-------------------------------------------------------------------------------
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: Ly.Section
+exercises :: Ly.Section Style.Class
 exercises = Ly.Section{
-      title  = "Using standard Jazz voicings"
-    , intro  = Just $ concat [
+      title  = sectionTitle "Using standard Jazz voicings"
+    , intro  = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every progression shown twice: "
         , "first with the seventh in the bass of the first chord, "
         , " then with the third in the bass. "
@@ -31,10 +34,11 @@ exercises = Ly.Section{
   Individual exercises
 -------------------------------------------------------------------------------}
 
-major251 :: Ly.Score
+major251 :: Ly.Score Style.Class
 major251 = Ly.Score{
-      title = "Major 2-5-1"
-    , elems =
+      title = exerciseTitle "Major 2-5-1"
+    , intro = Nothing
+    , staff =
         progressionExercise
           (Progression.named Progression.StdJazz_Major251)
           [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]
@@ -42,10 +46,11 @@ major251 = Ly.Score{
           (Scale.allOfType Scale.Major)
     }
 
-minor251 :: Ly.Score
+minor251 :: Ly.Score Style.Class
 minor251 = Ly.Score{
-      title = "Minor 2-5-1"
-    , elems =
+      title = exerciseTitle "Minor 2-5-1"
+    , intro = Nothing
+    , staff =
         progressionExercise
           (Progression.named Progression.StdJazz_Minor251)
           [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]

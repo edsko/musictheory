@@ -3,11 +3,13 @@ module Exercises (exercises) where
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
 
+import Exercises.Lilypond.Style qualified as Style
+
 import Exercises.Chords.Basic         qualified as Chords.Basic
 import Exercises.Chords.StdJazz       qualified as Chords.StdJazz
 import Exercises.Progressions.StdJazz qualified as Progressions.StdJazz
 
-exercises :: Lilypond
+exercises :: Lilypond Style.Class
 exercises = Ly.Lilypond{
       books = [
           Ly.Book{
@@ -21,7 +23,7 @@ exercises = Ly.Lilypond{
         ]
     }
 
-chords :: Ly.Bookpart
+chords :: Ly.Bookpart Style.Class
 chords = Ly.Bookpart{
       title    = "Chords"
     , sections = [
@@ -30,7 +32,7 @@ chords = Ly.Bookpart{
         ]
     }
 
-progressions :: Ly.Bookpart
+progressions :: Ly.Bookpart Style.Class
 progressions = Ly.Bookpart{
       title    = "Progressions"
     , sections = [

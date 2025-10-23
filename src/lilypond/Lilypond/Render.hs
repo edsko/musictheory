@@ -11,6 +11,7 @@ import Data.Char (toLower)
 import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.List.NonEmpty qualified as NE
+import Data.String
 
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
@@ -24,6 +25,8 @@ import MusicTheory.Scale qualified as Scale
 
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
+import Lilypond.Markup qualified as Ly (Markup)
+import Lilypond.Markup qualified as Ly.Markup
 import Lilypond.Render.Monad (RenderM)
 import Lilypond.Render.Monad qualified as RenderM
 import Lilypond.Util.Doc (Doc)
@@ -33,11 +36,12 @@ import Lilypond.Util.Doc qualified as Doc
   Public API
 -------------------------------------------------------------------------------}
 
-class ToDoc a where
-  toDoc :: a -> RenderM Doc
+class LilypondToDoc a where
+  toDoc :: a cls -> RenderM cls Doc
 
-render :: ToDoc a => a -> String
-render = addFooter . Doc.render . RenderM.run . toDoc
+render :: LilypondToDoc a => Ly.Markup.IsClass cls -> a cls -> String
+render isClass =
+    addFooter . Doc.render . RenderM.run isClass . toDoc
   where
     addFooter :: String -> String
     addFooter contents = contents ++ "\n% End lilypond\n"
@@ -46,11 +50,11 @@ render = addFooter . Doc.render . RenderM.run . toDoc
   Render Lilypond fragments
 -------------------------------------------------------------------------------}
 
-instance ToDoc Lilypond where
+instance LilypondToDoc Lilypond where
   toDoc lilypond = mconcat [
          "\\version \"2.24.3\""
        , "\\language \"english\""
-      , RenderM.scope "layout" $ mconcat [
+      , RenderM.withinScope "layout" $ mconcat [
             assignReal "indent" 0.0
           ]
       , toDoc emptyHeader{tagline = Just ""}
@@ -58,8 +62,8 @@ instance ToDoc Lilypond where
       , foldMap toDoc lilypond.books
       ]
 
-instance ToDoc Ly.Book where
-  toDoc book = RenderM.scope "book" $ mconcat [
+instance LilypondToDoc Ly.Book where
+  toDoc book = RenderM.withinScope "book" $ mconcat [
         toDoc emptyHeader{
             title    = Just book.title
           , arranger = Just book.author
@@ -70,7 +74,7 @@ instance ToDoc Ly.Book where
       , foldMap toDoc book.parts
       ]
 
-instance ToDoc Ly.Bookpart where
+instance LilypondToDoc Ly.Bookpart where
   toDoc bookPart = RenderM.bookPart bookPart.title $ mconcat [
         toDoc emptyHeader{
             title    = Just bookPart.title
@@ -79,57 +83,46 @@ instance ToDoc Ly.Bookpart where
       , foldMap toDoc bookPart.sections
       ]
 
-instance ToDoc Ly.Section where
+instance LilypondToDoc Ly.Section where
   toDoc section = RenderM.section section.title $ mconcat [
-        RenderM.lines [
-            "\\markup \\center-column {"
-          , "  \\vspace #1"
-          , "  \\abs-fontsize #16 \\italic \"" ++ section.title ++ "\""
-          , "  \\vspace #1"
-          , "}"
-          ]
-      , RenderM.whenJust section.intro $ \intro -> RenderM.lines [
-            "\\markup \\wordwrap {"
-          , "  " ++ intro
-          , "}"
-          , "\\markup \\center-column {"
-          , "  \\vspace #1"
-          , "}"
-          ]
+        RenderM.markup section.title
+      , RenderM.whenJust section.intro $ renderIntro
       , foldMap toDoc section.scores
       , "\\pageBreak"
       ]
 
-instance ToDoc Ly.Score where
-  toDoc score = RenderM.score score.title $ mconcat [
-        toDoc emptyHeader{piece = Just score.title}
-      , toDoc score.elems
+instance LilypondToDoc Ly.Score where
+  toDoc score = mconcat [
+        RenderM.markup score.title
+      , RenderM.whenJust score.intro $ renderIntro
+      , RenderM.score score.title $
+          toDoc score.staff
       ]
 
-instance ToDoc Ly.ScoreElem where
-  toDoc (Ly.ScoreStaff props content) = mconcat [
-        RenderM.scope "layout" $ mconcat [
-            RenderM.scope "context" $
-              RenderM.when props.hideTimeSignature $
+instance LilypondToDoc Ly.Staff where
+  toDoc staff = mconcat [
+        RenderM.withinScope "layout" $ mconcat [
+            RenderM.withinScope "context" $
+              RenderM.when staff.props.hideTimeSignature $
                 -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
                 RenderM.line "\\Staff \\override TimeSignature.stencil = ##f"
-          , RenderM.scope "context" $
-              RenderM.when props.omitMeasureNumbers $
+          , RenderM.withinScope "context" $
+              RenderM.when staff.props.omitMeasureNumbers $
                 -- <https://lilypond.org/doc/v2.24/Documentation/snippets/rhythms#rhythms-removing-bar-numbers-from-a-score>
                 RenderM.line "\\Score \\omit BarNumber"
           ]
       , "<<"
       , RenderM.indent $ mconcat [
-            RenderM.scope "chords" $ mconcat [
+            RenderM.withinScope "chords" $ mconcat [
                 RenderM.line $ "\\set noChordSymbol = \"\""
-              , RenderM.lines $ renderChordNames content
+              , RenderM.lines $ renderChordNames staff.elems
               ]
-          , RenderM.scope "new Staff" $ mconcat [
+          , RenderM.withinScope "new Staff" $ mconcat [
                 -- Don't show key changes at the end of the line
                 -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
                 "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
               , "\\set Staff.printKeyCancellation = ##f"
-              , RenderM.lines $ renderNotes content
+              , RenderM.lines $ renderNotes staff.elems
               ]
           ]
       , ">>"
@@ -143,23 +136,23 @@ instance ToDoc Ly.ScoreElem where
 --
 -- TODO: These should not be strings: they support markup.
 -- <https://lilypond.org/doc/v2.24/Documentation/notation/creating-titles-headers-and-footers#default-layout-of-Bookpart-and-score-titles>
-data Header = Header{
-      dedication  :: Maybe String
-    , title       :: Maybe String
-    , subtitle    :: Maybe String
-    , subsubtitle :: Maybe String
-    , instrument  :: Maybe String
-    , poet        :: Maybe String
-    , composer    :: Maybe String
-    , meter       :: Maybe String
-    , arranger    :: Maybe String
-    , tagline     :: Maybe String
-    , copyright   :: Maybe String
-    , piece       :: Maybe String
-    , opus        :: Maybe String
+data Header cls = Header{
+      dedication  :: Maybe (Ly.Markup cls)
+    , title       :: Maybe (Ly.Markup cls)
+    , subtitle    :: Maybe (Ly.Markup cls)
+    , subsubtitle :: Maybe (Ly.Markup cls)
+    , instrument  :: Maybe (Ly.Markup cls)
+    , poet        :: Maybe (Ly.Markup cls)
+    , composer    :: Maybe (Ly.Markup cls)
+    , meter       :: Maybe (Ly.Markup cls)
+    , arranger    :: Maybe (Ly.Markup cls)
+    , tagline     :: Maybe (Ly.Markup cls)
+    , copyright   :: Maybe (Ly.Markup cls)
+    , piece       :: Maybe (Ly.Markup cls)
+    , opus        :: Maybe (Ly.Markup cls)
     }
 
-emptyHeader :: Header
+emptyHeader :: Header cls
 emptyHeader = Header{
       dedication  = Nothing
     , title       = Nothing
@@ -176,8 +169,8 @@ emptyHeader = Header{
     , opus        = Nothing
     }
 
-instance ToDoc Header where
-  toDoc header = RenderM.scope "header" $ mconcat [
+instance LilypondToDoc Header where
+  toDoc header = RenderM.withinScope "header" $ mconcat [
         RenderM.whenJust header.dedication  $ assign "dedication"
       , RenderM.whenJust header.title       $ assign "title"
       , RenderM.whenJust header.subtitle    $ assign "subtitle"
@@ -344,8 +337,21 @@ renderUnnamed (Unnamed.Chord ns) =
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-assign :: String -> String -> RenderM Doc
-assign var value = RenderM.line $ var ++ " = \"" ++ value ++ "\""
+assign :: String -> Ly.Markup cls -> RenderM cls Doc
+assign var value = mconcat [
+      fromString $ var ++ " ="
+    , Doc.indent <$> RenderM.markup value
+    ]
 
-assignReal :: String -> Double -> RenderM Doc
+assignReal :: String -> Double -> RenderM cls Doc
 assignReal var value = RenderM.line $ var ++ " = " ++ show value
+
+renderIntro :: Ly.Markup.Markup cls -> RenderM cls Doc
+renderIntro intro = mconcat [
+      RenderM.markup intro
+    , RenderM.lines [
+          "\\markup \\center-column {"
+        , "  \\vspace #1"
+        , "}"
+       ]
+    ]

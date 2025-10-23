@@ -9,7 +9,7 @@ module Lilypond (
   , Bookpart(..)
   , Section(..)
   , Score(..)
-  , ScoreElem(..)
+  , Staff(..)
     -- * Staff elements
   , StaffProps(..)
   , StaffElem(..)
@@ -23,38 +23,43 @@ import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Reference
 import MusicTheory.Scale qualified as Scale
 
+import Lilypond.Markup qualified as Ly (Markup)
+
 {-------------------------------------------------------------------------------
   Document structure
 -------------------------------------------------------------------------------}
 
-data Lilypond = Lilypond{
-      books  :: [Book]
+data Lilypond cls = Lilypond{
+      books  :: [Book cls]
     }
 
-data Book = Book{
-      title  :: String
-    , author :: String
-    , parts  :: [Bookpart]
+data Book cls = Book{
+      title  :: Ly.Markup cls
+    , author :: Ly.Markup cls
+    , parts  :: [Bookpart cls]
     }
 
-data Bookpart = Bookpart{
-      title    :: String
-    , sections :: [Section]
+data Bookpart cls = Bookpart{
+      title    :: Ly.Markup cls
+    , sections :: [Section cls]
     }
 
-data Section = Section{
-      title  :: String
-    , intro  :: Maybe String
-    , scores :: [Score]
+data Section cls = Section{
+      title  :: Ly.Markup cls
+    , intro  :: Maybe (Ly.Markup cls)
+    , scores :: [Score cls]
     }
 
-data Score = Score{
-      title :: String
-    , elems :: ScoreElem
+data Score cls = Score{
+      title :: Ly.Markup cls
+    , intro :: Maybe (Ly.Markup cls)
+    , staff :: Staff cls -- TODO: Generalize to multiple staves
     }
 
-data ScoreElem =
-    ScoreStaff StaffProps [StaffElem]
+data Staff cls = Staff{
+      props :: StaffProps
+    , elems :: [StaffElem]
+    }
 
 {-------------------------------------------------------------------------------
   Staff elements
@@ -64,6 +69,7 @@ data StaffProps = StaffProps{
       hideTimeSignature  :: Bool
     , omitMeasureNumbers :: Bool
     }
+  deriving stock (Show)
 
 instance Default StaffProps where
   def = StaffProps{
@@ -77,10 +83,8 @@ data StaffElem =
   | StaffLinebreak
   | StaffComment String
   | StaffKeySignature Scale.Name
+  deriving stock (Show)
 
 data Duration =
     OneOver Word
-
-{-------------------------------------------------------------------------------
-  Markup
--------------------------------------------------------------------------------}
+  deriving stock (Show)
