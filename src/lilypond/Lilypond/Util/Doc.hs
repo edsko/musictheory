@@ -2,9 +2,9 @@
 --
 -- Intended for qualified import.
 --
--- > import Lilypond.Util.Pretty (Doc)
--- > import Lilypond.Util.Pretty qualified as Doc
-module Lilypond.Util.Pretty (
+-- > import Lilypond.Util.Doc (Doc)
+-- > import Lilypond.Util.Doc qualified as Doc
+module Lilypond.Util.Doc (
     Doc -- opaque
     -- * Construction
   , line

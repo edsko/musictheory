@@ -26,8 +26,8 @@ import Lilypond (Lilypond)
 import Lilypond qualified as Ly
 import Lilypond.Render.Monad (RenderM)
 import Lilypond.Render.Monad qualified as RenderM
-import Lilypond.Util.Pretty (Doc)
-import Lilypond.Util.Pretty qualified as Doc
+import Lilypond.Util.Doc (Doc)
+import Lilypond.Util.Doc qualified as Doc
 
 {-------------------------------------------------------------------------------
   Public API

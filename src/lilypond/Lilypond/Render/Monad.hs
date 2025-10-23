@@ -34,8 +34,8 @@ import Data.List qualified as List
 import Data.Semigroup
 import Data.String (IsString(..))
 
-import Lilypond.Util.Pretty (Doc)
-import Lilypond.Util.Pretty qualified as Doc
+import Lilypond.Util.Doc (Doc)
+import Lilypond.Util.Doc qualified as Doc
 
 {-------------------------------------------------------------------------------
   Definition

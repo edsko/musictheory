@@ -65,7 +65,7 @@ library lilypond
       Lilypond.Render
 
   other-modules:
-      Lilypond.Util.Pretty
+      Lilypond.Util.Doc
       Lilypond.Render.Monad
 
   build-depends:
