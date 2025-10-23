@@ -17,7 +17,7 @@ import Exercises.Lilypond.Style qualified as Style
 -------------------------------------------------------------------------------}
 
 sectionTitle :: String -> Ly.Markup Style.Class
-sectionTitle = Ly.Markup.Style Style.SectionTitle . Ly.Markup.Text
+sectionTitle = Ly.Markup.Style Style.SectionTitle . Ly.Markup.Quoted
 
 exerciseTitle :: String -> Ly.Markup Style.Class
-exerciseTitle = Ly.Markup.Style Style.ExerciseTitle . Ly.Markup.Text
+exerciseTitle = Ly.Markup.Style Style.ExerciseTitle . Ly.Markup.Quoted

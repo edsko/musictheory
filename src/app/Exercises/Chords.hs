@@ -1,9 +1,13 @@
 -- | Utilities for generating chord exercises
 module Exercises.Chords (
+    -- * Construct exercise
     chordExercise
+    -- * Explanations
+  , voicing
   ) where
 
 import Data.Default
+import Data.List qualified as List
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
@@ -15,6 +19,8 @@ import MusicTheory.Scale (Scale)
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
+import Lilypond.Markup (Markup)
+import Lilypond.Markup qualified as Markup
 
 import Exercises.Lilypond.Style qualified as Style
 
@@ -90,6 +96,25 @@ chordsOfTypeIn chordType inversions scales =
     -- This ensures accidentals are not shown more than once.
     duration :: Ly.Duration
     duration = Ly.OneOver (fromIntegral $ length inversions)
+
+{-------------------------------------------------------------------------------
+  Explanations
+-------------------------------------------------------------------------------}
+
+voicing :: [Scale.Degree] -> Markup Style.Class
+voicing scaleDegrees = Markup.Wordwrap $ mconcat [
+      "Voiced using"
+    , mconcat $ List.intersperse ", " $ map showDegree scaleDegrees
+    , "."
+    ]
+  where
+    showDegree :: Scale.Degree -> Markup Style.Class
+    showDegree (Scale.Degree degree mAtal) = mconcat [
+          Markup.Text (show degree)
+        , case mAtal of
+            Just atal -> Markup.Music $ Markup.Accidental atal
+            Nothing   -> Markup.Empty
+        ]
 
 {-------------------------------------------------------------------------------
   Internal auxiliary

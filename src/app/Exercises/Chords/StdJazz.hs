@@ -38,7 +38,7 @@ exercises = Ly.Section{
 major :: Ly.Score Style.Class
 major = Ly.Score{
       title = exerciseTitle "Major seventh"
-    , intro = Just "Some explanations should go here"
+    , intro = Just $ voicing ["3", "5", "7", "9"]
     , staff =
         chordExercise
           Chord.StdJazz_Major
@@ -48,7 +48,7 @@ major = Ly.Score{
 minor :: Ly.Score Style.Class
 minor = Ly.Score{
       title = exerciseTitle "Minor seventh"
-    , intro = Nothing
+    , intro = Just $ voicing ["♭3", "5", "♭7", "9"]
     , staff =
         chordExercise
           Chord.StdJazz_Minor
@@ -58,7 +58,7 @@ minor = Ly.Score{
 dominant :: Ly.Score Style.Class
 dominant = Ly.Score{
       title = exerciseTitle "Dominant seventh"
-    , intro = Nothing
+    , intro = Just $ voicing ["3", "13", "♭7", "9"]
     , staff =
         chordExercise
           Chord.StdJazz_Dominant
@@ -68,7 +68,7 @@ dominant = Ly.Score{
 halfDiminished :: Ly.Score Style.Class
 halfDiminished = Ly.Score{
       title = exerciseTitle "Half-diminished"
-    , intro = Nothing
+    , intro = Just $ voicing ["1", "♭3", "♭5", "♭7"]
     , staff =
         chordExercise
           Chord.StdJazz_HalfDiminished
@@ -78,7 +78,7 @@ halfDiminished = Ly.Score{
 altered :: Ly.Score Style.Class
 altered = Ly.Score{
       title = exerciseTitle "Altered"
-    , intro = Nothing
+    , intro = Just $ voicing ["3", "♯5", "♭7", "♯9"]
     , staff =
         chordExercise
           Chord.StdJazz_Altered

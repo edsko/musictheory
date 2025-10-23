@@ -6,6 +6,7 @@
 -- > import Lilypond.Markup qualified as Ly.Markup
 module Lilypond.Markup (
     Markup(..)
+  , Music(..)
   , scope
   , strip
   , render
@@ -24,6 +25,7 @@ import Data.Void
 
 import Lilypond.Util.Doc (Doc)
 import Lilypond.Util.Doc qualified as Doc
+import MusicTheory.Note qualified as Note
 
 {-------------------------------------------------------------------------------
   Markup
@@ -34,15 +36,24 @@ import Lilypond.Util.Doc qualified as Doc
 -- We generalize over a datatype @cls@, intended to mimick CSS \"classes\": ways
 -- to give names to predefined bits of markup.
 data Markup cls =
+    -- | Empty
+    Empty
+
     -- | Plain text (support 'IsString')
+  | Text String
+
+    -- | Quoted text
+  | Quoted String
+
+    -- | Music element
     --
-    -- This results in a quoted string.
-    Text String
+    -- <https://lilypond.org/doc/v2.24/Documentation/notation/music>
+  | Music Music
 
     -- | Word wrap
     --
     -- This results in @\wordwrap { .. }@.
-  | Wordwrap String
+  | Wordwrap (Markup cls)
 
     -- | Support 'Semigroup' and 'Monoid'
   | MConcat [Markup cls]
@@ -54,6 +65,9 @@ data Markup cls =
     --
     -- This is primarily useful for the interpretation of style classes.
   | Wrap (Doc -> Doc) (Markup cls)
+
+data Music =
+    Accidental Note.Accidental
 
 instance IsString  (Markup cls) where fromString = Text
 instance Monoid    (Markup cls) where mconcat    = MConcat
@@ -69,14 +83,20 @@ scope label = Wrap (withinScope label)
 
 -- | Strip all markup, leaving only plain text
 strip :: Markup cls -> String
-strip = go
+strip = List.intercalate " " . go
   where
-    go :: Markup cls -> String
-    go (Text     str)    = str
-    go (Wordwrap str)    = str
-    go (MConcat  markup) = List.intercalate " " $ map go markup
+    go :: Markup cls -> [String]
+    go Empty             = []
+    go (Text     str)    = [str]
+    go (Quoted   str)    = [str]
+    go (Music    music)  = [goMusic music]
+    go (Wordwrap markup) = go markup
+    go (MConcat  markup) = concatMap go markup
     go (Wrap _   markup) = go markup
     go (Style _  markup) = go markup
+
+    goMusic :: Music -> String
+    goMusic (Accidental atal) = show atal
 
 {-------------------------------------------------------------------------------
   Style classes
@@ -94,8 +114,11 @@ applyClasses :: forall cls. IsClass cls -> Markup cls -> Markup Void
 applyClasses IsClass{applyClass} = go
   where
     go :: Markup cls -> Markup Void
-    go (Text      str)    = Text     str
-    go (Wordwrap  str)    = Wordwrap str
+    go Empty              = Empty
+    go (Text      str)    = Text   str
+    go (Quoted    str)    = Quoted str
+    go (Music     music)  = Music  music
+    go (Wordwrap  markup) = Wordwrap       $ go markup
     go (MConcat   markup) = MConcat        $ map go markup
     go (Wrap f    markup) = Wrap f         $ go markup
     go (Style cls markup) = applyClass cls $ go markup
@@ -108,11 +131,23 @@ render :: Markup Void -> Doc
 render = withinScope "markup" . go
   where
     go :: Markup Void -> Doc
-    go (Text      str)    = Doc.line $ "\"" ++ str ++ "\""
-    go (Wordwrap  str)    = withinScope "wordwrap" $ Doc.line str
+    go Empty              = mempty
+    go (Text      str)    = Doc.line $ str
+    go (Quoted    str)    = Doc.line $ "\"" ++ str ++ "\""
+    go (Music     music)  = goMusic music
+    go (Wordwrap  markup) = withinScope "wordwrap" $ go markup
     go (MConcat   markup) = foldMap go markup
     go (Wrap f    markup) = f $ go markup
     go (Style cls _)      = absurd cls
+
+    goMusic :: Music -> Doc
+    goMusic (Accidental atal) = Doc.line $
+        case atal of
+          Note.Sharp       -> "\\hspace #-0.5 \\accidental #1/2"
+          Note.Flat        -> "\\hspace #-0.3 \\accidental #-1/2"
+          Note.DoubleSharp -> "\\hspace #-0.3 \\accidental #1"
+          Note.DoubleFlat  -> "\\hspace #-0.3 \\accidental #-1"
+          Note.Natural     -> "\\hspace #-0.3 \\accidental #0"
 
 withinScope :: String -> Doc -> Doc
 withinScope label body = mconcat [
