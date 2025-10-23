@@ -46,7 +46,9 @@ instance MakeAbsolute Progression where
 -- | Choose inversions to minimize distance between successive chords
 --
 -- Fails if there is no unique solution.
-voiceLeading :: [Inversion] -> Progression Absolute -> Progression Absolute
+voiceLeading ::
+     (Chord.Type -> [Inversion]) -- ^ Permissible inversions
+  -> Progression Absolute -> Progression Absolute
 voiceLeading permissibleInversions = \(Progression chords) -> Progression $
     case chords of
       c :| cs -> c :| go c cs
@@ -60,7 +62,10 @@ voiceLeading permissibleInversions = \(Progression chords) -> Progression $
          in next' : go next' cs
       where
         possibleInversions :: [Named.Chord Absolute]
-        possibleInversions = map (flip invert next) permissibleInversions
+        possibleInversions = [
+              invert i next
+            | i <- permissibleInversions (Chord.Named.getType next)
+            ]
 
         -- We consider all inversions in their \"natural\" octave, as well as
         -- one octave longer (because inversion tends to move everything up).

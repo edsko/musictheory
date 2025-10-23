@@ -19,8 +19,8 @@ exercises = Ly.Section{
       title  = sectionTitle "Standard Jazz voicings"
     , intro  = Just $ Markup.Wordwrap $ mconcat [
           "Every chord shown twice: "
-        , "first with the seventh in the bass, "
-        , " then with the third in the bass. "
+        , "first with the third in the bass, "
+        , " then with the seventh in the bass. "
         ]
     , scores = [
           major
@@ -33,6 +33,9 @@ exercises = Ly.Section{
 
 {-------------------------------------------------------------------------------
   Individual exercises
+
+  NOTE: The rootless chords will start on the third without any inversions,
+  and on the seventh after two inversions.
 -------------------------------------------------------------------------------}
 
 major :: Ly.Score Style.Class
@@ -42,7 +45,7 @@ major = Ly.Score{
     , staff =
         chordExercise
           Chord.StdJazz_Major
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
+          [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
 minor :: Ly.Score Style.Class
@@ -52,7 +55,7 @@ minor = Ly.Score{
     , staff =
         chordExercise
           Chord.StdJazz_Minor
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
+          [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
 dominant :: Ly.Score Style.Class
@@ -62,7 +65,7 @@ dominant = Ly.Score{
     , staff =
         chordExercise
           Chord.StdJazz_Dominant
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
+          [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
 halfDiminished :: Ly.Score Style.Class
@@ -72,7 +75,7 @@ halfDiminished = Ly.Score{
     , staff =
         chordExercise
           Chord.StdJazz_HalfDiminished
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
+          [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
     }
 
 altered :: Ly.Score Style.Class
@@ -82,5 +85,5 @@ altered = Ly.Score{
     , staff =
         chordExercise
           Chord.StdJazz_Altered
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, noOctaveShift)]
+          [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }

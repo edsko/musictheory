@@ -13,6 +13,7 @@ module MusicTheory.Chord.Named (
   , chordI
     -- * Query
   , getName
+  , getType
   , getNotes
   ) where
 
@@ -60,6 +61,9 @@ chordI typ = relative $ Chord.Name (Scale.Degree 1 Nothing) typ
 getName :: Chord r -> Chord.Name r
 getName (Rel name)   = name
 getName (Abs name _) = name
+
+getType :: Chord r -> Chord.Type
+getType = (.typ) . getName
 
 getNotes :: Chord Absolute -> Unnamed.Chord Absolute
 getNotes (Abs _ chord) = chord

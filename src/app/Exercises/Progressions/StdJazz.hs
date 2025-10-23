@@ -1,6 +1,7 @@
 module Exercises.Progressions.StdJazz (exercises) where
 
 import MusicTheory
+import MusicTheory.Chord qualified as Chord
 import MusicTheory.Progression qualified as Progression
 import MusicTheory.Scale qualified as Scale
 
@@ -20,8 +21,8 @@ exercises = Ly.Section{
       title  = sectionTitle "Using standard Jazz voicings"
     , intro  = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every progression shown twice: "
-        , "first with the seventh in the bass of the first chord, "
-        , " then with the third in the bass. "
+        , "first with the third in the bass of the first chord, "
+        , " then with the seventh in the bass. "
         , "Basic voice leading is applied in both cases."
         ]
     , scores = [
@@ -41,8 +42,9 @@ major251 = Ly.Score{
     , staff =
         progressionExercise
           (Progression.named Progression.StdJazz_Major251)
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]
-          [Inversion 1, Inversion 3]
+          -- Starts on a rootless minor chord
+          [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
+          permissibleInversions
           (Scale.allOfType Scale.Major)
     }
 
@@ -53,7 +55,23 @@ minor251 = Ly.Score{
     , staff =
         progressionExercise
           (Progression.named Progression.StdJazz_Minor251)
-          [(Inversion 3, OctaveShift (-1)), (Inversion 1, OctaveShift (0))]
-          [Inversion 1, Inversion 3]
+          -- This starts on a half-dimished chord, which we voice with a root.
+          [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
+          permissibleInversions
           (Scale.allOfType Scale.Minor)
     }
+
+-- | Possible inversions
+--
+-- See comment in "Exercises.Chords.StdJazz" regarding inversions.
+--
+-- We don't need to implement the inversions for the half diminished chord, as
+-- it (currently) only appears as the /first/ chord.
+permissibleInversions :: Chord.Type -> [Inversion]
+permissibleInversions = \case
+    Chord.StdJazz_Dominant     -> [Inversion 0, Inversion 2]
+    Chord.StdJazz_AlteredFlat9 -> [Inversion 0, Inversion 2]
+    Chord.StdJazz_Major        -> [Inversion 0, Inversion 2]
+    Chord.StdJazz_Minor        -> [Inversion 0, Inversion 2]
+
+    typ -> error $ "Not implemented: " ++ show typ

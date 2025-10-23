@@ -7,6 +7,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.NonEmpty qualified as NE
 
 import MusicTheory
+import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Named (Chord)
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Progression (Progression(..))
@@ -27,7 +28,7 @@ progressionExercise ::
      -- ^ Progression type
   -> [(Inversion, OctaveShift)]
      -- ^ Inversion and octave shift for initial chord
-  -> [Inversion]
+  -> (Chord.Type -> [Inversion])
      -- ^ Permissable inversions (for voice leading)
   -> [Scale]
      -- ^ Scales to show the progression in
