@@ -23,6 +23,10 @@ module MusicTheory.Scale (
   , allMinorRoots
   , allMajorScales
   , allMinorScales
+    -- * Common scales
+  , cMajor
+  , cMinor
+  , aMinor
   ) where
 
 import MusicTheory.Note (Note)
@@ -59,25 +63,9 @@ firstDegree = Degree 1 Nothing
 
 instance HasStringTable Degree where
   stringTable = uncurry (flip Degree) <$>
-      stringTablePair (stringTableMaybe "" stringTable) stringTableDegree
-    where
-      stringTableDegree :: StringTable Word
-      stringTableDegree = StringTable [
-            ( 1,  "1")
-          , ( 2,  "2")
-          , ( 3,  "3")
-          , ( 4,  "4")
-          , ( 5,  "5")
-          , ( 6,  "6")
-          , ( 7,  "7")
-          , ( 8,  "8")
-          , ( 9,  "9")
-          , (10, "10")
-          , (11, "11")
-          , (12, "12")
-          , (13, "13")
-          , (14, "14")
-          ]
+      stringTablePair
+        (stringTableMaybe "" stringTable)
+        (stringTableNum [1..14])
 
 {-------------------------------------------------------------------------------
   Roots
@@ -157,11 +145,11 @@ majorScale = \case
     E  -> ["E"  , "F♯" , "G♯" , "A"  , "B"  , "C♯" , "D♯"]
     B  -> ["B"  , "C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A♯"]
 
-    F# -> error "use Gb instead"
+    F# -> error "use G♭ instead"
     Gb -> ["G♭" , "A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F" ]
 
     Db -> ["D♭" , "E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C" ]
-    C# -> error "use Db instead"
+    C# -> error "use D♭ instead"
 
     Ab -> ["A♭" , "B♭" , "C"  , "D♭" , "E♭" , "F"  , "G" ]
     Eb -> ["E♭" , "F"  , "G"  , "A♭" , "B♭" , "C"  , "D" ]
@@ -211,3 +199,12 @@ allMinorRoots = [         A, E, B,   F#, C#,   Ab, Eb, Bb, F, C, G, D]
 allMajorScales, allMinorScales :: [Scale]
 allMajorScales = [named (Name root Major) | root <- allMajorRoots]
 allMinorScales = [named (Name root Minor) | root <- allMinorRoots]
+
+{-------------------------------------------------------------------------------
+  Common scales
+-------------------------------------------------------------------------------}
+
+cMajor, cMinor, aMinor :: Scale
+cMajor = named $ Name C Major
+cMinor = named $ Name C Minor
+aMinor = named $ Name A Minor

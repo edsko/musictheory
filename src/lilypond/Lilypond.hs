@@ -83,8 +83,8 @@ instance Default StaffProps where
       }
 
 data StaffElem =
-    StaffNamedChord   (  Named.Chord Absolute) Duration
-  | StaffUnnamedChord (Unnamed.Chord Absolute) Duration
+    StaffNamedChord   (  Named.Chord Abs) Duration
+  | StaffUnnamedChord (Unnamed.Chord Abs) Duration
   | StaffLinebreak
   | StaffComment String
   | StaffKeySignature Scale.Name

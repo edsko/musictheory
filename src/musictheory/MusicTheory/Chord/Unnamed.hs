@@ -10,6 +10,7 @@ module MusicTheory.Chord.Unnamed (
   , getNotes
   , fromScaleDegrees
   , size
+  , wrtScale
   ) where
 
 import Data.List.NonEmpty (NonEmpty(..))
@@ -33,7 +34,7 @@ getNotes (Chord notes) = notes
 
 deriving instance IsReferenceKind r => Show (Chord r)
 
-fromScaleDegrees :: NonEmpty Scale.Degree -> Chord Relative
+fromScaleDegrees :: NonEmpty Scale.Degree -> Chord Rel
 fromScaleDegrees = Chord
 
 -- | Number of notes in the chord
@@ -44,17 +45,17 @@ size (Chord ns) = fromIntegral $ length ns
   Instances
 -------------------------------------------------------------------------------}
 
-instance TransposeOctave (Chord Absolute) where
+instance TransposeOctave (Chord Abs) where
   transposeOctave d (Chord ns) = Chord $ transposeOctave d <$> ns
 
 -- | Distance between two chords
 --
 -- For now this is a pretty simplistic definition: we merely compute the
 -- distance in semitones between corresponding pairs of notes.
-instance Distance (Chord Absolute) where
+instance Distance (Chord Abs) where
   distance (Chord as) (Chord bs) = sum $ NE.zipWith distance as bs
 
-instance Invert (Chord Absolute) where
+instance Invert (Chord Abs) where
   invert = \(Inversion i) (Chord ns) -> Chord $
       case (i, ns) of
         (0, _)        -> ns
@@ -72,8 +73,8 @@ instance Invert (Chord Absolute) where
       go acc _ []     = NE.reverse acc
       go acc i (n:ns) = go (NE.cons (moveUp n) acc) (i - 1) ns
 
-instance MakeAbsolute Chord where
-  wrtScale = \initOctave scale (Chord scaleDegrees) -> Chord $
+wrtScale :: Scale.Scale -> Octave -> Chord Rel -> Chord Abs
+wrtScale = \scale initOctave (Chord scaleDegrees) -> Chord $
       let go :: Octave -> NonEmpty Note -> NonEmpty Note.InOctave
           go o (n :| [])    = Note.InOctave o n :| []
           go o (n :| n':ns) = NE.cons (Note.InOctave o n) $

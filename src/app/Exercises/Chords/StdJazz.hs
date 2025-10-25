@@ -1,10 +1,8 @@
 module Exercises.Chords.StdJazz (exercises) where
 
-import Data.List.NonEmpty (NonEmpty)
-
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
-import MusicTheory.Scale qualified as Scale
+import MusicTheory.Chord.Voicing qualified as Voicing
 
 import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Markup
@@ -49,12 +47,13 @@ major = Ly.Score{
       title = exerciseTitle "Major seventh"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
-        , voicing Chord.StdJazz_Major
+        , voicing Chord.Major7
         , "."
         ]
     , staff =
         chordExercise
-          Chord.StdJazz_Major
+          Chord.Major7
+          Voicing.StdJazz
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -63,12 +62,13 @@ minor = Ly.Score{
       title = exerciseTitle "Minor seventh"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
-        , voicing Chord.StdJazz_Minor
+        , voicing Chord.Minor7
         , "."
         ]
     , staff =
         chordExercise
-          Chord.StdJazz_Minor
+          Chord.Minor7
+          Voicing.StdJazz
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -77,12 +77,13 @@ dominant = Ly.Score{
       title = exerciseTitle "Dominant seventh"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
-        , voicing Chord.StdJazz_Dominant
+        , voicing Chord.Dominant7
         , "."
         ]
     , staff =
         chordExercise
-          Chord.StdJazz_Dominant
+          Chord.Dominant7
+          Voicing.StdJazz
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -91,12 +92,13 @@ halfDiminished = Ly.Score{
       title = exerciseTitle "Half-diminished"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
-        , voicing Chord.StdJazz_HalfDiminished
+        , voicing Chord.HalfDiminished
         , "."
         ]
     , staff =
         chordExercise
-          Chord.StdJazz_HalfDiminished
+          Chord.HalfDiminished
+          Voicing.StdJazz
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
     }
 
@@ -105,12 +107,13 @@ altered = Ly.Score{
       title = exerciseTitle "Altered"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
-        , voicing Chord.StdJazz_Altered
+        , voicing Chord.Altered
         , "."
         ]
     , staff =
         chordExercise
-          Chord.StdJazz_Altered
+          Chord.Altered
+          Voicing.StdJazz
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -119,15 +122,16 @@ sus = Ly.Score{
       title = exerciseTitle "Suspended"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
-        , voicing Chord.StdJazz_Sus
+        , voicing Chord.Sus
         ,  "(or equivalently using a maj7 chord voiced using"
-        , voicing Chord.Basic_MajorSeventh
+        , voicing Chord.Major7
         , " a whole step down)"
         , "."
         ]
     , staff =
         chordExercise
-          Chord.StdJazz_Sus
+          Chord.Sus
+          Voicing.StdJazz
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
     }
 
@@ -137,7 +141,5 @@ sus = Ly.Score{
 
 voicing :: Chord.Type -> Markup.Markup cls
 voicing chordType =
-    foldMap (Markup.Music . Markup.ScaleDegree) scaleDegrees
-  where
-    scaleDegrees :: NonEmpty Scale.Degree
-    scaleDegrees = Chord.scaleDegrees Scale.Major chordType Scale.firstDegree
+    foldMap (Markup.Music . Markup.Interval) $
+      Voicing.intervals Voicing.StdJazz chordType

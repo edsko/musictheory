@@ -282,30 +282,27 @@ renderOctave o
   to change notation.
 -------------------------------------------------------------------------------}
 
-renderChordName :: Chord.Name Absolute -> String
-renderChordName (Chord.Name (Note.InOctave _o note) typ) = concat [
+renderChordName :: Chord.Name Abs -> String
+renderChordName Chord.Name{root = Note.InOctave _o note, typ} = concat [
       "^\\markup{"
     , stringTableEntry note
     , case typ of
-        Chord.Basic_MajorTriad       -> ""
-        Chord.Basic_MinorTriad       -> "m"
-        Chord.Basic_MajorSeventh     -> sup "maj7"
-        Chord.Basic_MinorSeventh     -> "m" ++ sup "7"
-        Chord.Basic_DominantSeventh  -> sup "7"
-        Chord.StdJazz_Major          -> sup "maj7"
-        Chord.StdJazz_Minor          -> "m" ++ sup "7"
-        Chord.StdJazz_Dominant       -> sup "7"
-        Chord.StdJazz_HalfDiminished -> sup "ø"
-        Chord.StdJazz_Altered        -> sup "alt"
-        Chord.StdJazz_AlteredFlat9   -> sup "alt(♭9)"
-        Chord.StdJazz_Sus            -> sup "sus"
+        Chord.MajorTriad     -> ""
+        Chord.MinorTriad     -> "m"
+        Chord.Major7         -> sup "maj7"
+        Chord.Minor7         -> "m" ++ sup "7"
+        Chord.Dominant7      -> sup "7"
+        Chord.HalfDiminished -> sup "ø"
+        Chord.Altered        -> sup "alt"
+        Chord.AlteredFlat9   -> sup "alt(♭9)"
+        Chord.Sus            -> sup "sus"
     , "}"
     ]
   where
     sup :: String -> String
     sup text = "\\hspace #-0.5 \\normal-size-super{" ++ text ++ "}"
 
-renderUnnamed :: Unnamed.Chord Absolute -> String
+renderUnnamed :: Unnamed.Chord Abs -> String
 renderUnnamed (Unnamed.Chord ns) =
     case ns of
       n :| []    -> renderInOctave n

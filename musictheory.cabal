@@ -43,6 +43,8 @@ library
       MusicTheory.Chord
       MusicTheory.Chord.Named
       MusicTheory.Chord.Unnamed
+      MusicTheory.Chord.Voicing
+      MusicTheory.Interval
       MusicTheory.Note
       MusicTheory.Note.Octave
       MusicTheory.Progression

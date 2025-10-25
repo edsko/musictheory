@@ -2,6 +2,7 @@ module Exercises.Chords.Basic (exercises) where
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
+import MusicTheory.Chord.Voicing qualified as Voicing
 
 import Lilypond qualified as Ly
 
@@ -38,7 +39,8 @@ majorTriads = Ly.Score{
     , intro = Nothing
     , staff =
         chordExercise
-          Chord.Basic_MajorTriad
+          Chord.MajorTriad
+          Voicing.Default
           [(rootPosition, noOctaveShift)]
     }
 
@@ -48,7 +50,8 @@ majorSeventh = Ly.Score{
     , intro = Nothing
     , staff =
         chordExercise
-          Chord.Basic_MajorSeventh
+          Chord.Major7
+          Voicing.Default
           [(rootPosition, noOctaveShift)]
     }
 
@@ -58,7 +61,8 @@ dominantSeventh = Ly.Score{
     , intro = Nothing
     , staff =
         chordExercise
-          Chord.Basic_DominantSeventh
+          Chord.Dominant7
+          Voicing.Default
           [(Inversion 3, OctaveShift (-1))]
     }
 
@@ -68,6 +72,7 @@ minorSeventh = Ly.Score{
     , intro = Nothing
     , staff =
         chordExercise
-          Chord.Basic_MinorSeventh
+          Chord.Minor7
+          Voicing.Default
           [(Inversion 3, OctaveShift (-1))]
     }
