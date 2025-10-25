@@ -11,6 +11,7 @@ module MusicTheory.Util.StringTable (
   , stringTableEnum
   , stringTableMaybe
   , stringTablePair
+  , stringTableNum
     -- * 'Show' vs 'IsString' instances
   , UseStringTable(..)
   , IsString(..)
@@ -84,6 +85,15 @@ stringTablePair tableA tableB = StringTable [
       ((a, b), strA ++ strB)
     | (a, strA) <- tableA.entries
     , (b, strB) <- tableB.entries
+    ]
+
+-- | String table for numerical types
+--
+-- This should only be used for small ranges.
+stringTableNum :: Num a => [Integer] -> StringTable a
+stringTableNum range = StringTable [
+      (fromInteger n, show n)
+    | n <- range
     ]
 
 {-------------------------------------------------------------------------------

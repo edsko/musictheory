@@ -10,8 +10,7 @@ module MusicTheory.Reference (
   , SReferenceKind(..)
   , IsReferenceKind(..)
     -- * Translation
-  , MakeAbsolute(..)
-  , absoluteReference
+  , referenceWrtScale
   ) where
 
 import Data.Kind
@@ -25,40 +24,32 @@ import MusicTheory.Scale qualified as Scale
   Definition
 -------------------------------------------------------------------------------}
 
-data ReferenceKind = Absolute | Relative
+data ReferenceKind = Abs | Rel
 
 type family Reference (r :: ReferenceKind) where
-  Reference Absolute = Note.InOctave
-  Reference Relative = Scale.Degree
+  Reference Abs = Note.InOctave
+  Reference Rel = Scale.Degree
 
 {-------------------------------------------------------------------------------
   Singleton
 -------------------------------------------------------------------------------}
 
 data SReferenceKind :: ReferenceKind -> Type where
-  SAbsoluteKind :: SReferenceKind Absolute
-  SRelativeKind :: SReferenceKind Relative
+  SAbsoluteKind :: SReferenceKind Abs
+  SRelativeKind :: SReferenceKind Rel
 
 class ( Show (Reference r)
+      , Eq   (Reference r)
       ) => IsReferenceKind r where
   isReferenceKind :: SReferenceKind r
 
-instance IsReferenceKind Absolute where isReferenceKind = SAbsoluteKind
-instance IsReferenceKind Relative where isReferenceKind = SRelativeKind
+instance IsReferenceKind Abs where isReferenceKind = SAbsoluteKind
+instance IsReferenceKind Rel where isReferenceKind = SRelativeKind
 
 {-------------------------------------------------------------------------------
   Translation
 -------------------------------------------------------------------------------}
 
-class MakeAbsolute f where
-   wrtScale :: Octave -> Scale -> f Relative -> f Absolute
-
 -- | Translate relative references into absolute ones
---
--- This is essentially an instance of 'MakeAbsolute', but for a type family.
-absoluteReference ::
-     Octave
-  -> Scale
-  -> Reference Relative
-  -> Reference Absolute
-absoluteReference octave scale = Note.InOctave octave . Scale.at scale
+referenceWrtScale :: Scale -> Octave -> Reference Rel -> Reference Abs
+referenceWrtScale scale octave = Note.InOctave octave . Scale.at scale

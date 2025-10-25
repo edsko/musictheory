@@ -23,7 +23,7 @@ import Data.Semigroup
 import Data.String
 import Data.Void
 
-import MusicTheory.Scale qualified as Scale
+import MusicTheory.Interval (Interval)
 
 import Lilypond.Util.Doc (Doc)
 import Lilypond.Util.Doc qualified as Doc
@@ -68,7 +68,7 @@ data Markup cls =
   | Wrap (Doc -> Doc) (Markup cls)
 
 data Music =
-    ScaleDegree Scale.Degree
+    Interval Interval
 
 instance IsString  (Markup cls) where fromString = Text
 instance Monoid    (Markup cls) where mconcat    = MConcat
@@ -97,7 +97,7 @@ strip = List.intercalate " " . go
     go (Style _  markup) = go markup
 
     goMusic :: Music -> String
-    goMusic (ScaleDegree d) = show d
+    goMusic (Interval d) = show d
 
 {-------------------------------------------------------------------------------
   Style classes
@@ -143,7 +143,7 @@ render = withinScope "markup" . go
 
     -- Our unicode rendering works just fine in Lilypond
     goMusic :: Music -> Doc
-    goMusic (ScaleDegree atal) = Doc.line $ show atal
+    goMusic (Interval atal) = Doc.line $ show atal
 
 withinScope :: String -> Doc -> Doc
 withinScope label body = mconcat [
