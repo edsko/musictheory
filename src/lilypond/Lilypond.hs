@@ -13,6 +13,7 @@ module Lilypond (
   , Staff(..)
     -- * Staff elements
   , StaffProps(..)
+  , TimeSignature(..)
   , StaffElem(..)
   , Duration(..)
   ) where
@@ -74,13 +75,18 @@ data Staff = Staff{
 data StaffProps = StaffProps{
       hideTimeSignature  :: Bool
     , omitMeasureNumbers :: Bool
+    , timeSignature      :: TimeSignature
     }
+  deriving stock (Show)
+
+data TimeSignature = TimeSignature Int Int
   deriving stock (Show)
 
 instance Default StaffProps where
   def = StaffProps{
         hideTimeSignature  = False
       , omitMeasureNumbers = False
+      , timeSignature      = TimeSignature 4 4
       }
 
 data StaffElem =

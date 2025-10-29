@@ -122,15 +122,24 @@ instance LilypondToDoc Ly.Staff where
                 RenderM.line "\\Score \\omit BarNumber"
           ]
       , RenderM.withinScope "new Staff" $ mconcat [
+            toDoc staff.props.timeSignature
             -- Don't show key changes at the end of the line
             -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
-            "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
+          , "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
           , "\\set Staff.printKeyCancellation = ##f"
             -- Ensure chord annotations are aligned
             -- <https://lilypond.org/doc/v2.24/Documentation/snippets/tweaks-and-overrides#tweaks-and-overrides-vertically-aligned-dynamics-and-textscripts>
           , "\\override TextScript.staff-padding = 3"
           , RenderM.lines $ renderNotes staff.elems
           ]
+      ]
+
+instance LilypondToDoc Ly.TimeSignature where
+  toDoc (Ly.TimeSignature x y) = RenderM.line $ concat [
+        "\\time "
+      , show x
+      , "/"
+      , show y
       ]
 
 {-------------------------------------------------------------------------------

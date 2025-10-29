@@ -41,6 +41,7 @@ chordExercise typ voicing inversions =
         props = def{
             Ly.hideTimeSignature  = True
           , Ly.omitMeasureNumbers = True
+          , Ly.timeSignature      = Ly.TimeSignature (length inversions) 1
           }
       , elems = mconcat [
             chordsOfTypeIn typ voicing inversions firstHalf
@@ -89,11 +90,8 @@ chordsOfTypeIn chordType voicing inversions scales =
         chord'' :: Named.Chord Abs
         chord'' = transposeOctave octaveShift $ invert inversion chord'
 
-    -- Make sure all inversions fit within a single measure
-    --
-    -- This ensures accidentals are not shown more than once.
     duration :: Ly.Duration
-    duration = Ly.OneOver (fromIntegral $ length inversions)
+    duration = Ly.OneOver 1
 
 {-------------------------------------------------------------------------------
   Internal auxiliary

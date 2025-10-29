@@ -2,6 +2,7 @@
 --
 -- Intended for qualified import.
 --
+-- > import Lilypond.Markup qualified as Ly (Markup)
 -- > import Lilypond.Markup qualified as Ly.Markup
 module Lilypond.Markup (
     Markup(..)
