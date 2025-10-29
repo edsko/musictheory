@@ -31,15 +31,12 @@ exercises = Ly.Section{
     }
 
 {-------------------------------------------------------------------------------
-  Individual exercises
-
-  When we use an inversion to have the seventh at the bottom, we shift
-  everything down an octave.
+  Root position
 -------------------------------------------------------------------------------}
 
 majorTriads :: Ly.Score
 majorTriads = Ly.Score{
-      title = "Major triads, root position"
+      title = "Major triad"
     , intro = Nothing
     , staff =
         chordExercise
@@ -50,7 +47,7 @@ majorTriads = Ly.Score{
 
 majorSeventh :: Ly.Score
 majorSeventh = Ly.Score{
-      title = "Major seventh chords, root position"
+      title = "Major seventh"
     , intro = Nothing
     , staff =
         chordExercise
@@ -61,22 +58,22 @@ majorSeventh = Ly.Score{
 
 dominantSeventh :: Ly.Score
 dominantSeventh = Ly.Score{
-      title = "Dominant seventh chords, seventh in the bass"
+      title = "Dominant seventh"
     , intro = Nothing
     , staff =
         chordExercise
           Chord.Dominant7
           Voicing.Default
-          [(Inversion 3, OctaveShift (-1))]
+          [(rootPosition, noOctaveShift)]
     }
 
 minorSeventh :: Ly.Score
 minorSeventh = Ly.Score{
-      title = "Minor seventh chords, seventh in the bass"
+      title = "Minor seventh"
     , intro = Nothing
     , staff =
         chordExercise
           Chord.Minor7
           Voicing.Default
-          [(Inversion 3, OctaveShift (-1))]
+          [(rootPosition, noOctaveShift)]
     }
