@@ -30,38 +30,39 @@ import Lilypond.Markup qualified as Ly (Markup)
   Document structure
 -------------------------------------------------------------------------------}
 
-data Lilypond cls = Lilypond{
-      books  :: [Book cls]
+data Lilypond = Lilypond{
+      books  :: [Book]
     }
 
-data Book cls = Book{
-      title  :: Ly.Markup cls
-    , author :: Ly.Markup cls
-    , parts  :: [Bookpart cls]
+data Book  = Book{
+      title  :: String
+    , author :: String
+    , parts  :: [Bookpart]
     }
 
-data Bookpart cls = Bookpart{
-      title    :: Ly.Markup cls
-    , sections :: [Section cls]
+data Bookpart = Bookpart{
+      title    :: String
+    , sections :: [Section]
     }
 
-data Section cls = Section{
-      title  :: Ly.Markup cls
-    , intro  :: Maybe (Ly.Markup cls)
-    , elems  :: [SectionElem cls]
+data Section = Section{
+      title  :: String
+    , intro  :: Maybe Ly.Markup
+    , elems  :: [SectionElem]
     }
 
-data SectionElem cls =
-    SectionScore (Score cls)
+data SectionElem =
+    SectionScore Score
   | SectionPageBreak
+  | SectionSub Section
 
-data Score cls = Score{
-      title :: Ly.Markup cls
-    , intro :: Maybe (Ly.Markup cls)
-    , staff :: Staff cls -- TODO: Generalize to multiple staves
+data Score = Score{
+      title :: String
+    , intro :: Maybe Ly.Markup
+    , staff :: Staff -- TODO: Generalize to multiple staves
     }
 
-data Staff cls = Staff{
+data Staff = Staff{
       props :: StaffProps
     , elems :: [StaffElem]
     }

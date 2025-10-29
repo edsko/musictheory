@@ -18,8 +18,6 @@ import MusicTheory.Scale (Scale(..))
 
 import Lilypond qualified as Ly
 
-import Exercises.Lilypond.Style qualified as Style
-
 {-------------------------------------------------------------------------------
   Construct chord progression exercise
 -------------------------------------------------------------------------------}
@@ -35,7 +33,7 @@ progressionExercise ::
      -- ^ Permissable inversions (for voice leading)
   -> [Scale]
      -- ^ Scales to show the progression in
-  -> Ly.Staff Style.Class
+  -> Ly.Staff
 progressionExercise progression voicing initInv permissiveInv scales =
     Ly.Staff{
         props = def{

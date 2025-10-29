@@ -19,8 +19,6 @@ import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
 
-import Exercises.Lilypond.Style qualified as Style
-
 {-------------------------------------------------------------------------------
   Construct chords exercise
 
@@ -37,7 +35,7 @@ chordExercise ::
      --
      -- For each inversion, we also allow for an octave shift, to ensure that
      -- the inversions don't result in chords too high up the stave.
-  -> Ly.Staff Style.Class
+  -> Ly.Staff
 chordExercise typ voicing inversions =
     Ly.Staff{
         props = def{

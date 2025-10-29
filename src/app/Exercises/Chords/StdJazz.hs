@@ -8,16 +8,14 @@ import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Markup
 
 import Exercises.Chords
-import Exercises.Lilypond
-import Exercises.Lilypond.Style qualified as Style
 
 {-------------------------------------------------------------------------------
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: Ly.Section Style.Class
+exercises :: Ly.Section
 exercises = Ly.Section{
-      title = sectionTitle "Standard Jazz voicings"
+      title = "Standard Jazz voicings"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Every chord shown twice: "
         , "first with the third in the bass, "
@@ -42,9 +40,9 @@ exercises = Ly.Section{
   and on the seventh after two inversions.
 -------------------------------------------------------------------------------}
 
-major :: Ly.Score Style.Class
+major :: Ly.Score
 major = Ly.Score{
-      title = exerciseTitle "Major seventh"
+      title = "Major seventh"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.Major7
@@ -57,9 +55,9 @@ major = Ly.Score{
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
-minor :: Ly.Score Style.Class
+minor :: Ly.Score
 minor = Ly.Score{
-      title = exerciseTitle "Minor seventh"
+      title = "Minor seventh"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.Minor7
@@ -72,9 +70,9 @@ minor = Ly.Score{
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
-dominant :: Ly.Score Style.Class
+dominant :: Ly.Score
 dominant = Ly.Score{
-      title = exerciseTitle "Dominant seventh"
+      title = "Dominant seventh"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.Dominant7
@@ -87,9 +85,9 @@ dominant = Ly.Score{
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
-halfDiminished :: Ly.Score Style.Class
+halfDiminished :: Ly.Score
 halfDiminished = Ly.Score{
-      title = exerciseTitle "Half-diminished"
+      title = "Half-diminished"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.HalfDiminished
@@ -102,9 +100,9 @@ halfDiminished = Ly.Score{
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
     }
 
-altered :: Ly.Score Style.Class
+altered :: Ly.Score
 altered = Ly.Score{
-      title = exerciseTitle "Altered"
+      title = "Altered"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.Altered
@@ -117,9 +115,9 @@ altered = Ly.Score{
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
-sus :: Ly.Score Style.Class
+sus :: Ly.Score
 sus = Ly.Score{
-      title = exerciseTitle "Suspended"
+      title = "Suspended"
     , intro = Just $ Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.Sus
@@ -139,7 +137,7 @@ sus = Ly.Score{
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-voicing :: Chord.Type -> Markup.Markup cls
+voicing :: Chord.Type -> Markup.Markup
 voicing chordType =
     foldMap (Markup.Music . Markup.Interval) $
       Voicing.intervals Voicing.StdJazz chordType

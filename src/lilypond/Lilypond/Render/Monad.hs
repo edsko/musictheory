@@ -18,7 +18,7 @@ module Lilypond.Render.Monad (
     -- * Document structure
   , withinScope
     -- * Table of contents
-  , bookPart
+  , bookpart
   , section
   , score
   , setupTableOfContents
@@ -35,11 +35,14 @@ import Control.Monad.Reader qualified as Reader
 import Control.Monad.State (StateT)
 import Control.Monad.State qualified as State
 import Data.List qualified as List
+import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty qualified as NE
 import Data.Semigroup
 import Data.String (IsString(..))
 
 import Lilypond.Markup qualified as Ly (Markup)
 import Lilypond.Markup qualified as Ly.Markup
+import Lilypond.Part qualified as Ly.Part
 import Lilypond.Util.Doc (Doc)
 import Lilypond.Util.Doc qualified as Doc
 
@@ -48,8 +51,8 @@ import Lilypond.Util.Doc qualified as Doc
 -------------------------------------------------------------------------------}
 
 -- | Monad used for rendering Lilypond
-newtype RenderM cls a = WrapRenderM{
-      unwrapRenderM :: StateT RenderState (Reader (RenderEnv cls)) a
+newtype RenderM a = WrapRenderM{
+      unwrapRenderM :: StateT RenderState (Reader RenderEnv) a
     }
   deriving newtype (
       Functor
@@ -57,7 +60,7 @@ newtype RenderM cls a = WrapRenderM{
     , Monad
     )
 
-run :: Ly.Markup.IsClass cls -> RenderM cls a -> a
+run :: Ly.Markup.Stylesheet -> RenderM a -> a
 run isClass =
       flip Reader.runReader (initRenderContext isClass)
     . flip State.evalStateT initRenderState
@@ -67,31 +70,31 @@ run isClass =
   Make @RenderM Doc@ useable in much the same way as @Doc@ itself
 -------------------------------------------------------------------------------}
 
-instance IsString  (RenderM cls Doc) where fromString = pure . fromString
-instance Semigroup (RenderM cls Doc) where sconcat    = fmap sconcat . sequence
-instance Monoid    (RenderM cls Doc) where mconcat    = fmap mconcat . sequence
+instance IsString  (RenderM Doc) where fromString = pure . fromString
+instance Semigroup (RenderM Doc) where sconcat    = fmap sconcat . sequence
+instance Monoid    (RenderM Doc) where mconcat    = fmap mconcat . sequence
 
-line :: String -> RenderM cls Doc
+line :: String -> RenderM Doc
 line = pure . Doc.line
 
-lines :: [String] -> RenderM cls Doc
+lines :: [String] -> RenderM Doc
 lines = pure . Doc.lines
 
-indent :: RenderM cls Doc -> RenderM cls Doc
+indent :: RenderM Doc -> RenderM Doc
 indent = liftA Doc.indent
 
-concat :: [RenderM cls String] -> RenderM cls String
+concat :: [RenderM String] -> RenderM String
 concat = fmap Prelude.concat . sequence
 
 {-------------------------------------------------------------------------------
   Conditionals
 -------------------------------------------------------------------------------}
 
-when :: Bool -> RenderM cls Doc -> RenderM cls Doc
+when :: Bool -> RenderM Doc -> RenderM Doc
 when False = mempty
 when True  = id
 
-whenJust :: Maybe a -> (a -> RenderM cls Doc) -> RenderM cls Doc
+whenJust :: Maybe a -> (a -> RenderM Doc) -> RenderM Doc
 whenJust Nothing  _ = mempty
 whenJust (Just x) f = f x
 
@@ -99,7 +102,7 @@ whenJust (Just x) f = f x
   Document structure
 -------------------------------------------------------------------------------}
 
-withinScope :: String -> RenderM cls Doc -> RenderM cls Doc
+withinScope :: String -> RenderM Doc -> RenderM Doc
 withinScope = fmap . Ly.Markup.withinScope
 
 {-------------------------------------------------------------------------------
@@ -115,73 +118,73 @@ withinScope = fmap . Ly.Markup.withinScope
 -------------------------------------------------------------------------------}
 
 -- | Internal: generate new TOC label
-newTocLabel :: RenderM cls TocLabel
-newTocLabel = WrapRenderM $ State.state $ \st -> (
-      st.nextTocLabel
-    , st{nextTocLabel = succ st.nextTocLabel}
-    )
+newPartLabel :: RenderM Ly.Part.Label
+newPartLabel = WrapRenderM $ State.state $ \st ->
+    let nextTocLabel = mapHead succ st.currTocLabel
+     in ( Ly.Part.Label nextTocLabel
+        , st{currTocLabel = nextTocLabel}
+        )
 
--- | Internal: get parent sections
-getParents :: RenderM cls [TocLabel]
-getParents = WrapRenderM $ Reader.asks tocParents
+nest :: RenderM Doc -> RenderM Doc
+nest (WrapRenderM mkDoc) = WrapRenderM $ do
+    State.modify $ \st-> st{
+        currTocLabel = NE.cons 0 st.currTocLabel
+      }
+    doc <- mkDoc
+    State.modify $ \st-> st{
+        currTocLabel =
+          case st.currTocLabel of
+            _ :| []     -> error "impossible"
+            _ :| (x:xs) -> x :| xs
+      }
+    return doc
 
--- | Internal: render label for use in Lilypond
-renderTocPath ::
-     [TocLabel]  -- ^ Path in reverse order
-  -> String
-renderTocPath =
-      List.intercalate "."
-    . map (\(TocLabel l) -> "\"L" ++ show l ++ "\"")
-    . reverse
-
-nest :: TocLabel -> RenderM cls Doc -> RenderM cls Doc
-nest label (WrapRenderM doc) = WrapRenderM $ Reader.local aux doc
-  where
-    aux :: RenderEnv cls -> RenderEnv cls
-    aux env = env{tocParents = label : env.tocParents}
-
-bookPart :: Ly.Markup cls -> RenderM cls Doc -> RenderM cls Doc
-bookPart title contents = do
-    tocLabel <- newTocLabel
+bookpart :: String -> (Ly.Part.Label -> RenderM Doc) -> RenderM Doc
+bookpart title contents = do
+    label <- newPartLabel
     withinScope "bookpart" $ mconcat [
-        line $ List.intercalate " " [
-            "\\tocBookpart"
-          , renderTocPath [tocLabel]
-          , "\"" ++ Ly.Markup.strip title ++ "\""
-          ]
-      , nest tocLabel contents
+        tocItem "\\tocBookpart" label title
+      , nest $ contents label
       ]
 
--- | Section
+-- | (Sub)section
 --
--- Sections are concept /we/ introduce; they do not exist as an actual Lilypond
--- structure.
-section :: Ly.Markup cls -> RenderM cls Doc -> RenderM cls Doc
+-- Sections and subsections are a concept /we/ introduce; they do not exist as
+-- an actual Lilypond structure.
+section :: String -> (Ly.Part.Label -> RenderM Doc) -> RenderM Doc
 section title contents = do
-    tocLabel <- newTocLabel
-    parents  <- getParents
+    label <- newPartLabel
     mconcat [
-        line $ List.intercalate " " [
-            "\\tocItem"
-          , renderTocPath (tocLabel : parents)
-          , "\"" ++ Ly.Markup.strip title ++ "\""
-          ]
-      , nest tocLabel contents
+        tocItem "\\tocItem" label title
+      , nest $ contents label
       ]
 
-score :: Ly.Markup cls -> RenderM cls Doc -> RenderM cls Doc
+score :: String -> (Ly.Part.Label -> RenderM Doc) -> RenderM Doc
 score title contents = do
-    tocLabel <- newTocLabel
-    parents  <- getParents
+    label <- newPartLabel
     mconcat [
         -- @tocItem@ must be outside the @score@ scope
-        line $ List.intercalate " " [
-            "\\tocItem"
-          , renderTocPath (tocLabel : parents)
-          , "\"" ++ Ly.Markup.strip title ++ "\""
-          ]
-      , withinScope "score" $ nest tocLabel contents
+        tocItem "\\tocItem" label title
+      , nest $ contents label
       ]
+
+tocItem :: String -> Ly.Part.Label -> String -> RenderM Doc
+tocItem cmd = \label title ->
+    line $ List.intercalate " " [
+        cmd
+      , renderLabelPath (Ly.Part.path label)
+      , "\"" ++ Ly.Part.render label ++ ". " ++ title ++ "\""
+      ]
+  where
+    renderLabelPath :: [Ly.Part.Label] -> String
+    renderLabelPath = List.intercalate "." . map renderTocLabel
+
+    renderTocLabel :: Ly.Part.Label -> String
+    renderTocLabel label = Prelude.concat [
+          "\"L"
+        , List.intercalate "_" $ map show (Ly.Part.index label)
+        , "\""
+        ]
 
 -- | Setup necessary Lilypond infrastructure to render the ToC
 --
@@ -205,34 +208,39 @@ setupTableOfContents = Doc.lines [
   Dealing with markup
 -------------------------------------------------------------------------------}
 
-markup :: Ly.Markup cls -> RenderM cls Doc
+markup :: Ly.Markup -> RenderM Doc
 markup x = do
-    isClass <- WrapRenderM $ Reader.asks markupClass
-    return $ Ly.Markup.render $ Ly.Markup.applyClasses isClass x
+    env <- WrapRenderM Reader.ask
+    return $ Ly.Markup.render env.stylesheet x
 
 {-------------------------------------------------------------------------------
   Context
 -------------------------------------------------------------------------------}
 
-newtype TocLabel = TocLabel Int
-  deriving newtype (Enum)
-
-data RenderEnv cls = RenderEnv{
-      tocParents  :: [TocLabel]
-    , markupClass :: Ly.Markup.IsClass cls
+data RenderEnv = RenderEnv{
+      stylesheet :: Ly.Markup.Stylesheet
     }
 
-initRenderContext :: Ly.Markup.IsClass cls -> RenderEnv cls
-initRenderContext isClass = RenderEnv{
-      tocParents  = []
-    , markupClass = isClass
+initRenderContext :: Ly.Markup.Stylesheet -> RenderEnv
+initRenderContext stylesheet = RenderEnv{
+      stylesheet
     }
 
 data RenderState = RenderState{
-      nextTocLabel :: TocLabel
+      -- | ToC label for the current section
+      --
+      -- Stored in reverse order (most nested level first)
+      currTocLabel :: NonEmpty Int
     }
 
 initRenderState :: RenderState
 initRenderState = RenderState{
-      nextTocLabel = TocLabel 1
+      currTocLabel = 0 :| []
     }
+
+{-------------------------------------------------------------------------------
+  Internal auxiliary
+-------------------------------------------------------------------------------}
+
+mapHead :: (a -> a) -> NonEmpty a -> NonEmpty a
+mapHead f (x :| xs) = f x :| xs

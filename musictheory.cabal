@@ -65,6 +65,7 @@ library lilypond
   exposed-modules:
       Lilypond
       Lilypond.Markup
+      Lilypond.Part
       Lilypond.Render
       Lilypond.Util.Doc
 
@@ -108,7 +109,6 @@ executable music-theory-exercises
       Exercises.Chords
       Exercises.Chords.Basic
       Exercises.Chords.StdJazz
-      Exercises.Lilypond
       Exercises.Lilypond.Style
       Exercises.Progressions
       Exercises.Progressions.StdJazz

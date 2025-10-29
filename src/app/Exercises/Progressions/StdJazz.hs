@@ -9,17 +9,15 @@ import MusicTheory.Scale qualified as Scale
 import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly.Markup
 
-import Exercises.Lilypond
-import Exercises.Lilypond.Style qualified as Style
 import Exercises.Progressions
 
 {-------------------------------------------------------------------------------
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: Ly.Section Style.Class
+exercises :: Ly.Section
 exercises = Ly.Section{
-      title = sectionTitle "Using standard Jazz voicings"
+      title = "Using standard Jazz voicings"
     , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every progression shown twice: "
         , "first with the third in the bass of the first chord, "
@@ -33,16 +31,16 @@ exercises = Ly.Section{
     }
   where
     -- By adding a page break just before all 12 scales fit on a page
-    addPageBreak :: Ly.SectionElem Style.Class -> [Ly.SectionElem Style.Class]
+    addPageBreak :: Ly.SectionElem -> [Ly.SectionElem]
     addPageBreak e = [Ly.SectionPageBreak, e]
 
 {-------------------------------------------------------------------------------
   Individual exercises
 -------------------------------------------------------------------------------}
 
-major251 :: Ly.Score Style.Class
+major251 :: Ly.Score
 major251 = Ly.Score{
-      title = exerciseTitle "Major 2-5-1"
+      title = "Major 2-5-1"
     , intro = Nothing
     , staff =
         progressionExercise
@@ -54,9 +52,9 @@ major251 = Ly.Score{
           Scale.allMajorScales
     }
 
-minor251 :: Ly.Score Style.Class
+minor251 :: Ly.Score
 minor251 = Ly.Score{
-      title = exerciseTitle "Minor 2-5-1"
+      title = "Minor 2-5-1"
     , intro = Nothing
     , staff =
         progressionExercise

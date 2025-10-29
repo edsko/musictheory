@@ -7,35 +7,39 @@ import MusicTheory.Chord.Voicing qualified as Voicing
 import Lilypond qualified as Ly
 
 import Exercises.Chords
-import Exercises.Lilypond
-import Exercises.Lilypond.Style qualified as Style
 
 {-------------------------------------------------------------------------------
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: Ly.Section Style.Class
+exercises :: Ly.Section
 exercises = Ly.Section{
-      title = sectionTitle "Basic chord exercises"
+      title = "Basic chord exercises"
     , intro = Nothing
     , elems = [
-          Ly.SectionScore majorTriads
-        , Ly.SectionScore majorSeventh
-        , Ly.SectionScore dominantSeventh
-        , Ly.SectionScore minorSeventh
+          Ly.SectionSub $ Ly.Section{
+              title = "Root position"
+            , intro = Nothing
+            , elems = [
+                  Ly.SectionScore majorTriads
+                , Ly.SectionScore majorSeventh
+                , Ly.SectionScore dominantSeventh
+                , Ly.SectionScore minorSeventh
+                ]
+            }
         ]
     }
 
 {-------------------------------------------------------------------------------
   Individual exercises
 
-  When we use an inversion to have the seventh in the bass, we shift everything
-  down an octave.
+  When we use an inversion to have the seventh at the bottom, we shift
+  everything down an octave.
 -------------------------------------------------------------------------------}
 
-majorTriads :: Ly.Score Style.Class
+majorTriads :: Ly.Score
 majorTriads = Ly.Score{
-      title = exerciseTitle "Major triads, root position"
+      title = "Major triads, root position"
     , intro = Nothing
     , staff =
         chordExercise
@@ -44,9 +48,9 @@ majorTriads = Ly.Score{
           [(rootPosition, noOctaveShift)]
     }
 
-majorSeventh :: Ly.Score Style.Class
+majorSeventh :: Ly.Score
 majorSeventh = Ly.Score{
-      title = exerciseTitle "Major seventh chords, root position"
+      title = "Major seventh chords, root position"
     , intro = Nothing
     , staff =
         chordExercise
@@ -55,9 +59,9 @@ majorSeventh = Ly.Score{
           [(rootPosition, noOctaveShift)]
     }
 
-dominantSeventh :: Ly.Score Style.Class
+dominantSeventh :: Ly.Score
 dominantSeventh = Ly.Score{
-      title = exerciseTitle "Dominant seventh chords, seventh in the bass"
+      title = "Dominant seventh chords, seventh in the bass"
     , intro = Nothing
     , staff =
         chordExercise
@@ -66,9 +70,9 @@ dominantSeventh = Ly.Score{
           [(Inversion 3, OctaveShift (-1))]
     }
 
-minorSeventh :: Ly.Score Style.Class
+minorSeventh :: Ly.Score
 minorSeventh = Ly.Score{
-      title = exerciseTitle "Minor seventh chords, seventh in the bass"
+      title = "Minor seventh chords, seventh in the bass"
     , intro = Nothing
     , staff =
         chordExercise
