@@ -22,10 +22,10 @@ exercises = Ly.Section{
               title = "Root position"
             , intro = Nothing
             , elems = [
-                  Ly.SectionScore $ majorTriads     onlyRootPosition
-                , Ly.SectionScore $ majorSeventh    onlyRootPosition
-                , Ly.SectionScore $ dominantSeventh onlyRootPosition
-                , Ly.SectionScore $ minorSeventh    onlyRootPosition
+                  Ly.SectionScore $ majorTriads     (inversions [0])
+                , Ly.SectionScore $ majorSeventh    (inversions [0])
+                , Ly.SectionScore $ dominantSeventh (inversions [0])
+                , Ly.SectionScore $ minorSeventh    (inversions [0])
                 ]
             }
         , Ly.SectionSub $ Ly.Section{
@@ -35,62 +35,70 @@ exercises = Ly.Section{
                 , "followed by all possible inversions."
                 ]
             , elems = [
-                  Ly.SectionScore $ majorTriads     allInversionsTriad
-                , Ly.SectionScore $ majorSeventh    allInversionsSeventh
+                  Ly.SectionScore $ majorTriads     (inversions [0..2])
+                , Ly.SectionScore $ majorSeventh    (inversions [0..3])
                 , Ly.SectionPageBreak
-                , Ly.SectionScore $ dominantSeventh allInversionsSeventh
-                , Ly.SectionScore $ minorSeventh    allInversionsSeventh
+                , Ly.SectionScore $ dominantSeventh (inversions [0..3])
+                , Ly.SectionScore $ minorSeventh    (inversions [0..3])
                 ]
             }
         ]
     }
   where
-    onlyRootPosition :: [(Inversion, OctaveShift)]
-    onlyRootPosition = [(rootPosition, noOctaveShift)]
-
-    allInversionsTriad :: [(Inversion, OctaveShift)]
-    allInversionsTriad = [
-          (rootPosition , noOctaveShift)
-        , (Inversion 1  , noOctaveShift)
-        , (Inversion 2  , noOctaveShift)
-        ]
-
-    allInversionsSeventh :: [(Inversion, OctaveShift)]
-    allInversionsSeventh = [
-          (rootPosition , noOctaveShift)
-        , (Inversion 1  , noOctaveShift)
-        , (Inversion 2  , noOctaveShift)
-        , (Inversion 3  , noOctaveShift)
+    inversions :: [Word] -> [ChordInversion]
+    inversions is = [
+          ChordInversion (Inversion i) noOctaveShift Ly.NoAnnotation
+        | i <- is
         ]
 
 {-------------------------------------------------------------------------------
   Root position
 -------------------------------------------------------------------------------}
 
-majorTriads :: [(Inversion, OctaveShift)] -> Ly.Score
+majorTriads :: [ChordInversion] -> Ly.Score
 majorTriads inversions = Ly.Score{
       title = "Major triad"
     , intro = Nothing
-    , staff = chordExercise Chord.MajorTriad Voicing.Default inversions
+    , staff =
+        chordExercise
+          Chord.MajorTriad
+          Voicing.Default
+          (length inversions)
+          (\_ -> inversions)
     }
 
-majorSeventh :: [(Inversion, OctaveShift)] -> Ly.Score
+majorSeventh :: [ChordInversion] -> Ly.Score
 majorSeventh inversions = Ly.Score{
       title = "Major seventh"
     , intro = Nothing
-    , staff = chordExercise Chord.Major7 Voicing.Default inversions
+    , staff =
+        chordExercise
+          Chord.Major7
+          Voicing.Default
+          (length inversions)
+          (\_ -> inversions)
     }
 
-dominantSeventh :: [(Inversion, OctaveShift)] -> Ly.Score
+dominantSeventh :: [ChordInversion] -> Ly.Score
 dominantSeventh inversions = Ly.Score{
       title = "Dominant seventh"
     , intro = Nothing
-    , staff = chordExercise Chord.Dominant7 Voicing.Default inversions
+    , staff =
+        chordExercise
+          Chord.Dominant7
+          Voicing.Default
+          (length inversions)
+          (\_ -> inversions)
     }
 
-minorSeventh :: [(Inversion, OctaveShift)] -> Ly.Score
+minorSeventh :: [ChordInversion] -> Ly.Score
 minorSeventh inversions = Ly.Score{
       title = "Minor seventh"
     , intro = Nothing
-    , staff = chordExercise Chord.Minor7 Voicing.Default inversions
+    , staff =
+        chordExercise
+          Chord.Minor7
+          Voicing.Default
+          (length inversions)
+          (\_ -> inversions)
     }

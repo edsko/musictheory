@@ -15,8 +15,12 @@ import MusicTheory.Progression (Progression(..))
 import MusicTheory.Progression qualified as Progression
 import MusicTheory.Reference
 import MusicTheory.Scale (Scale(..))
+import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
+
+import Exercises.Util.ChordInversion (ChordInversion(..))
+import Exercises.Util.ChordInversion qualified as ChordInversion
 
 {-------------------------------------------------------------------------------
   Construct chord progression exercise
@@ -27,7 +31,7 @@ progressionExercise ::
      -- ^ Progression type
   -> Voicing
      -- ^ Chord voicing style
-  -> [(Inversion, OctaveShift)]
+  -> (Scale.Root -> [ChordInversion])
      -- ^ Inversion and octave shift for initial chord
   -> (Chord.Type -> [Inversion])
      -- ^ Permissable inversions (for voice leading)
@@ -47,7 +51,7 @@ progressionExercise progression voicing initInv permissiveInv scales =
     goScale :: Scale -> [Ly.StaffElem]
     goScale scale = concat [
           [Ly.StaffKeySignature scale.name]
-        , concatMap (goInitInversion progression') initInv
+        , concatMap (goInitInversion progression') (initInv scale.name.root)
         , [Ly.StaffLinebreak]
         ]
       where
@@ -58,20 +62,23 @@ progressionExercise progression voicing initInv permissiveInv scales =
     -- .. and for each choice of initial inversion
     goInitInversion ::
          Progression Abs
-      -> (Inversion, OctaveShift)
+      -> ChordInversion
       -> [Ly.StaffElem]
-    goInitInversion progression' (initInversion, initOctaveShift) =
-        map goChord (NE.toList withVoiceLeading)
+    goInitInversion progression' initInversion =
+        zipWith
+          goChord
+          (NE.toList withVoiceLeading)
+          (initInversion.annotation : repeat Ly.NoAnnotation)
       where
         Progression (first :| rest) = progression'
 
         first' :: Named.Chord Abs
-        first' = transposeOctave initOctaveShift $ invert initInversion first
+        first' = ChordInversion.apply initInversion first
 
         withVoiceLeading :: NonEmpty (Named.Chord Abs)
         Progression withVoiceLeading =
             Progression.voiceLeading permissiveInv $
               Progression (first' :| rest)
 
-    goChord :: Named.Chord Abs -> Ly.StaffElem
+    goChord :: Named.Chord Abs -> Ly.Annotation -> Ly.StaffElem
     goChord chord = Ly.StaffNamedChord chord (Ly.OneOver 1)

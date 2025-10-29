@@ -11,6 +11,7 @@ module MusicTheory.Chord.Named (
     -- * Query
   , getName
   , getType
+  , getRoot
   , getNotes
   ) where
 
@@ -19,6 +20,7 @@ import Data.Function
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord)
+import MusicTheory.Reference (Reference)
 import MusicTheory.Reference qualified as Reference
 import MusicTheory.Scale qualified as Scale
 
@@ -61,6 +63,9 @@ getName (Abs name _) = name
 
 getType :: Chord r -> Chord.Type
 getType = (.typ) . getName
+
+getRoot :: Chord r -> Reference r
+getRoot = (.root) . getName
 
 getNotes :: Chord Reference.Abs -> Unnamed.Chord Reference.Abs
 getNotes (Abs _ chord) = chord

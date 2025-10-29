@@ -127,9 +127,9 @@ instance LilypondToDoc Ly.Staff where
             -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
           , "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
           , "\\set Staff.printKeyCancellation = ##f"
-            -- Ensure chord annotations are aligned
+            -- Ensure chord annotations (above and below) are aligned
             -- <https://lilypond.org/doc/v2.24/Documentation/snippets/tweaks-and-overrides#tweaks-and-overrides-vertically-aligned-dynamics-and-textscripts>
-          , "\\override TextScript.staff-padding = 3"
+          , "\\override TextScript.padding = #3"
           , RenderM.lines $ renderNotes staff.elems
           ]
       ]
@@ -206,14 +206,16 @@ renderNotes = \elems ->
     map aux elems
   where
     aux :: Ly.StaffElem -> String
-    aux (Ly.StaffNamedChord chord duration) = concat [
+    aux (Ly.StaffNamedChord chord duration mAnn) = concat [
           renderUnnamed   (Chord.Named.getNotes chord)
         , renderDuration  duration
         , renderChordName (Chord.Named.getName chord)
+        , renderAnnotation mAnn
         ]
-    aux (Ly.StaffUnnamedChord chord duration) = concat [
+    aux (Ly.StaffUnnamedChord chord duration mAnn) = concat [
           renderUnnamed  chord
         , renderDuration duration
+        , renderAnnotation mAnn
         ]
     aux (Ly.StaffLinebreak) =
         "\\break"
@@ -221,6 +223,14 @@ renderNotes = \elems ->
         "% " ++ comment
     aux (Ly.StaffKeySignature scaleName) =
         renderKeySignature scaleName
+
+renderAnnotation :: Ly.Annotation -> String
+renderAnnotation Ly.NoAnnotation     = ""
+renderAnnotation (Ly.Annotation ann) = concat [
+      "_\\markup{\\italic{\\abs-fontsize #8 {"
+    , ann
+    , "}}}"
+    ]
 
 renderDuration :: Ly.Duration -> String
 renderDuration (Ly.OneOver n) = show n

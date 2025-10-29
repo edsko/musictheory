@@ -15,10 +15,12 @@ module Lilypond (
   , StaffProps(..)
   , TimeSignature(..)
   , StaffElem(..)
+  , Annotation(..)
   , Duration(..)
   ) where
 
 import Data.Default
+import Data.String
 
 import MusicTheory.Chord.Named qualified as Named (Chord)
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
@@ -90,12 +92,18 @@ instance Default StaffProps where
       }
 
 data StaffElem =
-    StaffNamedChord   (  Named.Chord Abs) Duration
-  | StaffUnnamedChord (Unnamed.Chord Abs) Duration
+    StaffNamedChord   (  Named.Chord Abs) Duration Annotation
+  | StaffUnnamedChord (Unnamed.Chord Abs) Duration Annotation
   | StaffLinebreak
   | StaffComment String
   | StaffKeySignature Scale.Name
-  deriving stock (Show)
+
+data Annotation =
+    NoAnnotation
+  | Annotation String
+
+instance IsString Annotation where
+  fromString = Annotation
 
 data Duration =
     OneOver Word

@@ -1,5 +1,7 @@
 module Exercises.Progressions.FourWayClose (exercises) where
 
+import Data.Foldable
+
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Voicing qualified as Voicing
@@ -10,6 +12,9 @@ import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly.Markup
 
 import Exercises.Progressions
+import Exercises.Util.ChordInversion (ChordInversion(..))
+import Exercises.Util.TypeAB (TypeAB(..))
+import Exercises.Util.TypeAB qualified as TypeAB
 
 {-------------------------------------------------------------------------------
   List of exercises
@@ -20,8 +25,8 @@ exercises = Ly.Section{
       title = "Four Note Closed Hand Voicings"
     , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every progression shown twice: "
-        , "first with the third in the bass of the first chord, "
-        , " then with the seventh in the bass. "
+        , "first starting with the type A voicing, "
+        , "then with the type B voicing. "
         , "Basic voice leading is applied in both cases."
         ]
     , elems = concatMap addPageBreak [
@@ -46,11 +51,18 @@ major251 = Ly.Score{
         progressionExercise
           (Progression.named Progression.Major251)
           Voicing.FourWayClose
-          -- Starts on a rootless minor chord
-          [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
+          initInversions
           permissibleInversions
           Scale.allMajorScales
     }
+  where
+    -- Starts on a rootless minor chord
+    initInversions :: Scale.Root -> [ChordInversion]
+    initInversions scaleRoot = toList $
+        TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
+            typeA = (Inversion 0, noOctaveShift)
+          , typeB = (Inversion 2, OctaveShift (-1))
+          }
 
 minor251 :: Ly.Score
 minor251 = Ly.Score{
@@ -60,11 +72,18 @@ minor251 = Ly.Score{
         progressionExercise
           (Progression.named Progression.Minor251)
           Voicing.FourWayClose
-          -- This starts on a half-dimished chord, which we voice with a root.
-          [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
+          initInversions
           permissibleInversions
           Scale.allMinorScales
     }
+  where
+    -- This starts on a half-dimished chord, which we voice with a root.
+    initInversions :: Scale.Root -> [ChordInversion]
+    initInversions scaleRoot = toList $
+        TypeAB.markInversion (\_ -> scaleRoot == Scale.A) TypeAB{
+            typeA = (Inversion 1, noOctaveShift)
+          , typeB = (Inversion 3, OctaveShift (-1))
+          }
 
 -- | Possible inversions
 --

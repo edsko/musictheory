@@ -112,3 +112,5 @@ executable music-theory-exercises
       Exercises.Lilypond.Style
       Exercises.Progressions
       Exercises.Progressions.FourWayClose
+      Exercises.Util.ChordInversion
+      Exercises.Util.TypeAB

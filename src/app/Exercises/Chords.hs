@@ -1,12 +1,12 @@
 -- | Utilities for generating chord exercises
 module Exercises.Chords (
     -- * Construct exercise
-    chordExercise
+    ChordInversion(..)
+  , chordExercise
   ) where
 
 import Data.Default
 
-import MusicTheory
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Named qualified as Named (Chord)
@@ -19,6 +19,9 @@ import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
 
+import Exercises.Util.ChordInversion (ChordInversion(..))
+import Exercises.Util.ChordInversion qualified as ChordInversion
+
 {-------------------------------------------------------------------------------
   Construct chords exercise
 
@@ -27,21 +30,16 @@ import Lilypond qualified as Ly
 
 chordExercise ::
      Chord.Type
-     -- ^ Chord type
   -> Voicing
-     -- ^ Chord voicing style
-  -> [(Inversion, OctaveShift)]
-     -- ^ Inversions to show for each chord
-     --
-     -- For each inversion, we also allow for an octave shift, to ensure that
-     -- the inversions don't result in chords too high up the stave.
+  -> Int -- ^ Number of inversions shown for each chord
+  -> (Scale.Root -> [ChordInversion])
   -> Ly.Staff
-chordExercise typ voicing inversions =
+chordExercise typ voicing numInversions inversions =
     Ly.Staff{
         props = def{
             Ly.hideTimeSignature  = True
           , Ly.omitMeasureNumbers = True
-          , Ly.timeSignature      = Ly.TimeSignature (length inversions) 1
+          , Ly.timeSignature      = Ly.TimeSignature numInversions 1
           }
       , elems = mconcat [
             chordsOfTypeIn typ voicing inversions firstHalf
@@ -53,10 +51,10 @@ chordExercise typ voicing inversions =
 chordsOfTypeIn ::
      Chord.Type
   -> Voicing
-  -> [(Inversion, OctaveShift)]
+  -> (Scale.Root -> [ChordInversion])
   -> [Scale.Root]
   -> [Ly.StaffElem]
-chordsOfTypeIn chordType voicing inversions scales =
+chordsOfTypeIn chordType voicing inversionsFor scales =
     concatMap goScale scales
   where
     -- Show all inversions for the specified scale
@@ -66,7 +64,7 @@ chordsOfTypeIn chordType voicing inversions scales =
     goScale scaleRoot =
         zipWith
           (goInversion $ Voicing.wrtScale scale voicing Octave.middle chord)
-          inversions
+          (inversionsFor scaleRoot)
           (True : repeat False)
       where
         -- .. always use a major scale as context
@@ -79,16 +77,18 @@ chordsOfTypeIn chordType voicing inversions scales =
 
     goInversion ::
          Named.Chord Abs
-      -> (Inversion, OctaveShift)
+      -> ChordInversion
       -> Bool  -- Show chord name?
       -> Ly.StaffElem
-    goInversion chord' (inversion, octaveShift) showChordName =
+    goInversion chord' chordInversion showChordName =
         if showChordName
-          then Ly.StaffNamedChord                         chord''  duration
-          else Ly.StaffUnnamedChord (Chord.Named.getNotes chord'') duration
+          then Ly.StaffNamedChord                         chord''  duration ann
+          else Ly.StaffUnnamedChord (Chord.Named.getNotes chord'') duration ann
       where
+        ChordInversion{annotation = ann} = chordInversion
+
         chord'' :: Named.Chord Abs
-        chord'' = transposeOctave octaveShift $ invert inversion chord'
+        chord'' = ChordInversion.apply chordInversion chord'
 
     duration :: Ly.Duration
     duration = Ly.OneOver 1
