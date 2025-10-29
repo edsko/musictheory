@@ -108,7 +108,7 @@ executable music-theory-exercises
       Exercises
       Exercises.Chords
       Exercises.Chords.Basic
-      Exercises.Chords.StdJazz
+      Exercises.Chords.FourWayClose
       Exercises.Lilypond.Style
       Exercises.Progressions
-      Exercises.Progressions.StdJazz
+      Exercises.Progressions.FourWayClose

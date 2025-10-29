@@ -35,7 +35,7 @@ import MusicTheory.Scale qualified as Scale
 
 data Voicing =
     Default
-  | StdJazz
+  | FourWayClose
   deriving stock (Show)
 
 {-------------------------------------------------------------------------------
@@ -87,20 +87,20 @@ majorDegree1 voicing typ =
       (Default, Chord.Minor7)         -> [ "1" , "♭3" , "5", "♭7" ]
       (Default, Chord.Dominant7)      -> [ "1" ,  "3" , "5", "♭7" ]
 
-      (StdJazz, Chord.Major7)         -> [ "3" ,  "5" ,  "7" ,  "9" ]
-      (StdJazz, Chord.Minor7)         -> [ "3" , "♭5" , "♭7" ,  "9" ]
-      (StdJazz, Chord.Dominant7)      -> [ "3" , "13" , "♭7" ,  "9" ]
-      (StdJazz, Chord.HalfDiminished) -> [ "1" , "♭3" , "♭5" , "♭7" ]
-      (StdJazz, Chord.Altered)        -> [ "3" , "♯5" , "♭7" , "♯9" ]
-      (StdJazz, Chord.AlteredFlat9)   -> [ "3" ,  "5" , "♭7" , "♭9" ]
-      (StdJazz, Chord.Sus)            -> [ "2" ,  "4" , "13" , "♭7" ]
+      (FourWayClose, Chord.Major7)         -> [ "3" ,  "5" ,  "7" ,  "9" ]
+      (FourWayClose, Chord.Minor7)         -> [ "3" , "♭5" , "♭7" ,  "9" ]
+      (FourWayClose, Chord.Dominant7)      -> [ "3" , "13" , "♭7" ,  "9" ]
+      (FourWayClose, Chord.HalfDiminished) -> [ "1" , "♭3" , "♭5" , "♭7" ]
+      (FourWayClose, Chord.Altered)        -> [ "3" , "♯5" , "♭7" , "♯9" ]
+      (FourWayClose, Chord.AlteredFlat9)   -> [ "3" ,  "5" , "♭7" , "♭9" ]
+      (FourWayClose, Chord.Sus)            -> [ "2" ,  "4" , "13" , "♭7" ]
 
       _otherwise -> notYetImplemented (voicing, typ)
 
 majorOtherDegree :: Voicing -> Chord.Name Rel -> NonEmpty Scale.Degree
 majorOtherDegree voicing Chord.Name{root, typ} =
     case (voicing, root, typ) of
-      -- Major 2-5-1 using standard jazz voicing:
+      -- Major 2-5-1 using four note close voicing
       --
       -- >  1    2    3    4    5    6    7   (8)   9  (10)  11  (12)  13  (14)
       -- >  C    D    E    F    G    A    B   (C)   D  ( E)   F  ( G)   A  ( B)
@@ -108,8 +108,8 @@ majorOtherDegree voicing Chord.Name{root, typ} =
       -- >       ._________*_________*_________*_________*                    (iim7)
       -- >                      ._________*_________*_________*_________*     (V7)
       -- >  ._________*_________*_________*_________*                         (Imaj7)
-      (StdJazz, "2", Chord.Minor7)    -> [ "4" , "6" ,  "8" , "10" ]
-      (StdJazz, "5", Chord.Dominant7) -> [ "7" , "9" , "11" , "13" ]
+      (FourWayClose, "2", Chord.Minor7)    -> [ "4" , "6" ,  "8" , "10" ]
+      (FourWayClose, "5", Chord.Dominant7) -> [ "7" , "9" , "11" , "13" ]
 
       _otherwise -> notYetImplemented (voicing, root, typ)
 
@@ -122,7 +122,7 @@ majorOtherDegree voicing Chord.Name{root, typ} =
 scaleDegreesMinor :: Voicing -> Chord.Name Rel -> NonEmpty Scale.Degree
 scaleDegreesMinor voicing Chord.Name{root, typ} =
     case (voicing, root, typ) of
-      -- Minor 2-5-1 using standard jazz voicing
+      -- Minor 2-5-1 using four note close voicing
       --
       -- >  1    2    3    4    5    6    7   (8)   9  (10)  11  (12)  13  (14)
       -- >  C    D    E♭   F    G    A♭   B♭  (C)   D  (E♭)   F  ( G)  A♭  (B♭)
@@ -136,9 +136,9 @@ scaleDegreesMinor voicing Chord.Name{root, typ} =
       --
       -- NOTE: In the context of the (natural) minor scale, we need to sharpen
       -- scale degree 7 to get the dominant chord (rather than a minor chord).
-      (StdJazz, "2", Chord.HalfDiminished) -> [  "2" , "4" ,  "6" ,  "8" ]
-      (StdJazz, "5", Chord.AlteredFlat9)   -> [ "♯7" , "9" , "11" , "13" ]
-      (StdJazz, "1", Chord.Minor7)         -> [  "3" , "5" ,  "7" ,  "9" ]
+      (FourWayClose, "2", Chord.HalfDiminished) -> [  "2" , "4" ,  "6" ,  "8" ]
+      (FourWayClose, "5", Chord.AlteredFlat9)   -> [ "♯7" , "9" , "11" , "13" ]
+      (FourWayClose, "1", Chord.Minor7)         -> [  "3" , "5" ,  "7" ,  "9" ]
 
       _otherwise -> notYetImplemented (voicing, root, typ)
 

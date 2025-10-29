@@ -5,8 +5,8 @@
 -- Some things to try:
 --
 -- > Scale.named (Scale.Name "G♭" Scale.Major)
--- > Voicing.wrtScale Scale.cMajor Voicing.StdJazz Octave.middle $ Chord.Named.chordI Chord.Dominant7
--- > Progression.wrtScale Scale.cMinor Voicing.StdJazz Octave.middle $ Progression.named Progression.Minor251
+-- > Voicing.wrtScale Scale.cMajor Voicing.FourWayClose Octave.middle $ Chord.Named.chordI Chord.Dominant7
+-- > Progression.wrtScale Scale.cMinor Voicing.FourWayClose Octave.middle $ Progression.named Progression.Minor251
 module MusicTheory.Interactive where
 
 -- To re-generate this list:

@@ -1,4 +1,4 @@
-module Exercises.Chords.StdJazz (exercises) where
+module Exercises.Chords.FourWayClose (exercises) where
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
@@ -16,7 +16,7 @@ import Exercises.Chords
 
 exercises :: Ly.Section
 exercises = Ly.Section{
-      title = "Standard Jazz voicings"
+      title = "Four Note Closed Hand Voicings"
     , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every chord shown twice: "
         , "first with the third in the bass, "
@@ -52,7 +52,7 @@ major = Ly.Score{
     , staff =
         chordExercise
           Chord.Major7
-          Voicing.StdJazz
+          Voicing.FourWayClose
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -67,7 +67,7 @@ minor = Ly.Score{
     , staff =
         chordExercise
           Chord.Minor7
-          Voicing.StdJazz
+          Voicing.FourWayClose
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -82,7 +82,7 @@ dominant = Ly.Score{
     , staff =
         chordExercise
           Chord.Dominant7
-          Voicing.StdJazz
+          Voicing.FourWayClose
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -97,7 +97,7 @@ halfDiminished = Ly.Score{
     , staff =
         chordExercise
           Chord.HalfDiminished
-          Voicing.StdJazz
+          Voicing.FourWayClose
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
     }
 
@@ -112,7 +112,7 @@ altered = Ly.Score{
     , staff =
         chordExercise
           Chord.Altered
-          Voicing.StdJazz
+          Voicing.FourWayClose
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
     }
 
@@ -130,7 +130,7 @@ sus = Ly.Score{
     , staff =
         chordExercise
           Chord.Sus
-          Voicing.StdJazz
+          Voicing.FourWayClose
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
     }
 
@@ -141,4 +141,4 @@ sus = Ly.Score{
 voicing :: Chord.Type -> Ly.Markup
 voicing chordType =
     foldMap (Ly.Markup.Music . Ly.Markup.Interval) $
-      Voicing.intervals Voicing.StdJazz chordType
+      Voicing.intervals Voicing.FourWayClose chordType

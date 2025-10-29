@@ -1,4 +1,4 @@
-module Exercises.Progressions.StdJazz (exercises) where
+module Exercises.Progressions.FourWayClose (exercises) where
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
@@ -17,7 +17,7 @@ import Exercises.Progressions
 
 exercises :: Ly.Section
 exercises = Ly.Section{
-      title = "Using standard Jazz voicings"
+      title = "Four Note Closed Hand Voicings"
     , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Every progression shown twice: "
         , "first with the third in the bass of the first chord, "
@@ -45,7 +45,7 @@ major251 = Ly.Score{
     , staff =
         progressionExercise
           (Progression.named Progression.Major251)
-          Voicing.StdJazz
+          Voicing.FourWayClose
           -- Starts on a rootless minor chord
           [(Inversion 0, noOctaveShift), (Inversion 2, OctaveShift (-1))]
           permissibleInversions
@@ -59,7 +59,7 @@ minor251 = Ly.Score{
     , staff =
         progressionExercise
           (Progression.named Progression.Minor251)
-          Voicing.StdJazz
+          Voicing.FourWayClose
           -- This starts on a half-dimished chord, which we voice with a root.
           [(Inversion 1, noOctaveShift), (Inversion 3, OctaveShift (-1))]
           permissibleInversions
@@ -68,7 +68,7 @@ minor251 = Ly.Score{
 
 -- | Possible inversions
 --
--- See comment in "Exercises.Chords.StdJazz" regarding inversions.
+-- See comment in "Exercises.Chords.FourWayClose" regarding inversions.
 --
 -- We don't need to implement the inversions for the half diminished chord, as
 -- it (currently) only appears as the /first/ chord.
