@@ -2,7 +2,7 @@
 --
 -- Intended for qualified import.
 --
--- > import MusicTheory.Interval qualified as Interval
+-- > import MusicTheory.Interval (Interval)
 -- > import MusicTheory.Interval qualified as Interval
 module MusicTheory.Interval (
     Interval(..)
@@ -25,8 +25,8 @@ module MusicTheory.Interval (
   ) where
 
 import MusicTheory.Note qualified as Note
-import MusicTheory.Util.StringTable
 import MusicTheory.Scale qualified as Scale
+import MusicTheory.Util.StringTable
 
 {-------------------------------------------------------------------------------
   Definition
