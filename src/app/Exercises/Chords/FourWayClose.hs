@@ -36,6 +36,9 @@ exercises = Ly.Section{
         , Ly.SectionScore halfDiminished
         , Ly.SectionScore altered
         , Ly.SectionScore sus
+        , Ly.SectionPageBreak
+
+        , Ly.SectionScore sevenFlat9
         ]
     }
 
@@ -158,6 +161,25 @@ sus = Ly.Score{
         ChordInversion (Inversion 1) noOctaveShift      Ly.NoAnnotation
       , ChordInversion (Inversion 3) (OctaveShift (-1)) Ly.NoAnnotation
       ]
+
+sevenFlat9 :: Ly.Score
+sevenFlat9 = Ly.Score{
+      title = "7(♭9)"
+    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+          "Voiced using"
+        , voicing Chord.SevenFlat9
+        , " (or equivalenty as a diminished chord starting at the 3)"
+        , "."
+        ]
+    , staff = chordExercise Chord.SevenFlat9 Voicing.FourWayClose 2 inversions
+    }
+  where
+    inversions :: Scale.Root -> [ChordInversion]
+    inversions scaleRoot = toList $
+        TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
+            typeA = (Inversion 0, noOctaveShift)
+          , typeB = (Inversion 2, OctaveShift (-1))
+          }
 
 {-------------------------------------------------------------------------------
   Internal auxiliary
