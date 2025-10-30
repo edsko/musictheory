@@ -70,15 +70,12 @@ progressionExercise progression voicing initInv permissiveInv scales =
           (NE.toList withVoiceLeading)
           (initInversion.annotation : repeat Ly.NoAnnotation)
       where
-        Progression (first :| rest) = progression'
-
-        first' :: Named.Chord Abs
-        first' = ChordInversion.apply initInversion first
-
         withVoiceLeading :: NonEmpty (Named.Chord Abs)
         Progression withVoiceLeading =
             Progression.voiceLeading permissiveInv $
-              Progression (first' :| rest)
+              Progression.mapFirst
+                (ChordInversion.apply initInversion)
+                progression'
 
     goChord :: Named.Chord Abs -> Ly.Annotation -> Ly.StaffElem
     goChord chord = Ly.StaffNamedChord chord (Ly.OneOver 1)

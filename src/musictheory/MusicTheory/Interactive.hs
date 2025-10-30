@@ -1,12 +1,6 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 -- | Module for use in ghci
---
--- Some things to try:
---
--- > Scale.named (Scale.Name "G♭" Scale.Major)
--- > Voicing.wrtScale Scale.cMajor Voicing.FourWayClose Octave.middle $ Chord.Named.chordI Chord.Dominant7
--- > Progression.wrtScale Scale.cMinor Voicing.FourWayClose Octave.middle $ Progression.named Progression.Minor251
 module MusicTheory.Interactive where
 
 -- To re-generate this list:
@@ -32,3 +26,43 @@ import MusicTheory.Progression qualified as Progression
 import MusicTheory.Reference
 import MusicTheory.Scale (Scale(..))
 import MusicTheory.Scale qualified as Scale
+
+{-------------------------------------------------------------------------------
+  Examples
+
+  Written so that they can easily be copy-pasted. For multiple lines, use
+
+  > :{
+  >   ..
+  > :}
+-------------------------------------------------------------------------------}
+
+-- | Inspect scale:
+example1 :: Scale
+example1 =
+    Scale.named (Scale.Name "G♭" Scale.Major)
+
+-- | Voice chord in given scale
+example2 :: Named.Chord Abs
+example2 =
+    Voicing.wrtScale Scale.cMajor Voicing.FourWayClose Octave.middle $
+      Chord.Named.chordI Chord.Dominant7
+
+-- | Voice chord progression in given scale
+example3 :: Progression Abs
+example3 =
+    Progression.wrtScale Scale.cMinor Voicing.FourWayClose Octave.middle $
+      Progression.named Progression.Minor251
+
+-- | Apply voice leading
+example4 :: Progression Abs
+example4 =
+    let permissibleInversions :: Chord.Type -> [Inversion]
+        permissibleInversions = \case
+            Chord.SevenFlat9 -> [Inversion 0, Inversion 2]
+            Chord.Minor7     -> [Inversion 0, Inversion 2]
+            _ -> undefined
+    in Progression.voiceLeading permissibleInversions $
+         Progression.mapFirst (invert $ Inversion 1) $
+           Progression.wrtScale Scale.aMinor Voicing.FourWayClose Octave.middle $
+             Progression.named Progression.Minor251

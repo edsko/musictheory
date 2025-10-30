@@ -9,6 +9,7 @@
 module MusicTheory.Progression (
     Progression(..)
     -- * Combinators
+  , mapFirst
   , wrtScale
   , voiceLeading
     -- * Standard chord progressions
@@ -40,6 +41,9 @@ newtype Progression r = Progression (NonEmpty (Named.Chord r))
   Combinators
 -------------------------------------------------------------------------------}
 
+mapFirst :: (Named.Chord r -> Named.Chord r) -> Progression r -> Progression r
+mapFirst f (Progression (c :| cs)) = Progression (f c :| cs)
+
 -- | Choose chord voicings
 wrtScale :: Scale -> Voicing -> Octave -> Progression Rel -> Progression Abs
 wrtScale scale voicing octave (Progression chords) = Progression $
@@ -69,13 +73,22 @@ voiceLeading permissibleInversions = \(Progression chords) -> Progression $
             | i <- permissibleInversions (Chord.Named.getType next)
             ]
 
-        -- We consider all inversions in their \"natural\" octave, as well as
-        -- one octave longer (because inversion tends to move everything up).
+        -- We consider all inversions
+        --
+        -- * in their \"natural\" octave
+        -- * one octave lower (because inversion tends to move everything up)
+        -- * one octave higher (to match a previous inverted chord)
         allOptions :: [Named.Chord Abs]
-        allOptions = concatMap addOctaveDown possibleInversions
+        allOptions = concatMap addOctaves possibleInversions
           where
-            addOctaveDown :: Named.Chord Abs -> [Named.Chord Abs]
-            addOctaveDown c = [c, transposeOctave (OctaveShift (-1)) c]
+            addOctaves :: Named.Chord Abs -> [Named.Chord Abs]
+            addOctaves c = [
+                c
+              , transposeOctave (OctaveShift (-1)) c
+              , transposeOctave (OctaveShift (-2)) c
+              , transposeOctave (OctaveShift   1 ) c
+              , transposeOctave (OctaveShift   2 ) c
+              ]
 
 {-------------------------------------------------------------------------------
   Standard progressions
