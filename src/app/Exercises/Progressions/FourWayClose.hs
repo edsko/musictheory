@@ -93,9 +93,9 @@ minor251 = Ly.Score{
 -- it (currently) only appears as the /first/ chord.
 permissibleInversions :: Chord.Type -> [Inversion]
 permissibleInversions = \case
-    Chord.Dominant7    -> [Inversion 0, Inversion 2]
-    Chord.AlteredFlat9 -> [Inversion 0, Inversion 2]
-    Chord.Major7       -> [Inversion 0, Inversion 2]
-    Chord.Minor7       -> [Inversion 0, Inversion 2]
+    Chord.Dominant7  -> [Inversion 0, Inversion 2]
+    Chord.SevenFlat9 -> [Inversion 0, Inversion 2]
+    Chord.Major7     -> [Inversion 0, Inversion 2]
+    Chord.Minor7     -> [Inversion 0, Inversion 2]
 
     typ -> error $ "Not implemented: " ++ show typ

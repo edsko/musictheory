@@ -95,7 +95,7 @@ majorDegree1 voicing typ =
       (FourWayClose, Chord.Dominant7)      -> [         "3" ,  "13" , "♭7" ,  "9" ]
       (FourWayClose, Chord.HalfDiminished) -> [  "1" , "♭3" ,  "♭5" , "♭7"        ]
       (FourWayClose, Chord.Altered)        -> [         "3" , "♭13" , "♭7" , "♯9" ]
-      (FourWayClose, Chord.AlteredFlat9)   -> [         "3" ,   "5" , "♭7" , "♭9" ]
+      (FourWayClose, Chord.SevenFlat9)     -> [         "3" ,   "5" , "♭7" , "♭9" ]
       (FourWayClose, Chord.Sus)            -> [  "2" ,  "4" ,  "13" , "♭7"        ]
 
       _otherwise -> notYetImplemented (voicing, typ)
@@ -136,13 +136,13 @@ scaleDegreesMinor voicing Chord.Name{root, typ} =
         -- >                      ._________*_________*_________*_________*     (V7.-9)
         -- >  ._________*_________*_________*_________*                         (Imaj7)
         --
-        -- NOTE: The "Flat9" "AlteredFlat9" does not refer to scale degrees, but
+        -- NOTE: The "Flat9" "SevenFlat9" does not refer to scale degrees, but
         -- rather to the interval between its nineth (second).
         --
         -- NOTE: In the context of the (natural) minor scale, we need to sharpen
         -- scale degree 7 to get the dominant chord (rather than a minor chord).
         (FourWayClose, "2", Chord.HalfDiminished) -> [  "2" , "4" ,  "6" ,  "8" ]
-        (FourWayClose, "5", Chord.AlteredFlat9)   -> [ "♯7" , "9" , "11" , "13" ]
+        (FourWayClose, "5", Chord.SevenFlat9)     -> [ "♯7" , "9" , "11" , "13" ]
         (FourWayClose, "1", Chord.Minor7)         -> [  "3" , "5" ,  "7" ,  "9" ]
 
         _otherwise -> notYetImplemented (voicing, root, typ)

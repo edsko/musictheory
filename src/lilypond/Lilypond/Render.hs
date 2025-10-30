@@ -317,7 +317,7 @@ renderChordName Chord.Name{root = Note.InOctave _o note, typ} = concat [
         Chord.Dominant7      -> sup "7"
         Chord.HalfDiminished -> sup "ø"
         Chord.Altered        -> sup "alt"
-        Chord.AlteredFlat9   -> sup "alt(♭9)"
+        Chord.SevenFlat9     -> sup "7(♭9)"
         Chord.Sus            -> sup "sus"
     , "}"
     ]

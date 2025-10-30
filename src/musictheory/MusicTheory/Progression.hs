@@ -95,6 +95,6 @@ named = Progression . fmap Chord.Named.Rel . \case
       ]
     Minor251 -> [
         Chord.Name "2" Chord.HalfDiminished
-      , Chord.Name "5" Chord.AlteredFlat9
+      , Chord.Name "5" Chord.SevenFlat9
       , Chord.Name "1" Chord.Minor7
       ]

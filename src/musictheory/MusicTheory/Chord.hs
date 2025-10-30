@@ -26,7 +26,7 @@ data Type =
   | Dominant7
   | HalfDiminished
   | Altered
-  | AlteredFlat9
+  | SevenFlat9
   | Sus
   deriving stock (Show, Eq)
 
