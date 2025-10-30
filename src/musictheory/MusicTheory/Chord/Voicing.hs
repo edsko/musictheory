@@ -87,13 +87,13 @@ majorDegree1 voicing typ =
       (Default, Chord.Minor7)         -> [ "1" , "♭3" , "5", "♭7" ]
       (Default, Chord.Dominant7)      -> [ "1" ,  "3" , "5", "♭7" ]
 
-      (FourWayClose, Chord.Major7)         -> [ "3" ,  "5" ,  "7" ,  "9" ]
-      (FourWayClose, Chord.Minor7)         -> [ "3" , "♭5" , "♭7" ,  "9" ]
-      (FourWayClose, Chord.Dominant7)      -> [ "3" , "13" , "♭7" ,  "9" ]
-      (FourWayClose, Chord.HalfDiminished) -> [ "1" , "♭3" , "♭5" , "♭7" ]
-      (FourWayClose, Chord.Altered)        -> [ "3" , "♯5" , "♭7" , "♯9" ]
-      (FourWayClose, Chord.AlteredFlat9)   -> [ "3" ,  "5" , "♭7" , "♭9" ]
-      (FourWayClose, Chord.Sus)            -> [ "2" ,  "4" , "13" , "♭7" ]
+      (FourWayClose, Chord.Major7)         -> [         "3" ,  "5" ,  "7" ,  "9" ]
+      (FourWayClose, Chord.Minor7)         -> [        "♭3" ,  "5" , "♭7" ,  "9" ]
+      (FourWayClose, Chord.Dominant7)      -> [         "3" , "13" , "♭7" ,  "9" ]
+      (FourWayClose, Chord.HalfDiminished) -> [  "1" , "♭3" , "♭5" , "♭7"        ]
+      (FourWayClose, Chord.Altered)        -> [         "3" , "♯5" , "♭7" , "♯9" ]
+      (FourWayClose, Chord.AlteredFlat9)   -> [         "3" ,  "5" , "♭7" , "♭9" ]
+      (FourWayClose, Chord.Sus)            -> [  "2" ,  "4" , "13" , "♭7"        ]
 
       _otherwise -> notYetImplemented (voicing, typ)
 
