@@ -102,7 +102,7 @@ dominant = Ly.Score{
 
 halfDiminished :: Ly.Score
 halfDiminished = Ly.Score{
-      title = "Half-diminished"
+      title = "Half-diminished / m⁷(♭5)"
     , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
           "Voiced using"
         , voicing Chord.HalfDiminished
