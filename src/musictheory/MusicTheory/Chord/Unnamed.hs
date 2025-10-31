@@ -7,12 +7,18 @@
 module MusicTheory.Chord.Unnamed (
     -- * Basic definitions
     Chord(..)
+    -- * Query
   , getNotes
-  , fromScaleDegrees
   , size
+    -- * Construction
+  , fromScaleDegrees
   , wrtScale
+    -- * Playable range
+  , inRange
+  , moveToRange
   ) where
 
+import Control.Monad
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.NonEmpty qualified as NE
 
@@ -29,17 +35,7 @@ import MusicTheory.Scale qualified as Scale
 
 data Chord (r :: ReferenceKind) = Chord (NonEmpty (Reference r))
 
-getNotes :: Chord r -> NonEmpty (Reference r)
-getNotes (Chord notes) = notes
-
 deriving instance IsReferenceKind r => Show (Chord r)
-
-fromScaleDegrees :: NonEmpty Scale.Degree -> Chord Rel
-fromScaleDegrees = Chord
-
--- | Number of notes in the chord
-size :: Chord r -> Word
-size (Chord ns) = fromIntegral $ length ns
 
 {-------------------------------------------------------------------------------
   Instances
@@ -73,6 +69,25 @@ instance Invert (Chord Abs) where
       go acc _ []     = NE.reverse acc
       go acc i (n:ns) = go (NE.cons (moveUp n) acc) (i - 1) ns
 
+{-------------------------------------------------------------------------------
+  Query
+-------------------------------------------------------------------------------}
+
+getNotes :: Chord r -> NonEmpty (Reference r)
+getNotes (Chord notes) = notes
+
+-- | Number of notes in the chord
+size :: Chord r -> Word
+size (Chord ns) = fromIntegral $ length ns
+
+
+{-------------------------------------------------------------------------------
+  Construction
+-------------------------------------------------------------------------------}
+
+fromScaleDegrees :: NonEmpty Scale.Degree -> Chord Rel
+fromScaleDegrees = Chord
+
 wrtScale :: Scale.Scale -> Octave -> Chord Rel -> Chord Abs
 wrtScale = \scale initOctave (Chord scaleDegrees) -> Chord $
       let go :: Octave -> NonEmpty Note -> NonEmpty Note.InOctave
@@ -105,3 +120,48 @@ wrtScale = \scale initOctave (Chord scaleDegrees) -> Chord $
       -- the same note: the spelling matters, and we should ignore accidentals.
       nextOctave :: Note -> Note -> Bool
       nextOctave n n' = Note.noteName n > Note.noteName n'
+
+{-------------------------------------------------------------------------------
+  Playable range
+-------------------------------------------------------------------------------}
+
+inRange :: (Note.InOctave, Note.InOctave) -> Chord Abs -> Bool
+inRange (rangeLo, rangeHi) (Chord notes) =
+    all (\n -> rangeLo <= n && n <= rangeHi) notes
+
+-- | Move the chord into the specified range by shifting the octave
+--
+-- Returns 'Nothing' if this is not possible.
+moveToRange ::
+     (Note.InOctave, Note.InOctave)
+  -> Chord Abs -> Maybe OctaveShift
+moveToRange (rangeLo, rangeHi) chord@(Chord notes) = do
+    let shifted = transposeOctave octaveShift chord
+    guard $ inRange (rangeLo, rangeHi) shifted
+    return octaveShift
+  where
+    lowestNote :: Note.InOctave
+    lowestNote = minimum notes
+
+    -- Distance between the lowest note in the range and the lowest actual note
+    --
+    -- Suppose the lowest note is /above/ 'rangeLo':
+    --
+    -- * If we shift the notes down by this amount, the chord would start /on/
+    --   the lowest note in the range (of course that could change its pitch)
+    -- * If we shift it by /more/ than this, we would exceed the lower end of
+    --   the range.
+    --
+    -- Conversely, if the lowest note is /below/ 'rangeLo', we have to shift by
+    -- /at least/ this distance.
+    distanceToLo :: Word
+    distanceToLo = distance rangeLo lowestNote
+
+    octaveShift :: OctaveShift
+    octaveShift = OctaveShift $
+         if lowestNote > rangeLo
+           then negate $ fromIntegral distanceToLo `div` 12
+           else if distanceToLo `mod` 12 == 0
+                   then fromIntegral distanceToLo `div` 12
+                   else fromIntegral distanceToLo `div` 12 + 1
+

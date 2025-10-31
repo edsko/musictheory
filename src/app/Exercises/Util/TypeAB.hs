@@ -13,7 +13,7 @@ import MusicTheory
 
 import Lilypond qualified as Ly
 
-import Exercises.Chords (ChordInversion(..))
+import Exercises.Util.ChordInversion (ChordInversion(..))
 
 {-------------------------------------------------------------------------------
   Definition

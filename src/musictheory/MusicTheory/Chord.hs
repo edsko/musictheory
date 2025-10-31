@@ -10,9 +10,10 @@ module MusicTheory.Chord (
   , nameWrtScale
   ) where
 
+import MusicTheory
+import MusicTheory.Note.Octave (Octave)
 import MusicTheory.Reference
 import MusicTheory.Scale (Scale)
-import MusicTheory.Note.Octave (Octave)
 
 {-------------------------------------------------------------------------------
   Chord names
@@ -38,6 +39,9 @@ data Name r = Name{
 
 deriving instance IsReferenceKind r => Show (Name r)
 deriving instance IsReferenceKind r => Eq   (Name r)
+
+instance TransposeOctave (Name Abs) where
+  transposeOctave d (Name root typ) = Name (transposeOctave d root) typ
 
 nameWrtScale :: Scale -> Octave -> Name Rel -> Name Abs
 nameWrtScale scale octave Name{root, typ} = Name{

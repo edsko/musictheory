@@ -3,11 +3,13 @@ module Exercises.Chords.Basic (exercises) where
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Voicing qualified as Voicing
+import MusicTheory.Note.Octave qualified as Octave
 
 import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly.Markup
 
 import Exercises.Chords
+import Exercises.Util.ChordInversion (ChordInversion(..))
 
 {-------------------------------------------------------------------------------
   List of exercises
@@ -59,46 +61,41 @@ majorTriads :: [ChordInversion] -> Ly.Score
 majorTriads inversions = Ly.Score{
       title = "Major triad"
     , intro = Nothing
-    , staff =
-        chordExercise
-          Chord.MajorTriad
-          Voicing.Default
-          (length inversions)
-          (\_ -> inversions)
+    , staff = chordExercise $ mkExercise Chord.MajorTriad inversions
     }
 
 majorSeventh :: [ChordInversion] -> Ly.Score
 majorSeventh inversions = Ly.Score{
       title = "Major seventh"
     , intro = Nothing
-    , staff =
-        chordExercise
-          Chord.Major7
-          Voicing.Default
-          (length inversions)
-          (\_ -> inversions)
+    , staff = chordExercise $ mkExercise Chord.Major7 inversions
     }
 
 dominantSeventh :: [ChordInversion] -> Ly.Score
 dominantSeventh inversions = Ly.Score{
       title = "Dominant seventh"
     , intro = Nothing
-    , staff =
-        chordExercise
-          Chord.Dominant7
-          Voicing.Default
-          (length inversions)
-          (\_ -> inversions)
+    , staff = chordExercise $ mkExercise Chord.Dominant7 inversions
     }
 
 minorSeventh :: [ChordInversion] -> Ly.Score
 minorSeventh inversions = Ly.Score{
       title = "Minor seventh"
     , intro = Nothing
-    , staff =
-        chordExercise
-          Chord.Minor7
-          Voicing.Default
-          (length inversions)
-          (\_ -> inversions)
+    , staff = chordExercise $ mkExercise Chord.Minor7 inversions
+    }
+
+{-------------------------------------------------------------------------------
+  Internal auxiliary
+-------------------------------------------------------------------------------}
+
+mkExercise :: Chord.Type -> [ChordInversion] -> ChordExercise
+mkExercise chordType inversions = ChordExercise{
+      clef           = Ly.ClefTreble
+    , voicing        = Voicing.Default
+    , startingOctave = Octave.middle
+    , adjustOctave   = \_ -> Just noOctaveShift
+    , numInversions  = length inversions
+    , inversionsFor  = \_ -> inversions
+    , chordType
     }

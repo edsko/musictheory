@@ -66,3 +66,12 @@ example4 =
          Progression.mapFirst (invert $ Inversion 1) $
            Progression.wrtScale Scale.aMinor Voicing.FourWayClose Octave.middle $
              Progression.named Progression.Minor251
+
+-- | Move to playable range
+example5 :: Maybe (Named.Chord Abs)
+example5 =
+    let chord :: Named.Chord Abs
+        chord = Voicing.wrtScale Scale.cMajor Voicing.FourWayClose(Octave.middle) $
+                  Chord.Named.chordI Chord.Major7
+    in (\shift -> transposeOctave shift chord) <$>
+          Chord.Named.moveToRange ("D3", "G4") chord

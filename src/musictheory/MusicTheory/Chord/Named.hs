@@ -2,12 +2,13 @@
 --
 -- Intended for qualified import.
 --
--- > import MusicTheory.Chord.Named qualified as Named (Chord)
+-- > import MusicTheory.Chord.Named qualified as Named (Chord(..))
 -- > import MusicTheory.Chord.Named qualified as Chord.Named
 module MusicTheory.Chord.Named (
     Chord(..)
     -- * Construction
   , chordI
+  , moveToRange
     -- * Query
   , getName
   , getType
@@ -19,7 +20,9 @@ import Data.Function
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
-import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord)
+import MusicTheory.Chord.Unnamed qualified as Chord.Unnamed
+import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
+import MusicTheory.Note qualified as Note
 import MusicTheory.Reference (Reference)
 import MusicTheory.Reference qualified as Reference
 import MusicTheory.Scale qualified as Scale
@@ -53,6 +56,11 @@ deriving instance Reference.IsReferenceKind r => Show (Chord r)
 chordI :: Chord.Type -> Chord Reference.Rel
 chordI typ = Rel $ Chord.Name Scale.firstDegree typ
 
+moveToRange ::
+     (Note.InOctave, Note.InOctave)
+  -> Chord Reference.Abs -> Maybe OctaveShift
+moveToRange r = Chord.Unnamed.moveToRange r . getNotes
+
 {-------------------------------------------------------------------------------
   Query
 -------------------------------------------------------------------------------}
@@ -78,7 +86,8 @@ instance Invert (Chord Reference.Abs) where
   invert = mapNotes . invert
 
 instance TransposeOctave (Chord Reference.Abs) where
-  transposeOctave = mapNotes . transposeOctave
+  transposeOctave d (Abs name notes) =
+      Abs (transposeOctave d name) (transposeOctave d notes)
 
 instance Distance (Chord Reference.Abs) where
   distance = distance `on` getNotes

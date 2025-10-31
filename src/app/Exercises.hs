@@ -24,8 +24,8 @@ exercises = Ly.Lilypond{
 chords :: Ly.Bookpart
 chords = Ly.Bookpart{
       title    = "Chords"
-    , sections = [
-          Chords.Basic.exercises
+    , sections = concat [
+          [Chords.Basic.exercises]
         , Chords.FourWayClose.exercises
         ]
     }

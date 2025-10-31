@@ -20,7 +20,7 @@ import MusicTheory.Util.StringTable
 -- | Octave
 newtype Octave = Octave Word
   deriving stock (Eq)
-  deriving newtype (Enum)
+  deriving newtype (Enum, Num)
   deriving (Show, IsString) via UseStringTable Octave
 
 {-------------------------------------------------------------------------------

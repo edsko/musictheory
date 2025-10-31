@@ -14,7 +14,10 @@ module Lilypond (
     -- * Staff elements
   , StaffProps(..)
   , TimeSignature(..)
+  , Clef(..)
   , StaffElem(..)
+  , Chord(..)
+  , Rest(..)
   , Annotation(..)
   , Duration(..)
   ) where
@@ -22,7 +25,7 @@ module Lilypond (
 import Data.Default
 import Data.String
 
-import MusicTheory.Chord.Named qualified as Named (Chord)
+import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Reference
 import MusicTheory.Scale qualified as Scale
@@ -75,10 +78,16 @@ data Staff = Staff{
 -------------------------------------------------------------------------------}
 
 data StaffProps = StaffProps{
-      hideTimeSignature  :: Bool
-    , omitMeasureNumbers :: Bool
+      clef               :: Clef
     , timeSignature      :: TimeSignature
+    , hideTimeSignature  :: Bool
+    , omitMeasureNumbers :: Bool
     }
+  deriving stock (Show)
+
+data Clef =
+    ClefTreble
+  | ClefBass
   deriving stock (Show)
 
 data TimeSignature = TimeSignature Int Int
@@ -86,17 +95,31 @@ data TimeSignature = TimeSignature Int Int
 
 instance Default StaffProps where
   def = StaffProps{
-        hideTimeSignature  = False
-      , omitMeasureNumbers = False
+        clef               = ClefTreble
       , timeSignature      = TimeSignature 4 4
+      , hideTimeSignature  = False
+      , omitMeasureNumbers = False
       }
 
 data StaffElem =
-    StaffNamedChord   (  Named.Chord Abs) Duration Annotation
-  | StaffUnnamedChord (Unnamed.Chord Abs) Duration Annotation
+    StaffChord Chord
+  | StaffRest Rest
   | StaffLinebreak
   | StaffComment String
   | StaffKeySignature Scale.Name
+
+data Chord = Chord{
+      notes      :: Unnamed.Chord Abs
+    , duration   :: Duration
+    , name       :: Maybe (Chord.Name Abs)
+    , annotation :: Annotation
+    }
+
+data Rest = Rest{
+      duration   :: Duration
+    , name       :: Maybe (Chord.Name Abs)
+    , annotation :: Annotation
+    }
 
 data Annotation =
     NoAnnotation

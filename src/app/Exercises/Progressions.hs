@@ -8,7 +8,8 @@ import Data.List.NonEmpty qualified as NE
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
-import MusicTheory.Chord.Named qualified as Named (Chord)
+import MusicTheory.Chord.Named qualified as Chord.Named
+import MusicTheory.Chord.Named qualified as Named (Chord(..))
 import MusicTheory.Chord.Voicing (Voicing)
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Progression (Progression(..))
@@ -78,4 +79,9 @@ progressionExercise progression voicing initInv permissiveInv scales =
                 progression'
 
     goChord :: Named.Chord Abs -> Ly.Annotation -> Ly.StaffElem
-    goChord chord = Ly.StaffNamedChord chord (Ly.OneOver 1)
+    goChord chord ann = Ly.StaffChord Ly.Chord{
+        notes      = Chord.Named.getNotes chord
+      , duration   = Ly.OneOver 1
+      , name       = Just $ Chord.Named.getName chord
+      , annotation = ann
+      }

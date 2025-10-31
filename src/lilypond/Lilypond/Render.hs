@@ -14,7 +14,6 @@ import Data.List.NonEmpty qualified as NE
 import Data.String
 
 import MusicTheory.Chord qualified as Chord
-import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Unnamed qualified as Unnamed (Chord(..))
 import MusicTheory.Note (Note(..))
 import MusicTheory.Note qualified as Note
@@ -59,7 +58,7 @@ instance LilypondToDoc Lilypond where
             assignReal "indent" 0.0
           ]
       , toDoc emptyHeader{tagline = Just ""}
-      , pure RenderM.setupTableOfContents
+      , pure RenderM.setupPaper
       , foldMap toDoc lilypond.books
       ]
 
@@ -122,7 +121,8 @@ instance LilypondToDoc Ly.Staff where
                 RenderM.line "\\Score \\omit BarNumber"
           ]
       , RenderM.withinScope "new Staff" $ mconcat [
-            toDoc staff.props.timeSignature
+            toDoc staff.props.clef
+          , toDoc staff.props.timeSignature
             -- Don't show key changes at the end of the line
             -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
           , "\\set Staff.explicitKeySignatureVisibility = #end-of-line-invisible"
@@ -133,6 +133,10 @@ instance LilypondToDoc Ly.Staff where
           , RenderM.lines $ renderNotes staff.elems
           ]
       ]
+
+instance LilypondToDoc Ly.Clef where
+  toDoc Ly.ClefTreble = "\\clef treble"
+  toDoc Ly.ClefBass   = "\\clef bass"
 
 instance LilypondToDoc Ly.TimeSignature where
   toDoc (Ly.TimeSignature x y) = RenderM.line $ concat [
@@ -206,16 +210,16 @@ renderNotes = \elems ->
     map aux elems
   where
     aux :: Ly.StaffElem -> String
-    aux (Ly.StaffNamedChord chord duration mAnn) = concat [
-          renderUnnamed   (Chord.Named.getNotes chord)
-        , renderDuration  duration
-        , renderChordName (Chord.Named.getName chord)
-        , renderAnnotation mAnn
+    aux (Ly.StaffChord chord) = concat [
+          renderUnnamed            chord.notes
+        , renderDuration           chord.duration
+        , maybe "" renderChordName chord.name
+        , renderAnnotation         chord.annotation
         ]
-    aux (Ly.StaffUnnamedChord chord duration mAnn) = concat [
-          renderUnnamed  chord
-        , renderDuration duration
-        , renderAnnotation mAnn
+    aux (Ly.StaffRest rest) = concat [
+          "r" ++ renderDuration    rest.duration
+        , maybe "" renderChordName rest.name
+        , renderAnnotation         rest.annotation
         ]
     aux (Ly.StaffLinebreak) =
         "\\break"

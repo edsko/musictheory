@@ -21,7 +21,7 @@ module Lilypond.Render.Monad (
   , bookpart
   , section
   , score
-  , setupTableOfContents
+  , setupPaper
     -- * Markup
   , markup
   ) where
@@ -190,9 +190,11 @@ tocItem cmd = \label title ->
 --
 -- We use a different syntax only for the book part titles, and leave the rest
 -- to Lilypond.
-setupTableOfContents :: Doc
-setupTableOfContents = Doc.lines [
+setupPaper :: Doc
+setupPaper = Doc.lines [
       "\\paper {"
+    , "  ragged-bottom = ##t"
+    , "  ragged-last-bottom = ##t"
     , "  tocBookpart_markup = \\markup \\large \\column {"
     , "    \\hspace #1"
     , "    { \\bold \\fromproperty #'toc:text }"

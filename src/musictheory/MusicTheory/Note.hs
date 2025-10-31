@@ -18,11 +18,13 @@ module MusicTheory.Note (
   , withAccidental
   ) where
 
+import Data.Ord
+import Data.Tuple (swap)
+
 import MusicTheory
 import MusicTheory.Note.Octave (Octave(..))
 import MusicTheory.Util
 import MusicTheory.Util.StringTable
-import Data.Tuple (swap)
 
 {-------------------------------------------------------------------------------
   Basic definitions
@@ -77,6 +79,9 @@ instance HasStringTable InOctave where
 instance TransposeOctave InOctave where
   transposeOctave (OctaveShift d) (InOctave (Octave o) n) =
       InOctave (Octave $ shiftIntegral d o) n
+
+instance Ord InOctave where
+  compare = comparing normalize
 
 {-------------------------------------------------------------------------------
   Distance
