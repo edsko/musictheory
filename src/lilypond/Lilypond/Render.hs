@@ -273,7 +273,7 @@ renderAccidental = \case
     Note.Flat        -> "-flat"
     Note.DoubleSharp -> "-sharpsharp"
     Note.DoubleFlat  -> "-flatflat"
-    Note.Natural     -> "!"
+    Note.Natural     -> "" -- TODO: Reconsider "!"
 
 {-------------------------------------------------------------------------------
   'Note.InOctave'
@@ -295,7 +295,7 @@ renderInOctave (Note.InOctave o (Note.Note n ma)) = concat [
             Note.Flat        -> "-flat"       ++ renderOctave o
             Note.DoubleSharp -> "-sharpsharp" ++ renderOctave o
             Note.DoubleFlat  -> "-flatflat"   ++ renderOctave o
-            Note.Natural     ->                  renderOctave o ++ "!"
+            Note.Natural     ->                  renderOctave o ++ "" -- TODO: Reconsider "!"
     ]
 
 renderOctave :: Octave -> String
