@@ -147,7 +147,7 @@ halfDiminished hand =
 altered :: Hand -> [Ly.SectionElem]
 altered hand =
     chordExercise Scale.Major $
-      mkExercise hand  "Altered" intro Chord.Altered inversions
+      mkExercise hand  "Altered seventh" intro Chord.Altered inversions
   where
     intro :: Ly.Markup
     intro = Ly.Markup.wordwrap $ mconcat [
