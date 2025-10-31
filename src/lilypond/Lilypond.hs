@@ -63,9 +63,9 @@ data SectionElem =
   | SectionSub Section
 
 data Score = Score{
-      title :: String
+      title :: Maybe String
     , intro :: Maybe Ly.Markup
-    , staff :: Staff -- TODO: Generalize to multiple staves
+    , staff :: Staff -- There can only be one
     }
 
 data Staff = Staff{

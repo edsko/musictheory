@@ -21,6 +21,8 @@ module MusicTheory.Scale (
     -- * Enumeration
   , allMajorRoots
   , allMinorRoots
+  , enharmonicMajorRoots
+  , enharmonicMinorRoots
   , allMajorScales
   , allMinorScales
     -- * Common scales
@@ -39,7 +41,7 @@ import MusicTheory.Util.StringTable
 
 data Scale = Scale{
       name  :: Name
-    , notes :: [Note.Simple]
+    , notes :: [Note]
     }
   deriving stock (Show)
 
@@ -54,7 +56,7 @@ at scale (Degree degree atal) =
 -------------------------------------------------------------------------------}
 
 -- | Scale degrees
-data Degree = Degree Word (Maybe Note.SimpleAccidental)
+data Degree = Degree Word (Maybe Note.Accidental)
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable Degree
 
@@ -72,6 +74,8 @@ instance HasStringTable Degree where
 -------------------------------------------------------------------------------}
 
 -- | Scale roots along the circle of fifths
+--
+-- This includes some enharmonic scales (
 data Root =
     C
   | G
@@ -79,9 +83,9 @@ data Root =
   | A
   | E
   | B
-  | F# | Gb
+  | Gb | F#
   | Db | C#
-  | Ab
+  | Ab | G#
   | Eb
   | Bb
   | F
@@ -99,14 +103,9 @@ rootNote = \case
     A  -> "A"
     E  -> "E"
     B  -> "B"
-
-    F# -> "F♯"
-    Gb -> "G♭"
-
-    Db -> "D♭"
-    C# -> "C♯"
-
-    Ab -> "A♭"
+    Gb -> "G♭" ; F# -> "F♯"
+    Db -> "D♭" ; C# -> "C♯"
+    Ab -> "A♭" ; G# -> "G♯"
     Eb -> "E♭"
     Bb -> "B♭"
     F  -> "F"
@@ -136,7 +135,7 @@ named (Name root typ) = Scale (Name root typ) $
       Major -> majorScale   root
       Minor -> naturalMinor root
 
-majorScale :: Root -> [Note.Simple]
+majorScale :: Root -> [Note]
 majorScale = \case
     C  -> ["C"  , "D"  , "E"  , "F"  , "G"  , "A"  , "B" ]
     G  -> ["G"  , "A"  , "B"  , "C"  , "D"  , "E"  , "F♯"]
@@ -145,24 +144,20 @@ majorScale = \case
     E  -> ["E"  , "F♯" , "G♯" , "A"  , "B"  , "C♯" , "D♯"]
     B  -> ["B"  , "C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A♯"]
 
-    F# -> error "use G♭ instead"
     Gb -> ["G♭" , "A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F" ]
+    F# -> ["F♯" , "G♯" , "A♯" , "B"  , "C♯" , "D♯" , "E♯"]
 
     Db -> ["D♭" , "E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C" ]
-    C# -> error "use D♭ instead"
+    C# -> ["C♯" , "D♯" , "E♯" , "F♯" , "G♯" , "A♯" , "B♯"]
 
     Ab -> ["A♭" , "B♭" , "C"  , "D♭" , "E♭" , "F"  , "G" ]
+    G# -> ["G♯" , "A♯" , "B♯" , "C♯" , "D♯" , "E♯" , "F𝄪" ]
+
     Eb -> ["E♭" , "F"  , "G"  , "A♭" , "B♭" , "C"  , "D" ]
     Bb -> ["B♭" , "C"  , "D"  , "E♭" , "F"  , "G"  , "A" ]
     F  -> ["F"  , "G"  , "A"  , "B♭" , "C"  , "D"  , "E" ]
 
--- | Natural minor scale
---
--- We do not provide values for Gb and Db; these scales have double flats:
---
--- > Gb -> ["G♭" , "A♭" , "B𝄫" , "C♭" , "D♭" , "E𝄫" , "F♭"]
--- > Db -> ["D♭" , "E♭" , "F♭" , "G♭" , "A♭" , "B𝄫" , "C♭"]
-naturalMinor :: Root -> [Note.Simple]
+naturalMinor :: Root -> [Note]
 naturalMinor = \case
     C  -> ["C"  , "D"  , "E♭" , "F"  , "G"  , "A♭" , "B♭"]
     G  -> ["G"  , "A"  , "B♭" , "C"  , "D"  , "E♭" , "F" ]
@@ -171,13 +166,15 @@ naturalMinor = \case
     E  -> ["E"  , "F♯" , "G"  , "A"  , "B"  , "C"  , "D" ]
     B  -> ["B"  , "C♯" , "D"  , "E"  , "F♯" , "G"  , "A" ]
 
+    Gb -> ["G♭" , "A♭" , "B𝄫" , "C♭" , "D♭" , "E𝄫" , "F♭"]
     F# -> ["F♯" , "G♯" , "A"  , "B"  , "C♯" , "D"  , "E" ]
-    Gb -> error "use F♯ instead"
 
-    Db -> error "use C♯ instead"
+    Db -> ["D♭" , "E♭" , "F♭" , "G♭" , "A♭" , "B𝄫" , "C♭"]
     C# -> ["C♯" , "D♯" , "E"  , "F♯" , "G♯" , "A"  , "B" ]
 
     Ab -> ["A♭" , "B♭" , "C♭" , "D♭" , "E♭" , "F♭" , "G♭"]
+    G# -> ["G♯" , "A♯" , "B"  , "C♯" , "D♯" , "E"  , "F♯"]
+
     Eb -> ["E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C♭" , "D♭"]
     Bb -> ["B♭" , "C"  , "D♭" , "E♭" , "F"  , "G♭" , "A♭"]
     F  -> ["F"  , "G"  , "A♭" , "B♭" , "C"  , "D♭" , "E♭"]
@@ -193,12 +190,16 @@ naturalMinor = \case
 -------------------------------------------------------------------------------}
 
 allMinorRoots, allMajorRoots :: [Root]
-allMajorRoots = [C, G, D, A, E, B,   Gb, Db,   Ab, Eb, Bb, F]
-allMinorRoots = [         A, E, B,   F#, C#,   Ab, Eb, Bb, F, C, G, D]
+allMajorRoots = [C, G, D, A, E, B,   Gb, Db, Ab,   Eb, Bb, F]
+allMinorRoots = [C, G, D, A, E, B,   F#, C#, G#,   Eb, Bb, F]
+
+enharmonicMajorRoots, enharmonicMinorRoots :: [Root]
+enharmonicMajorRoots = [F#, C#] -- we omit G#
+enharmonicMinorRoots = [Gb, Db, Ab]
 
 allMajorScales, allMinorScales :: [Scale]
-allMajorScales = [named (Name root Major) | root <- allMajorRoots]
-allMinorScales = [named (Name root Minor) | root <- allMinorRoots]
+allMajorScales        = [named (Name root Major) | root <- allMajorRoots]
+allMinorScales        = [named (Name root Minor) | root <- allMinorRoots]
 
 {-------------------------------------------------------------------------------
   Common scales

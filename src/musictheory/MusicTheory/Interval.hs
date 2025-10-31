@@ -6,7 +6,6 @@
 -- > import MusicTheory.Interval qualified as Interval
 module MusicTheory.Interval (
     Interval(..)
-  , toSemitones
   , fromMajorScaleDegree
     -- Standard intervals
   , unison
@@ -38,7 +37,7 @@ import MusicTheory.Util.StringTable
 -- difference is only relevant when compared to another interval. For example,
 -- it is more useful to describe the voicing of a minor triad as "1", "♭3", "5"
 -- rather than "♯2". (We assume no microtonality.)
-data Interval = Interval Word (Maybe Note.SimpleAccidental)
+data Interval = Interval Word (Maybe Note.Accidental)
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable Interval
 
@@ -47,14 +46,6 @@ instance HasStringTable Interval where
       stringTablePair
         (stringTableMaybe "" stringTable)
         (stringTableNum [1..14])
-
-toSemitones :: Interval -> Word
-toSemitones (Interval n atal) =
-    maybe id adjust atal $ n * 2
-  where
-    adjust :: Note.SimpleAccidental -> Word -> Word
-    adjust Note.SimpleSharp semitones = semitones + 1
-    adjust Note.SimpleFlat  semitones = semitones - 1
 
 -- | Interval for scale degree
 --

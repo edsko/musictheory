@@ -26,7 +26,7 @@ exercises :: [Ly.Section]
 exercises = [
       Ly.Section{
           title = "Four Note Closed Hand Voicings"
-        , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+        , intro = Just $ Ly.Markup.wordwrap $ mconcat [
               "Every is chord shown twice: "
             , "first with the third at the bottom (type A), "
             , "then with the seventh at the bottom (type B)."
@@ -35,7 +35,7 @@ exercises = [
         }
     , Ly.Section{
           title = "Four Note Closed Hand Voicings (Left Hand)"
-        , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+        , intro = Just $ Ly.Markup.wordwrap $ mconcat [
               "Only voicings that fit between D3 and G4 are typically used. "
             , "Inversions outside this range are shown as rests."
             ]
@@ -44,20 +44,20 @@ exercises = [
     ]
 
 exercisesForHand :: Hand -> [Ly.SectionElem]
-exercisesForHand hand = [
-      Ly.SectionScore $ major          hand
-    , Ly.SectionScore $ minor          hand
-    , Ly.SectionScore $ dominant       hand
+exercisesForHand hand = concat [
+      major          hand
+    , minor          hand
+    , [Ly.SectionPageBreak]
 
-    , Ly.SectionPageBreak
+    , dominant       hand
+    , halfDiminished hand
+    , [Ly.SectionPageBreak]
 
-    , Ly.SectionScore $ halfDiminished hand
-    , Ly.SectionScore $ altered        hand
-    , Ly.SectionScore $ sus            hand
+    , altered        hand
+    , sus            hand
+    , [Ly.SectionPageBreak]
 
-    , Ly.SectionPageBreak
-
-    , Ly.SectionScore $ sevenFlat9     hand
+    , sevenFlat9     hand
     ]
 
 {-------------------------------------------------------------------------------
@@ -67,17 +67,18 @@ exercisesForHand hand = [
   and on the seventh after two inversions.
 -------------------------------------------------------------------------------}
 
-major :: Hand -> Ly.Score
-major hand = Ly.Score{
-      title = "Major seventh"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+major :: Hand -> [Ly.SectionElem]
+major hand =
+    chordExercise Scale.Major $
+      mkExercise hand "Major seventh" intro Chord.Major7 inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.Major7
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.Major7 inversions
-    }
-  where
+
     inversions :: Scale.Root -> [ChordInversion]
     inversions scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
@@ -85,17 +86,18 @@ major hand = Ly.Score{
           , typeB = (Inversion 2, OctaveShift (-1))
           }
 
-minor :: Hand -> Ly.Score
-minor hand = Ly.Score{
-      title = "Minor seventh"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+minor :: Hand -> [Ly.SectionElem]
+minor hand =
+    chordExercise Scale.Minor $
+      mkExercise hand "Minor seventh" intro Chord.Minor7 inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.Minor7
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.Minor7 inversions
-    }
-  where
+
     inversions :: Scale.Root -> [ChordInversion]
     inversions scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
@@ -103,17 +105,18 @@ minor hand = Ly.Score{
           , typeB = (Inversion 2, OctaveShift (-1))
           }
 
-dominant :: Hand -> Ly.Score
-dominant hand = Ly.Score{
-      title = "Dominant seventh"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+dominant :: Hand -> [Ly.SectionElem]
+dominant hand =
+    chordExercise Scale.Major $
+      mkExercise hand "Dominant seventh" intro Chord.Dominant7 inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.Dominant7
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.Dominant7 inversions
-    }
-  where
+
     inversions :: Scale.Root -> [ChordInversion]
     inversions scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
@@ -121,17 +124,18 @@ dominant hand = Ly.Score{
           , typeB = (Inversion 2, OctaveShift (-1))
           }
 
-halfDiminished :: Hand -> Ly.Score
-halfDiminished hand = Ly.Score{
-      title = "Half-diminished / m⁷(♭5)"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+halfDiminished :: Hand -> [Ly.SectionElem]
+halfDiminished hand =
+    chordExercise Scale.Minor $
+      mkExercise hand "Half-diminished / m⁷(♭5)" intro Chord.HalfDiminished inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.HalfDiminished
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.HalfDiminished inversions
-    }
-  where
+
     -- These are not rootless!
     inversions :: Scale.Root -> [ChordInversion]
     inversions scaleRoot = toList $
@@ -140,17 +144,18 @@ halfDiminished hand = Ly.Score{
         , typeB = (Inversion 3, OctaveShift (-1))
         }
 
-altered :: Hand -> Ly.Score
-altered hand = Ly.Score{
-      title = "Altered"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+altered :: Hand -> [Ly.SectionElem]
+altered hand =
+    chordExercise Scale.Major $
+      mkExercise hand  "Altered" intro Chord.Altered inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.Altered
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.Altered inversions
-    }
-  where
+
     inversions :: Scale.Root -> [ChordInversion]
     inversions scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
@@ -158,10 +163,13 @@ altered hand = Ly.Score{
           , typeB = (Inversion 2, OctaveShift (-1))
           }
 
-sus :: Hand -> Ly.Score
-sus hand = Ly.Score{
-      title = "Suspended"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+sus :: Hand -> [Ly.SectionElem]
+sus hand =
+    chordExercise Scale.Major $
+      mkExercise hand "Suspended" intro Chord.Sus inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.Sus
         ,  "(or equivalently using a maj7 chord voiced using"
@@ -169,9 +177,7 @@ sus hand = Ly.Score{
         , " a whole step down)"
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.Sus inversions
-    }
-  where
+
     -- TODO: It's not clear if we want the 2nd of the 4th at the bottom.
     -- The seventh is the /fourth/ note in this voicing, so we need the 3rd inv.
     inversions :: Scale.Root -> [ChordInversion]
@@ -180,18 +186,19 @@ sus hand = Ly.Score{
       , ChordInversion (Inversion 3) (OctaveShift (-1)) Ly.NoAnnotation
       ]
 
-sevenFlat9 :: Hand -> Ly.Score
-sevenFlat9 hand = Ly.Score{
-      title = "7(♭9)"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+sevenFlat9 :: Hand -> [Ly.SectionElem]
+sevenFlat9 hand =
+    chordExercise Scale.Major $
+      mkExercise hand "7(♭9)" intro Chord.SevenFlat9 inversions
+  where
+    intro :: Ly.Markup
+    intro = Ly.Markup.wordwrap $ mconcat [
           "Voiced using"
         , showVoicing Chord.SevenFlat9
         , " (or equivalenty as a diminished chord starting at the 3)"
         , "."
         ]
-    , staff = chordExercise $ mkExercise hand Chord.SevenFlat9 inversions
-    }
-  where
+
     inversions :: Scale.Root -> [ChordInversion]
     inversions scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
@@ -215,11 +222,15 @@ data Hand = RightHand | LeftHand
 -- (to rule out chords outside the "playable" range).
 mkExercise ::
      Hand
+  -> String
+  -> Ly.Markup
   -> Chord.Type
   -> (Scale.Root -> [ChordInversion])
   -> ChordExercise
-mkExercise RightHand chordType inversionsFor = ChordExercise{
-      clef           = Ly.ClefTreble
+mkExercise RightHand title intro chordType inversionsFor = ChordExercise{
+      title
+    , intro          = Just intro
+    , clef           = Ly.ClefTreble
     , voicing        = Voicing.FourWayClose
     , startingOctave = Octave.middle
     , adjustOctave   = \_ -> Just noOctaveShift
@@ -227,8 +238,10 @@ mkExercise RightHand chordType inversionsFor = ChordExercise{
     , chordType
     , inversionsFor
     }
-mkExercise LeftHand chordType inversionsFor = ChordExercise{
-      clef           = Ly.ClefBass
+mkExercise LeftHand title intro chordType inversionsFor = ChordExercise{
+      title
+    , intro          = Just intro
+    , clef           = Ly.ClefBass
     , voicing        = Voicing.FourWayClose
       -- Starting octave is not critical here, as we adjust it anyway, but it's
       -- more useful for development /of/ 'adjustOctave' if notes are placed in

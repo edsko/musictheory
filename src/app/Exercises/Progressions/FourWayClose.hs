@@ -23,7 +23,7 @@ import Exercises.Util.TypeAB qualified as TypeAB
 exercises :: Ly.Section
 exercises = Ly.Section{
       title = "Four Note Closed Hand Voicings"
-    , intro = Just $ Ly.Markup.Wordwrap $ mconcat [
+    , intro = Just $ Ly.Markup.wordwrap $ mconcat [
           "Every progression shown twice: "
         , "first starting with the type A voicing, "
         , "then with the type B voicing. "
@@ -41,7 +41,7 @@ exercises = Ly.Section{
 
 major251 :: Ly.Score
 major251 = Ly.Score{
-      title = "Major 2-5-1"
+      title = Just "Major 2-5-1"
     , intro = Nothing
     , staff =
         progressionExercise
@@ -62,7 +62,7 @@ major251 = Ly.Score{
 
 minor251 :: Ly.Score
 minor251 = Ly.Score{
-      title = "Minor 2-5-1"
+      title = Just "Minor 2-5-1"
     , intro = Nothing
     , staff =
         progressionExercise
@@ -76,7 +76,7 @@ minor251 = Ly.Score{
     -- This starts on a half-dimished chord, which we voice with a root.
     initInversions :: Scale.Root -> [ChordInversion]
     initInversions scaleRoot = toList $
-        TypeAB.markInversion (\_ -> scaleRoot == Scale.A) TypeAB{
+        TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
             typeA = (Inversion 1, noOctaveShift)
           , typeB = (Inversion 3, OctaveShift (-1))
           }

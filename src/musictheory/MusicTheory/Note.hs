@@ -10,12 +10,9 @@ module MusicTheory.Note (
   , Accidental(..)
   , Note(..)
   , noteName
+  , withAccidental
     -- * Octaves
   , InOctave(..)
-    -- * Simple notes
-  , Simple(..)
-  , SimpleAccidental(..)
-  , withAccidental
   ) where
 
 import Data.Ord
@@ -60,6 +57,28 @@ instance HasStringTable Note where
 
 noteName :: Note -> Name
 noteName (Note name _atal) = name
+
+-- | Add accidental
+--
+-- NOTE: This is a partial function: we only support up to double sharps and
+-- flats (sharpening something that is already a double sharp results in an
+-- exception).
+withAccidental :: Note -> Maybe Accidental -> Note
+withAccidental = \(Note name atal) atal' ->
+    Note name (aux atal atal')
+  where
+    aux :: Maybe Accidental -> Maybe Accidental -> Maybe Accidental
+    aux atal        Nothing      = atal
+    aux Nothing     atal'        = atal'
+    aux (Just atal) (Just atal') = Just $
+        case (atal, atal') of
+          (Sharp       , Sharp) -> DoubleSharp
+          (Sharp       , Flat ) -> Natural
+          (Flat        , Sharp) -> Natural
+          (Flat        , Flat ) -> DoubleFlat
+          (DoubleSharp , Flat ) -> Sharp
+          (DoubleFlat  , Sharp) -> Flat
+          _otherwise            -> error $ "Unsupported " ++ show (atal, atal')
 
 {-------------------------------------------------------------------------------
   Octaves
@@ -150,47 +169,3 @@ deriving via NormalForm Name     instance Distance Name
 deriving via NormalForm Note     instance Distance Note
 deriving via NormalForm InOctave instance Distance InOctave
 
-{-------------------------------------------------------------------------------
-  Simple notes (without double sharps or flats)
--------------------------------------------------------------------------------}
-
--- | \"Simple\" notes
---
--- Simple notes have simple accidentals: at most a single sharp or a single
--- flat. This is a useful concept, because when we sharpen or flatten a simple
--- note, we at most need a double sharp or double flat.
-data Simple = Simple Name (Maybe SimpleAccidental)
-  deriving stock (Eq)
-  deriving (Show, IsString) via UseStringTable Simple
-
-data SimpleAccidental = SimpleSharp | SimpleFlat
-  deriving stock (Eq, Enum, Bounded)
-  deriving (Show, IsString) via UseStringTable SimpleAccidental
-
-instance HasStringTable Simple where
-  stringTable = uncurry Simple <$>
-      stringTablePair stringTable (stringTableMaybe "" stringTable)
-
-instance HasStringTable SimpleAccidental where
-  stringTable = stringTableEnum $ \case
-      SimpleSharp -> "♯"
-      SimpleFlat  -> "♭"
-
-fromSimpleAccidental :: SimpleAccidental -> Accidental
-fromSimpleAccidental SimpleSharp = Sharp
-fromSimpleAccidental SimpleFlat  = Flat
-
--- | Add accidental
-withAccidental :: Simple -> Maybe SimpleAccidental -> Note
-withAccidental = \(Simple name atal) atal' ->
-    Note name (aux atal atal')
-  where
-    aux :: Maybe SimpleAccidental -> Maybe SimpleAccidental -> Maybe Accidental
-    aux atal        Nothing      = fromSimpleAccidental <$> atal
-    aux Nothing     atal'        = fromSimpleAccidental <$> atal'
-    aux (Just atal) (Just atal') = Just $
-        case (atal, atal') of
-          (SimpleSharp, SimpleSharp) -> DoubleSharp
-          (SimpleSharp, SimpleFlat)  -> Natural
-          (SimpleFlat,  SimpleSharp) -> Natural
-          (SimpleFlat,  SimpleFlat)  -> DoubleFlat

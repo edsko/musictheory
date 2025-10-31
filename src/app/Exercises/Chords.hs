@@ -20,6 +20,8 @@ import MusicTheory.Scale (Scale)
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
+import Lilypond.Markup qualified as Ly (Markup)
+import Lilypond.Markup qualified as Ly.Markup
 
 import Exercises.Util.ChordInversion (ChordInversion(..))
 import Exercises.Util.ChordInversion qualified as ChordInversion
@@ -31,9 +33,11 @@ import Exercises.Util.ChordInversion qualified as ChordInversion
 -------------------------------------------------------------------------------}
 
 data ChordExercise = ChordExercise{
-      clef           :: Ly.Clef
-    , chordType      :: Chord.Type
-    , voicing        :: Voicing
+      title     :: String
+    , intro     :: Maybe Ly.Markup
+    , clef      :: Ly.Clef
+    , chordType :: Chord.Type
+    , voicing   :: Voicing
 
       -- | Starting octave for building the chord
     , startingOctave :: Octave
@@ -54,24 +58,53 @@ data ChordExercise = ChordExercise{
     , adjustOctave :: Named.Chord Abs -> Maybe OctaveShift
     }
 
-chordExercise :: ChordExercise -> Ly.Staff
-chordExercise exercise =
-    Ly.Staff{
-        props = def{
-            Ly.clef               = exercise.clef
-          , Ly.timeSignature      = Ly.TimeSignature exercise.numInversions 1
-          , Ly.hideTimeSignature  = True
-          , Ly.omitMeasureNumbers = True
-          }
-      , elems = mconcat [
-            chordsOfTypeIn exercise firstHalf
-          , [Ly.StaffLinebreak]
-          , chordsOfTypeIn exercise secondHalf
-          ]
-      }
+chordExercise :: Scale.Type -> ChordExercise -> [Ly.SectionElem]
+chordExercise scaleType exercise = [
+      Ly.SectionScore Ly.Score{
+          title = Just exercise.title
+        , intro = exercise.intro
+        , staff = Ly.Staff{
+              props = staffProps
+            , elems = mconcat [
+                  chordsOfTypeIn scaleType exercise firstHalf
+                , [Ly.StaffLinebreak]
+                , chordsOfTypeIn scaleType exercise secondHalf
+                ]
+            }
+        }
+    , Ly.SectionScore Ly.Score{
+          title = Nothing
+        , intro = Just $ Ly.Markup.italic $ Ly.Markup.fontsize 8 $ "Enharmonic"
+        , staff = Ly.Staff{
+              props = staffProps
+            , elems = chordsOfTypeIn scaleType exercise enharmonic
+            }
+        }
+    ]
+  where
+    staffProps :: Ly.StaffProps
+    staffProps = def{
+          Ly.clef               = exercise.clef
+        , Ly.timeSignature      = Ly.TimeSignature exercise.numInversions 1
+        , Ly.hideTimeSignature  = True
+        , Ly.omitMeasureNumbers = True
+        }
 
-chordsOfTypeIn :: ChordExercise -> [Scale.Root] -> [Ly.StaffElem]
-chordsOfTypeIn exercise scales =
+    (firstHalf, secondHalf, enharmonic) =
+      case scaleType of
+        Scale.Major -> (
+            take 6 Scale.allMajorRoots
+          , drop 6 Scale.allMajorRoots
+          , Scale.enharmonicMajorRoots
+          )
+        Scale.Minor -> (
+            take 6 Scale.allMinorRoots
+          , drop 6 Scale.allMinorRoots
+          , Scale.enharmonicMinorRoots
+          )
+
+chordsOfTypeIn :: Scale.Type -> ChordExercise -> [Scale.Root] -> [Ly.StaffElem]
+chordsOfTypeIn scaleType exercise scales =
     concatMap goScale scales
   where
     -- Show all inversions for the specified scale
@@ -90,11 +123,9 @@ chordsOfTypeIn exercise scales =
           (exercise.inversionsFor scaleRoot)
           (True : repeat False)
       where
-        -- .. always use a major scale as context
         scale :: Scale
-        scale = Scale.named $ Scale.Name scaleRoot Scale.Major
+        scale = Scale.named $ Scale.Name scaleRoot scaleType
 
-        -- .. and always show the I chord in that scale
         chord :: Named.Chord Rel
         chord = Chord.Named.chordI exercise.chordType
 
@@ -134,11 +165,3 @@ chordsOfTypeIn exercise scales =
     duration :: Ly.Duration
     duration = Ly.OneOver 1
 
-{-------------------------------------------------------------------------------
-  Internal auxiliary
--------------------------------------------------------------------------------}
-
--- | Split the scales into two halves
-firstHalf, secondHalf :: [Scale.Root]
-firstHalf  = take 6 Scale.allMajorRoots
-secondHalf = drop 6 Scale.allMajorRoots

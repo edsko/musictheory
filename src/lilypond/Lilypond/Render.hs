@@ -100,13 +100,20 @@ instance LilypondToDoc Ly.SectionElem where
       Ly.SectionSub section -> toDoc section
 
 instance LilypondToDoc Ly.Score where
-  toDoc score = RenderM.score score.title $ \tocLabel -> mconcat [
-        RenderM.markup $ Ly.Markup.Style (Ly.Markup.ScoreTitle tocLabel) $
-          fromString score.title
-      , RenderM.whenJust score.intro $ renderIntro
-      , RenderM.withinScope "score" $
-          toDoc score.staff
-      ]
+  toDoc score =
+      case score.title of
+        Just title ->  RenderM.score title $ \tocLabel -> mconcat [
+            RenderM.markup $ Ly.Markup.Style (Ly.Markup.ScoreTitle tocLabel) $
+              fromString title
+          , RenderM.whenJust score.intro $ renderIntro
+          , RenderM.withinScope "score" $
+              toDoc score.staff
+          ]
+        Nothing -> mconcat [
+            RenderM.whenJust score.intro $ renderIntro
+          , RenderM.withinScope "score" $
+              toDoc score.staff
+          ]
 
 instance LilypondToDoc Ly.Staff where
   toDoc staff = mconcat [
@@ -352,12 +359,16 @@ assign var value = mconcat [
 assignReal :: String -> Double -> RenderM Doc
 assignReal var value = RenderM.line $ var ++ " = " ++ show value
 
+_assignBool :: String -> Bool -> RenderM Doc
+_assignBool var True  = RenderM.line $ var ++ " = ##t"
+_assignBool var False = RenderM.line $ var ++ " = ##f"
+
 renderIntro :: Ly.Markup.Markup -> RenderM Doc
 renderIntro intro = mconcat [
       RenderM.markup intro
     , RenderM.lines [
           "\\markup \\center-column {"
-        , "  \\vspace #1"
+        , "  \\vspace #0.5"
         , "}"
        ]
     ]

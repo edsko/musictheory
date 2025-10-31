@@ -124,7 +124,21 @@ majorOtherDegree voicing Chord.Name{root, typ} =
 -------------------------------------------------------------------------------}
 
 scaleDegreesMinor :: Voicing -> Chord.Name Rel -> NonEmpty Scale.Degree
-scaleDegreesMinor voicing Chord.Name{root, typ} =
+scaleDegreesMinor voicing chordName
+  | chordName.root == "1" = minorDegree1     voicing chordName.typ
+  | otherwise             = minorOtherDegree voicing chordName
+
+minorDegree1 :: Voicing -> Chord.Type -> NonEmpty Scale.Degree
+minorDegree1 voicing typ =
+    case (voicing, typ) of
+      (Default      , Chord.Minor7)         -> [ "1" , "3" ,  "5" , "7"       ]
+      (FourWayClose , Chord.Minor7)         -> [       "3" ,  "5" , "7" , "9" ]
+      (FourWayClose , Chord.HalfDiminished) -> [ "1" , "3" , "♭5" , "7"       ]
+
+      _otherwise -> notYetImplemented (voicing, typ)
+
+minorOtherDegree :: Voicing -> Chord.Name Rel -> NonEmpty Scale.Degree
+minorOtherDegree voicing Chord.Name{root, typ} =
     consistentWith (voicing, typ) Scale.Minor $
       case (voicing, root, typ) of
         -- Minor 2-5-1 using four note close voicing
@@ -143,7 +157,6 @@ scaleDegreesMinor voicing Chord.Name{root, typ} =
         -- scale degree 7 to get the dominant chord (rather than a minor chord).
         (FourWayClose, "2", Chord.HalfDiminished) -> [  "2" , "4" ,  "6" ,  "8" ]
         (FourWayClose, "5", Chord.SevenFlat9)     -> [ "♯7" , "9" , "11" , "13" ]
-        (FourWayClose, "1", Chord.Minor7)         -> [  "3" , "5" ,  "7" ,  "9" ]
 
         _otherwise -> notYetImplemented (voicing, root, typ)
 
