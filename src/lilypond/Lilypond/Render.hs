@@ -66,9 +66,14 @@ instance LilypondToDoc Ly.Book where
   toDoc book = RenderM.withinScope "book" $ mconcat [
         toDoc emptyHeader{
             title    = Just $ fromString book.title
-          , arranger = Just $ fromString book.author
+          , subtitle = fromString <$> book.author
           }
       , "\\markup \\vspace #2"
+      , RenderM.markup $ Ly.Markup.italic $ mconcat [
+            "Document produced by Edsko de Vries. "
+          , "Revision 2 (2025-11-01)"
+          ]
+      , "\\markup \\vspace #4"
       , "\\markuplist \\table-of-contents"
       , "\\pageBreak"
       , foldMap toDoc book.parts
@@ -79,7 +84,7 @@ instance LilypondToDoc Ly.Bookpart where
         toDoc emptyHeader{
             title    = Just $ Ly.Markup.Style (Ly.Markup.PartTitle tocLabel) $
                          fromString bookpart.title
-          , arranger = Just ""
+          , subtitle = Just ""
           }
       , foldMap toDoc bookpart.sections
       ]

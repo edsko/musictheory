@@ -12,7 +12,7 @@ exercises = Ly.Lilypond{
       books = [
           Ly.Book{
               title  = "Music Theory Exercises"
-            , author = "Edsko de Vries <edsko@edsko.net>"
+            , author = Just "Michael Keithson"
             , parts  = [
                   chords
                 , progressions

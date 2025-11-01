@@ -43,7 +43,7 @@ data Lilypond = Lilypond{
 
 data Book  = Book{
       title  :: String
-    , author :: String
+    , author :: Maybe String
     , parts  :: [Bookpart]
     }
 
