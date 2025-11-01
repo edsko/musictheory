@@ -109,11 +109,13 @@ majorOtherDegree voicing Chord.Name{root, typ} =
         -- >  1    2    3    4    5    6    7   (8)   9  (10)  11  (12)  13  (14)
         -- >  C    D    E    F    G    A    B   (C)   D  ( E)   F  ( G)   A  ( B)
         -- > ------------------------------------------------
-        -- >       ._________*_________*_________*_________*                    (iim7)
-        -- >                      ._________*______________*____*_________*     (V7)
-        -- >  ._________*_________*_________*_________*                         (Imaj7)
-        (FourWayClose, "2", Chord.Minor7)    -> [ "4" ,  "6" ,  "8" , "10" ]
-        (FourWayClose, "5", Chord.Dominant7) -> [ "7" , "10" , "11" , "13" ]
+        -- >       ._________*_________*_________*_________*                    iim7
+        -- >                      ._________*______________*____*_________*     V7
+        -- >                      ._________*_________*_________*_________*     V7(b9)
+        -- >  ._________*_________*_________*_________*                         Imaj7
+        (FourWayClose, "2", Chord.Minor7)     -> [ "4" ,  "6" ,  "8" ,  "10" ]
+        (FourWayClose, "5", Chord.Dominant7)  -> [ "7" , "10" , "11" ,  "13" ]
+        (FourWayClose, "5", Chord.SevenFlat9) -> [ "7" ,  "9" , "11" , "♭13" ]
 
         _otherwise -> notYetImplemented (voicing, root, typ)
 
@@ -146,17 +148,19 @@ minorOtherDegree voicing Chord.Name{root, typ} =
         -- >  1    2    3    4    5    6    7   (8)   9  (10)  11  (12)  13  (14)
         -- >  C    D    E♭   F    G    A♭   B♭  (C)   D  (E♭)   F  ( G)  A♭  (B♭)
         -- > ------------------------------------------------
-        -- >       *_________*_________*_________*                              (iim7.-5)
-        -- >                      ._________*_________*_________*_________*     (V7.-9)
-        -- >  ._________*_________*_________*_________*                         (Imaj7)
+        -- >       *_________*_________*_________*                              iim7(b5)
+        -- >                      ._________*_________*_________*_________*     V7(b9)
+        -- >                      ._________*________ _____*____*_________*     V7(alt)
+        -- >  ._________*_________*_________*_________*                         Imaj7
         --
         -- NOTE: The "Flat9" "SevenFlat9" does not refer to scale degrees, but
         -- rather to the interval between its nineth (second).
         --
         -- NOTE: In the context of the (natural) minor scale, we need to sharpen
         -- scale degree 7 to get the dominant chord (rather than a minor chord).
-        (FourWayClose, "2", Chord.HalfDiminished) -> [  "2" , "4" ,  "6" ,  "8" ]
-        (FourWayClose, "5", Chord.SevenFlat9)     -> [ "♯7" , "9" , "11" , "13" ]
+        (FourWayClose, "2", Chord.HalfDiminished) -> [  "2" ,  "4" ,  "6" ,   "8" ]
+        (FourWayClose, "5", Chord.SevenFlat9)     -> [ "♯7" ,  "9" , "11" ,  "13" ]
+        (FourWayClose, "5", Chord.Altered)        -> [ "♯7" , "10" , "11" , "𝄪13" ]
 
         _otherwise -> notYetImplemented (voicing, root, typ)
 

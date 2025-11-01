@@ -14,6 +14,7 @@ module MusicTheory.Progression (
   , voiceLeading
     -- * Standard chord progressions
   , Name(..)
+  , UseSevenFlat9(..)
   , named
   ) where
 
@@ -96,18 +97,24 @@ voiceLeading permissibleInversions = \(Progression chords) -> Progression $
 
 -- | Standard progressions
 data Name =
-    Major251
-  | Minor251
+    Major251 UseSevenFlat9
+  | Minor251 UseSevenFlat9
+
+data UseSevenFlat9 = WithSevenFlat9 | WithoutSevenFlat9
 
 named :: Name -> Progression Rel
 named = Progression . fmap Chord.Named.Rel . \case
-    Major251 -> [
-        Chord.Name "2" Chord.Minor7
-      , Chord.Name "5" Chord.Dominant7
-      , Chord.Name "1" Chord.Major7
+    Major251 useSevenFlat9 -> [
+        Chord.Name "2" $ Chord.Minor7
+      , Chord.Name "5" $ case useSevenFlat9 of
+                           WithoutSevenFlat9 -> Chord.Dominant7
+                           WithSevenFlat9    -> Chord.SevenFlat9
+      , Chord.Name "1" $ Chord.Major7
       ]
-    Minor251 -> [
+    Minor251 useSevenFlat9 -> [
         Chord.Name "2" Chord.HalfDiminished
-      , Chord.Name "5" Chord.SevenFlat9
+      , Chord.Name "5" $ case useSevenFlat9 of
+                           WithSevenFlat9    -> Chord.SevenFlat9
+                           WithoutSevenFlat9 -> Chord.Altered
       , Chord.Name "1" Chord.Minor7
       ]

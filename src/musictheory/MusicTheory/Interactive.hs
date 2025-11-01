@@ -52,7 +52,7 @@ example2 =
 example3 :: Progression Abs
 example3 =
     Progression.wrtScale Scale.cMinor Voicing.FourWayClose Octave.middle $
-      Progression.named Progression.Minor251
+      Progression.named $ Progression.Minor251 Progression.WithSevenFlat9
 
 -- | Apply voice leading
 example4 :: Progression Abs
@@ -65,7 +65,7 @@ example4 =
     in Progression.voiceLeading permissibleInversions $
          Progression.mapFirst (invert $ Inversion 1) $
            Progression.wrtScale Scale.aMinor Voicing.FourWayClose Octave.middle $
-             Progression.named Progression.Minor251
+             Progression.named $ Progression.Minor251 Progression.WithSevenFlat9
 
 -- | Move to playable range
 example5 :: Maybe (Named.Chord Abs)

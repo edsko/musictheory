@@ -30,8 +30,14 @@ exercises = Ly.Section{
         , "Basic voice leading is applied in both cases."
         ]
     , elems = [
-          Ly.SectionScore major251
-        , Ly.SectionScore minor251
+          Ly.SectionScore $
+            major251 "Major 2-5-1 using 7" Progression.WithoutSevenFlat9
+        , Ly.SectionScore $
+            major251 "Major 2-5-1 using 7(♭9)" Progression.WithSevenFlat9
+        , Ly.SectionScore $
+            minor251 "Minor 2-5-1 using 7(♭9)" Progression.WithSevenFlat9
+        , Ly.SectionScore $
+            minor251 "Minor 2-5-1 using 7alt" Progression.WithoutSevenFlat9
         ]
     }
 
@@ -39,13 +45,13 @@ exercises = Ly.Section{
   Individual exercises
 -------------------------------------------------------------------------------}
 
-major251 :: Ly.Score
-major251 = Ly.Score{
-      title = Just "Major 2-5-1"
+major251 :: String -> Progression.UseSevenFlat9 -> Ly.Score
+major251 title useSevenFlat9 = Ly.Score{
+      title = Just title
     , intro = Nothing
     , staff =
         progressionExercise
-          (Progression.named Progression.Major251)
+          (Progression.named $ Progression.Major251 useSevenFlat9)
           Voicing.FourWayClose
           initInversions
           permissibleInversions
@@ -60,13 +66,13 @@ major251 = Ly.Score{
           , typeB = (Inversion 2, OctaveShift (-1))
           }
 
-minor251 :: Ly.Score
-minor251 = Ly.Score{
-      title = Just "Minor 2-5-1"
+minor251 :: String -> Progression.UseSevenFlat9 -> Ly.Score
+minor251 title useSevenFlat9 = Ly.Score{
+      title = Just title
     , intro = Nothing
     , staff =
         progressionExercise
-          (Progression.named Progression.Minor251)
+          (Progression.named $ Progression.Minor251 useSevenFlat9)
           Voicing.FourWayClose
           initInversions
           permissibleInversions
@@ -93,5 +99,6 @@ permissibleInversions = \case
     Chord.SevenFlat9 -> [Inversion 0, Inversion 2]
     Chord.Major7     -> [Inversion 0, Inversion 2]
     Chord.Minor7     -> [Inversion 0, Inversion 2]
+    Chord.Altered    -> [Inversion 0, Inversion 2]
 
     typ -> error $ "Not implemented: " ++ show typ

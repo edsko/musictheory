@@ -72,13 +72,15 @@ withAccidental = \(Note name atal) atal' ->
     aux Nothing     atal'        = atal'
     aux (Just atal) (Just atal') = Just $
         case (atal, atal') of
-          (Sharp       , Sharp) -> DoubleSharp
-          (Sharp       , Flat ) -> Natural
-          (Flat        , Sharp) -> Natural
-          (Flat        , Flat ) -> DoubleFlat
-          (DoubleSharp , Flat ) -> Sharp
-          (DoubleFlat  , Sharp) -> Flat
-          _otherwise            -> error $ "Unsupported " ++ show (atal, atal')
+          (Sharp       , Sharp      ) -> DoubleSharp
+          (Sharp       , Flat       ) -> Natural
+          (Flat        , Sharp      ) -> Natural
+          (Flat        , Flat       ) -> DoubleFlat
+          (DoubleSharp , Flat       ) -> Sharp
+          (DoubleFlat  , Sharp      ) -> Flat
+          (Flat        , DoubleSharp) -> Sharp
+          (Sharp       , DoubleFlat ) -> Flat
+          _otherwise -> error $ "withAccidental: " ++ show (atal, atal')
 
 {-------------------------------------------------------------------------------
   Octaves
