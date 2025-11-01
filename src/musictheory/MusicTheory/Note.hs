@@ -87,7 +87,10 @@ withAccidental = \(Note name atal) atal' ->
 -------------------------------------------------------------------------------}
 
 -- | Scientific pitch notation
-data InOctave = InOctave Octave Note
+data InOctave = InOctave {
+      octave :: Octave
+    , note   :: Note
+    }
   deriving stock (Eq)
   deriving (Show, IsString) via UseStringTable InOctave
 

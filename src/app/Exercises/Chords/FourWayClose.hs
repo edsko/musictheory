@@ -231,24 +231,24 @@ mkExercise RightHand title intro chordType inversionsFor = ChordExercise{
       title
     , intro          = Just intro
     , clef           = Ly.ClefTreble
+    , chordType
     , voicing        = Voicing.FourWayClose
     , startingOctave = Octave.middle
-    , adjustOctave   = \_ -> Just noOctaveShift
     , numInversions  = 2
-    , chordType
     , inversionsFor
+    , adjustOctave   = \_ -> Just noOctaveShift
     }
 mkExercise LeftHand title intro chordType inversionsFor = ChordExercise{
       title
     , intro          = Just intro
     , clef           = Ly.ClefBass
+    , chordType
     , voicing        = Voicing.FourWayClose
       -- Starting octave is not critical here, as we adjust it anyway, but it's
       -- more useful for development /of/ 'adjustOctave' if notes are placed in
       -- a readable position on the bass cleff
     , startingOctave = Octave.middle - 2
-    , adjustOctave   = Chord.Named.moveToRange ("D3", "G4")
     , numInversions  = 2
-    , chordType
     , inversionsFor
+    , adjustOctave   = Chord.Named.moveToRange ("D3", "G4")
     }

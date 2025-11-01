@@ -66,9 +66,9 @@ chordExercise scaleType exercise = [
         , staff = Ly.Staff{
               props = staffProps
             , elems = mconcat [
-                  chordsOfTypeIn scaleType exercise firstHalf
+                  exerciseInScales scaleType exercise firstHalf
                 , [Ly.StaffLinebreak]
-                , chordsOfTypeIn scaleType exercise secondHalf
+                , exerciseInScales scaleType exercise secondHalf
                 ]
             }
         }
@@ -77,7 +77,7 @@ chordExercise scaleType exercise = [
         , intro = Just $ Ly.Markup.italic $ Ly.Markup.fontsize 8 $ "Enharmonic"
         , staff = Ly.Staff{
               props = staffProps
-            , elems = chordsOfTypeIn scaleType exercise enharmonic
+            , elems = exerciseInScales scaleType exercise enharmonic
             }
         }
     ]
@@ -90,21 +90,22 @@ chordExercise scaleType exercise = [
         , Ly.omitMeasureNumbers = True
         }
 
+    firstHalf, secondHalf, enharmonic :: [Scale.Root]
     (firstHalf, secondHalf, enharmonic) =
       case scaleType of
         Scale.Major -> (
-            take 6 Scale.allMajorRoots
-          , drop 6 Scale.allMajorRoots
-          , Scale.enharmonicMajorRoots
+            take 6 $ Scale.allRoots Scale.Major
+          , drop 6 $ Scale.allRoots Scale.Major
+          , Scale.enharmonicRoots Scale.Major
           )
         Scale.Minor -> (
-            take 6 Scale.allMinorRoots
-          , drop 6 Scale.allMinorRoots
-          , Scale.enharmonicMinorRoots
+            take 6 $ Scale.allRoots Scale.Minor
+          , drop 6 $ Scale.allRoots Scale.Minor
+          , Scale.enharmonicRoots Scale.Minor
           )
 
-chordsOfTypeIn :: Scale.Type -> ChordExercise -> [Scale.Root] -> [Ly.StaffElem]
-chordsOfTypeIn scaleType exercise scales =
+exerciseInScales :: Scale.Type -> ChordExercise -> [Scale.Root] -> [Ly.StaffElem]
+exerciseInScales scaleType exercise scales =
     concatMap goScale scales
   where
     -- Show all inversions for the specified scale
@@ -113,13 +114,7 @@ chordsOfTypeIn scaleType exercise scales =
     goScale :: Scale.Root -> [Ly.StaffElem]
     goScale scaleRoot =
         zipWith
-          ( goInversion $
-              Voicing.wrtScale
-                scale
-                exercise.voicing
-                exercise.startingOctave
-                chord
-          )
+          (goInversion chord')
           (exercise.inversionsFor scaleRoot)
           (True : repeat False)
       where
@@ -128,6 +123,14 @@ chordsOfTypeIn scaleType exercise scales =
 
         chord :: Named.Chord Rel
         chord = Chord.Named.chordI exercise.chordType
+
+        chord' :: Named.Chord Abs
+        chord' =
+            Voicing.wrtScale
+              scale
+              exercise.voicing
+              exercise.startingOctave
+              chord
 
     goInversion ::
          Named.Chord Abs

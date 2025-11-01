@@ -29,15 +29,11 @@ exercises = Ly.Section{
         , "then with the type B voicing. "
         , "Basic voice leading is applied in both cases."
         ]
-    , elems = [
-          Ly.SectionScore $
-            major251 "Major 2-5-1 using 7" Progression.WithoutSevenFlat9
-        , Ly.SectionScore $
-            major251 "Major 2-5-1 using 7(♭9)" Progression.WithSevenFlat9
-        , Ly.SectionScore $
-            minor251 "Minor 2-5-1 using 7(♭9)" Progression.WithSevenFlat9
-        , Ly.SectionScore $
-            minor251 "Minor 2-5-1 using 7alt" Progression.WithoutSevenFlat9
+    , elems = concat [
+          major251 "Major 2-5-1 using 7"     Progression.WithoutSevenFlat9
+        , major251 "Major 2-5-1 using 7(♭9)" Progression.WithSevenFlat9
+        , minor251 "Minor 2-5-1 using 7(♭9)" Progression.WithSevenFlat9
+        , minor251 "Minor 2-5-1 using 7alt"  Progression.WithoutSevenFlat9
         ]
     }
 
@@ -45,60 +41,68 @@ exercises = Ly.Section{
   Individual exercises
 -------------------------------------------------------------------------------}
 
-major251 :: String -> Progression.UseSevenFlat9 -> Ly.Score
-major251 title useSevenFlat9 = Ly.Score{
-      title = Just title
-    , intro = Nothing
-    , staff =
-        progressionExercise
-          (Progression.named $ Progression.Major251 useSevenFlat9)
-          Voicing.FourWayClose
-          initInversions
-          permissibleInversions
-          Scale.allMajorScales
-    }
+major251 :: String -> Progression.UseSevenFlat9 -> [Ly.SectionElem]
+major251 title useSevenFlat9 =
+    progressionExercise Scale.Major $
+      mkExercise
+        title
+        (Progression.Major251 useSevenFlat9)
+        startingInversion
   where
     -- Starts on a rootless minor chord
-    initInversions :: Scale.Root -> [ChordInversion]
-    initInversions scaleRoot = toList $
+    startingInversion :: Scale.Root -> [ChordInversion]
+    startingInversion scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
             typeA = (Inversion 0, noOctaveShift)
           , typeB = (Inversion 2, OctaveShift (-1))
           }
 
-minor251 :: String -> Progression.UseSevenFlat9 -> Ly.Score
-minor251 title useSevenFlat9 = Ly.Score{
-      title = Just title
-    , intro = Nothing
-    , staff =
-        progressionExercise
-          (Progression.named $ Progression.Minor251 useSevenFlat9)
-          Voicing.FourWayClose
-          initInversions
-          permissibleInversions
-          Scale.allMinorScales
-    }
+minor251 :: String -> Progression.UseSevenFlat9 -> [Ly.SectionElem]
+minor251 title useSevenFlat9 =
+    progressionExercise Scale.Minor $
+      mkExercise
+        title
+        (Progression.Minor251 useSevenFlat9)
+        startingInversion
   where
     -- This starts on a half-dimished chord, which we voice with a root.
-    initInversions :: Scale.Root -> [ChordInversion]
-    initInversions scaleRoot = toList $
+    startingInversion :: Scale.Root -> [ChordInversion]
+    startingInversion scaleRoot = toList $
         TypeAB.markInversion (\_ -> scaleRoot == Scale.C) TypeAB{
             typeA = (Inversion 1, noOctaveShift)
           , typeB = (Inversion 3, OctaveShift (-1))
           }
 
--- | Possible inversions
---
--- See comment in "Exercises.Chords.FourWayClose" regarding inversions.
---
--- We don't need to implement the inversions for the half diminished chord, as
--- it (currently) only appears as the /first/ chord.
-permissibleInversions :: Chord.Type -> [Inversion]
-permissibleInversions = \case
-    Chord.Dominant7  -> [Inversion 0, Inversion 2]
-    Chord.SevenFlat9 -> [Inversion 0, Inversion 2]
-    Chord.Major7     -> [Inversion 0, Inversion 2]
-    Chord.Minor7     -> [Inversion 0, Inversion 2]
-    Chord.Altered    -> [Inversion 0, Inversion 2]
+{-------------------------------------------------------------------------------
+  Internal auxiliary
+-------------------------------------------------------------------------------}
 
-    typ -> error $ "Not implemented: " ++ show typ
+mkExercise ::
+     String
+  -> Progression.Name
+  -> (Scale.Root -> [ChordInversion])
+  -> ProgressionExercise
+mkExercise title progressionName startingInversion = ProgressionExercise{
+      title
+    , intro                 = Nothing
+    , progressionName
+    , voicing               = Voicing.FourWayClose
+    , startingInversion
+    , permissibleInversions
+    }
+  where
+  -- Possible inversions
+  --
+  -- See comment in "Exercises.Chords.FourWayClose" regarding inversions.
+  --
+  -- We don't need to implement the inversions for the half diminished chord, as
+  -- it (currently) only appears as the /first/ chord.
+  permissibleInversions :: Chord.Type -> [Inversion]
+  permissibleInversions = \case
+      Chord.Dominant7  -> [Inversion 0, Inversion 2]
+      Chord.SevenFlat9 -> [Inversion 0, Inversion 2]
+      Chord.Major7     -> [Inversion 0, Inversion 2]
+      Chord.Minor7     -> [Inversion 0, Inversion 2]
+      Chord.Altered    -> [Inversion 0, Inversion 2]
+
+      typ -> error $ "Not implemented: " ++ show typ

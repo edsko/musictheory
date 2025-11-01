@@ -19,12 +19,8 @@ module MusicTheory.Scale (
     -- * Construction
   , named
     -- * Enumeration
-  , allMajorRoots
-  , allMinorRoots
-  , enharmonicMajorRoots
-  , enharmonicMinorRoots
-  , allMajorScales
-  , allMinorScales
+  , allRoots
+  , enharmonicRoots
     -- * Common scales
   , cMajor
   , cMinor
@@ -182,24 +178,27 @@ naturalMinor = \case
 {-------------------------------------------------------------------------------
   Choice of roots
 
-  For the minor scale we pick roots so that double-flats are avoided. For a
-  sense of duality, we then pick their enharmonic equivalents for major scales.
+  The minor scales G♭ and D♭ have double flats in them, so we avoid them and
+  use their enharmonic equivalents F♯ and C♯ instead.
 
-  For the minor scales, we start the circle of fifths on A, to get a similar
-  progression in terms of sharps and flats as for the major scales.
+  For a sense of duality, we then pick G♭ and D♭ for the major scales.
 -------------------------------------------------------------------------------}
 
 allMinorRoots, allMajorRoots :: [Root]
-allMajorRoots = [C, G, D, A, E, B,   Gb, Db, Ab,   Eb, Bb, F]
-allMinorRoots = [C, G, D, A, E, B,   F#, C#, G#,   Eb, Bb, F]
+allMajorRoots = [C, G, D, A, E, B,   Gb, Db,   Ab, Eb, Bb, F]
+allMinorRoots = [C, G, D, A, E, B,   F#, C#,   Ab, Eb, Bb, F]
+
+allRoots :: Type -> [Root]
+allRoots Major = allMajorRoots
+allRoots Minor = allMinorRoots
 
 enharmonicMajorRoots, enharmonicMinorRoots :: [Root]
 enharmonicMajorRoots = [F#, C#] -- we omit G#
 enharmonicMinorRoots = [Gb, Db, Ab]
 
-allMajorScales, allMinorScales :: [Scale]
-allMajorScales        = [named (Name root Major) | root <- allMajorRoots]
-allMinorScales        = [named (Name root Minor) | root <- allMinorRoots]
+enharmonicRoots :: Type -> [Root]
+enharmonicRoots Major = enharmonicMajorRoots
+enharmonicRoots Minor = enharmonicMinorRoots
 
 {-------------------------------------------------------------------------------
   Common scales
