@@ -127,7 +127,7 @@ dominant hand =
 halfDiminished :: Hand -> [Ly.SectionElem]
 halfDiminished hand =
     chordExercise Scale.Minor $
-      mkExercise hand "Half-diminished / m⁷(♭5)" intro Chord.HalfDiminished inversions
+      mkExercise hand "Half-diminished / m7(♭5)" intro Chord.HalfDiminished inversions
   where
     intro :: Ly.Markup
     intro = Ly.Markup.wordwrap $ mconcat [

@@ -7,7 +7,6 @@ import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
-import Lilypond.Markup qualified as Ly.Markup
 
 import Exercises.Chords
 import Exercises.Util.ChordInversion (ChordInversion(..))
@@ -16,82 +15,84 @@ import Exercises.Util.ChordInversion (ChordInversion(..))
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: Ly.Section
-exercises = Ly.Section{
-      title = "Basic chord exercises"
-    , intro = Nothing
-    , elems = [
-          Ly.SectionSub $ Ly.Section{
-              title = "Root position"
-            , intro = Nothing
-            , elems = concat [
-                  majorTriads     (inversions [0])
-                , majorSeventh    (inversions [0])
-                , [Ly.SectionPageBreak]
-                , dominantSeventh (inversions [0])
-                , minorSeventh    (inversions [0])
-                ]
-            }
-        , Ly.SectionSub $ Ly.Section{
-              title = "Inversions"
-            , intro = Just $ Ly.Markup.wordwrap $ mconcat [
-                  "All chords are first shown in root position, "
-                , "followed by all possible inversions."
-                ]
-            , elems = concat [
-                  majorTriads     (inversions [0..2])
-                , majorSeventh    (inversions [0..3])
-                , [Ly.SectionPageBreak]
-                , dominantSeventh (inversions [0..3])
-                , minorSeventh    (inversions [0..3])
-                ]
-            }
-        ]
-    }
-  where
-    inversions :: [Word] -> [ChordInversion]
-    inversions is = [
-          ChordInversion (Inversion i) noOctaveShift Ly.NoAnnotation
-        | i <- is
-        ]
+exercises :: [Ly.Section]
+exercises = [
+      Ly.Section{
+          title = "Diatonic triads"
+        , intro = Nothing
+        , elems = [
+              Ly.SectionSub $ Ly.Section{
+                  title = "Root position"
+                , intro = Nothing
+                , elems = triads (inversions [0])
+                }
+            , Ly.SectionSub $ Ly.Section{
+                  title = "Inversions"
+                , intro = Nothing
+                , elems = triads (inversions [0..2])
+                }
+            ]
+        }
+    , Ly.Section{
+          title = "Diatonic seventh chords"
+        , intro = Nothing
+        , elems = [
+              Ly.SectionSub $ Ly.Section{
+                  title = "Root position"
+                , intro = Nothing
+                , elems = sevenths (inversions [0])
+                }
+            , Ly.SectionSub $ Ly.Section{
+                  title = "Inversions"
+                , intro = Nothing
+                , elems = sevenths (inversions [0..3])
+                }
+            ]
+        }
+    ]
 
-{-------------------------------------------------------------------------------
-  Root position
--------------------------------------------------------------------------------}
+triads :: [ChordInversion] -> [Ly.SectionElem]
+triads invs = concat [
+      chordExercise Scale.Major $
+        mkExercise "Major" Chord.MajorTriad invs
+    , chordExercise Scale.Minor $
+        mkExercise "Minor" Chord.MinorTriad invs
+    , chordExercise Scale.Minor $
+        mkExercise "Diminished / m(♭5)" Chord.DiminishedTriad invs
+    ]
 
-majorTriads :: [ChordInversion] -> [Ly.SectionElem]
-majorTriads inversions =
-    chordExercise Scale.Major $
-      mkExercise "Major triad" Chord.MajorTriad inversions
+sevenths :: [ChordInversion] -> [Ly.SectionElem]
+sevenths invs = concat [
+      chordExercise Scale.Major $
+        mkExercise "Major seventh" Chord.Major7 invs
+    , chordExercise Scale.Major $
+        mkExercise "Dominant seventh" Chord.Dominant7 invs
+    , [Ly.SectionPageBreak]
+    , chordExercise Scale.Minor $
+        mkExercise "Minor seventh" Chord.Minor7 invs
+    , chordExercise Scale.Minor $
+        mkExercise "Half-diminished / m7(♭5)" Chord.HalfDiminished invs
+    ]
 
-majorSeventh :: [ChordInversion] -> [Ly.SectionElem]
-majorSeventh inversions =
-    chordExercise Scale.Major $
-      mkExercise "Major seventh" Chord.Major7 inversions
-
-dominantSeventh :: [ChordInversion] -> [Ly.SectionElem]
-dominantSeventh inversions =
-    chordExercise Scale.Major $
-      mkExercise "Dominant seventh" Chord.Dominant7 inversions
-
-minorSeventh :: [ChordInversion] -> [Ly.SectionElem]
-minorSeventh inversions =
-    chordExercise Scale.Minor $
-      mkExercise "Minor seventh" Chord.Minor7 inversions
+inversions :: [Word] -> [ChordInversion]
+inversions is = [
+      ChordInversion (Inversion i) noOctaveShift Ly.NoAnnotation
+    | i <- is
+    ]
 
 {-------------------------------------------------------------------------------
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
 mkExercise :: String -> Chord.Type -> [ChordInversion] -> ChordExercise
-mkExercise title chordType inversions = ChordExercise{
+mkExercise title chordType invs = ChordExercise{
       title
     , intro          = Nothing
     , clef           = Ly.ClefTreble
     , voicing        = Voicing.Default
     , startingOctave = Octave.middle
     , adjustOctave   = \_ -> Just noOctaveShift
-    , numInversions  = length inversions
-    , inversionsFor  = \_ -> inversions
+    , numInversions  = length invs
+    , inversionsFor  = \_ -> invs
     , chordType
     }

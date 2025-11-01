@@ -321,15 +321,16 @@ renderChordName Chord.Name{root = Note.InOctave _o note, typ} = concat [
       "^\\markup{"
     , stringTableEntry note
     , case typ of
-        Chord.MajorTriad     -> ""
-        Chord.MinorTriad     -> "m"
-        Chord.Major7         -> sup "maj7"
-        Chord.Minor7         -> "m" ++ sup "7"
-        Chord.Dominant7      -> sup "7"
-        Chord.HalfDiminished -> sup "ø"
-        Chord.Altered        -> sup "7alt"
-        Chord.SevenFlat9     -> sup "7(♭9)"
-        Chord.Sus            -> sup "sus"
+        Chord.MajorTriad      -> ""
+        Chord.MinorTriad      -> "m"
+        Chord.DiminishedTriad -> sup "dim"
+        Chord.Major7          -> sup "maj7"
+        Chord.Minor7          -> "m" ++ sup "7"
+        Chord.Dominant7       -> sup "7"
+        Chord.HalfDiminished  -> sup "ø"
+        Chord.Altered         -> sup "7alt"
+        Chord.SevenFlat9      -> sup "7(♭9)"
+        Chord.Sus             -> sup "sus"
     , "}"
     ]
   where
@@ -368,7 +369,7 @@ renderIntro intro = mconcat [
       RenderM.markup intro
     , RenderM.lines [
           "\\markup \\center-column {"
-        , "  \\vspace #0.2"
+        , "  \\vspace #0.1"
         , "}"
        ]
     ]

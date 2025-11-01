@@ -84,11 +84,12 @@ scaleDegreesMajor voicing chordName
 majorDegree1 :: Voicing -> Chord.Type -> NonEmpty Scale.Degree
 majorDegree1 voicing typ =
     case (voicing, typ) of
-      (Default, Chord.MajorTriad)     -> [ "1" ,  "3" , "5"]
-      (Default, Chord.MinorTriad)     -> [ "1" , "♭3" , "5"]
-      (Default, Chord.Major7)         -> [ "1" ,  "3" , "5",  "7" ]
-      (Default, Chord.Minor7)         -> [ "1" , "♭3" , "5", "♭7" ]
-      (Default, Chord.Dominant7)      -> [ "1" ,  "3" , "5", "♭7" ]
+      (Default, Chord.MajorTriad)      -> [ "1" ,  "3" ,  "5"]
+      (Default, Chord.MinorTriad)      -> [ "1" , "♭3" ,  "5"]
+      (Default, Chord.DiminishedTriad) -> [ "1" , "♭3" , "♭5"]
+      (Default, Chord.Major7)          -> [ "1" ,  "3" ,  "5",  "7" ]
+      (Default, Chord.Minor7)          -> [ "1" , "♭3" ,  "5", "♭7" ]
+      (Default, Chord.Dominant7)       -> [ "1" ,  "3" ,  "5", "♭7" ]
 
       (FourWayClose, Chord.Major7)         -> [         "3" ,   "5" ,  "7" ,  "9" ]
       (FourWayClose, Chord.Minor7)         -> [        "♭3" ,   "5" , "♭7" ,  "9" ]
@@ -133,9 +134,13 @@ scaleDegreesMinor voicing chordName
 minorDegree1 :: Voicing -> Chord.Type -> NonEmpty Scale.Degree
 minorDegree1 voicing typ =
     case (voicing, typ) of
-      (Default      , Chord.Minor7)         -> [ "1" , "3" ,  "5" , "7"       ]
-      (FourWayClose , Chord.Minor7)         -> [       "3" ,  "5" , "7" , "9" ]
-      (FourWayClose , Chord.HalfDiminished) -> [ "1" , "3" , "♭5" , "7"       ]
+      (Default, Chord.MinorTriad)      -> [ "1" , "3" ,  "5"       ]
+      (Default, Chord.DiminishedTriad) -> [ "1" , "3" , "♭5"       ]
+      (Default, Chord.Minor7)          -> [ "1" , "3" ,  "5" , "7" ]
+      (Default, Chord.HalfDiminished)  -> [ "1" , "3" , "♭5" , "7" ]
+
+      (FourWayClose, Chord.Minor7)         -> [       "3" ,  "5" , "7" , "9" ]
+      (FourWayClose, Chord.HalfDiminished) -> [ "1" , "3" , "♭5" , "7"       ]
 
       _otherwise -> notYetImplemented (voicing, typ)
 

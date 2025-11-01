@@ -22,6 +22,7 @@ import MusicTheory.Scale (Scale)
 data Type =
     MajorTriad
   | MinorTriad
+  | DiminishedTriad
   | Major7
   | Minor7
   | Dominant7
