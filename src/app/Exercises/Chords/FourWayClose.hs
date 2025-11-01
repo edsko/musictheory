@@ -258,7 +258,7 @@ diminished RightHand = [
             , elems = concat [
                   Chords.exerciseIn Scale.Minor exercise ["F"]
                 , [Ly.StaffLinebreak]
-                , Chords.exerciseIn Scale.Minor exercise ["F♯"]
+                , Chords.exerciseIn Scale.Minor exercise ["G♭"]
                 , [Ly.StaffLinebreak]
                 , Chords.exerciseIn Scale.Minor exercise ["G"]
                 , [Ly.StaffLinebreak]
@@ -275,7 +275,7 @@ diminished RightHand = [
           Ly.Markup.wordwrap $ mconcat [
               "Since a diminished chord is entirely symmetrical, there are really "
             , "only three different diminished chords, for which we can choose a "
-            , "default inversion starting on F, F♯, or G. "
+            , "default inversion starting on F, G♭, or G. "
             ]
         , Ly.Markup.wordwrap $ mconcat [
               "Technically speaking a diminished chord is voiced using "
@@ -306,18 +306,18 @@ diminished RightHand = [
     inversions scaleRoot =
         case scaleRoot of
           Scale.F    -> [ (rootPosition , "(F)")
-                        , (Inversion 1  , "(G♯/A♭)")
+                        , (Inversion 1  , "(A♭/G♯)")
                         , (Inversion 2  , "(B)")
                         , (Inversion 3  , "(D)")
                         ]
-          Scale.F#   -> [ (rootPosition , "(F♯/G♭)")
+          Scale.Gb   -> [ (rootPosition , "(G♭/F♯)")
                         , (Inversion 1  , "(A)")
                         , (Inversion 2  , "(C)")
-                        , (Inversion 3  , "(D♯/E♭)")
+                        , (Inversion 3  , "(E♭/D♯)")
                         ]
           Scale.G    -> [ (rootPosition , "(G)")
-                        , (Inversion 1  , "(A♯/B♭)")
-                        , (Inversion 2  , "(C♯/D♭)")
+                        , (Inversion 1  , "(B♭/A♯)")
+                        , (Inversion 2  , "(D♭/C♯)")
                         , (Inversion 3  , "(E)")
                         ]
           _otherwise -> error $ "Unexpected scale root " ++ show scaleRoot
@@ -330,7 +330,7 @@ diminished LeftHand = [
               props = staffProps
             , elems = concat [
                   Chords.exerciseIn Scale.Minor exercise ["F"]
-                , Chords.exerciseIn Scale.Minor exercise ["F♯"]
+                , Chords.exerciseIn Scale.Minor exercise ["G♭"]
                 , Chords.exerciseIn Scale.Minor exercise ["G"]
                 , [Ly.StaffLinebreak]
                 ]
@@ -347,7 +347,7 @@ diminished LeftHand = [
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "As for the right hand, we can choose to always use an inversion "
-            , "starting on F, F♯ or G. "
+            , "starting on F, G♭ or G. "
             , "Two other inversion fit within the range D3-G4."
             ]
         ]
@@ -372,17 +372,17 @@ diminished LeftHand = [
     inversions :: Scale.Root -> [(Inversion, Ly.Annotation)]
     inversions scaleRoot =
         case scaleRoot of
-          Scale.F    -> [ (rootPosition , "(F, G♯/A♭, B, D)")
+          Scale.F    -> [ (rootPosition , "(F, A♭/G♯, B, D)")
                         , (Inversion 1  , Ly.NoAnnotation)
                         , (Inversion 2  , Ly.NoAnnotation)
                         , (Inversion 3  , Ly.NoAnnotation)
                         ]
-          Scale.F#   -> [ (rootPosition , "(F♯/G♭, A, C, D♯/E♭)")
+          Scale.Gb   -> [ (rootPosition , "(G♭/F♯, A, C, E♭/D♯)")
                         , (Inversion 1  , Ly.NoAnnotation)
                         , (Inversion 2  , Ly.NoAnnotation)
                         , (Inversion 3  , Ly.NoAnnotation)
                         ]
-          Scale.G    -> [ (rootPosition , "(G, A♯/B♭, C♯/D♭, E)")
+          Scale.G    -> [ (rootPosition , "(G, B♭/A♯, D♭/C♯, E)")
                         , (Inversion 1  , Ly.NoAnnotation)
                         , (Inversion 2  , Ly.NoAnnotation)
                         , (Inversion 3  , Ly.NoAnnotation)
