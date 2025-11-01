@@ -26,7 +26,7 @@ chords = Ly.Bookpart{
       title    = "Chords"
     , sections = concat [
           Chords.Basic.exercises
-        , Chords.FourWayClose.exercises
+        , [Chords.FourWayClose.exercises]
         ]
     }
 

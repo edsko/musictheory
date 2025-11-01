@@ -22,26 +22,33 @@ import Exercises.Util.TypeAB qualified as TypeAB
   List of exercises
 -------------------------------------------------------------------------------}
 
-exercises :: [Ly.Section]
-exercises = [
-      Ly.Section{
-          title = "Four Note Closed Hand Voicings"
-        , intro = Just $ Ly.Markup.wordwrap $ mconcat [
-              "Every is chord shown twice: "
-            , "first with the third at the bottom (type A), "
-            , "then with the seventh at the bottom (type B)."
-            ]
-        , elems = exercisesForHand RightHand
-        }
-    , Ly.Section{
-          title = "Four Note Closed Hand Voicings (Left Hand)"
-        , intro = Just $ Ly.Markup.wordwrap $ mconcat [
-              "Only voicings that fit between D3 and G4 are typically used. "
-            , "Inversions outside this range are shown as rests."
-            ]
-        , elems = exercisesForHand LeftHand
-        }
-    ]
+exercises :: Ly.Section
+exercises = Ly.Section{
+      title = "Four Note Closed Hand Voicings"
+    , intro = Just $ Ly.Markup.wordwrap $ mconcat [
+          "Every is chord shown twice: "
+        , "first with the third at the bottom (type A), "
+        , "then with the seventh at the bottom (type B)."
+        ]
+    , elems = [
+          Ly.SectionSub $ Ly.Section{
+              title = "Right hand"
+            , intro = Nothing
+            , elems = exercisesForHand RightHand
+            }
+        , Ly.SectionSub $ Ly.Section{
+              title = "Left hand"
+            , intro = Just $ introLeftHand
+            , elems = exercisesForHand LeftHand
+            }
+        ]
+    }
+  where
+    introLeftHand :: Ly.Markup
+    introLeftHand = Ly.Markup.wordwrap $ mconcat [
+          "Only voicings that fit between D3 and G4 are typically used. "
+        , "Inversions outside this range are shown as rests."
+        ]
 
 exercisesForHand :: Hand -> [Ly.SectionElem]
 exercisesForHand hand = concat [
