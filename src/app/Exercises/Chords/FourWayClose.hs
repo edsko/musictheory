@@ -308,17 +308,17 @@ diminished RightHand = [
           Scale.F    -> [ (rootPosition , "(F)")
                         , (Inversion 1  , "(G♯/A♭)")
                         , (Inversion 2  , "(B)")
-                        , (Inversion 2  , "(D)")
+                        , (Inversion 3  , "(D)")
                         ]
           Scale.F#   -> [ (rootPosition , "(F♯/G♭)")
                         , (Inversion 1  , "(A)")
                         , (Inversion 2  , "(C)")
-                        , (Inversion 2  , "(D♯/E♭)")
+                        , (Inversion 3  , "(D♯/E♭)")
                         ]
           Scale.G    -> [ (rootPosition , "(G)")
                         , (Inversion 1  , "(A♯/B♭)")
                         , (Inversion 2  , "(C♯/D♭)")
-                        , (Inversion 2  , "(E)")
+                        , (Inversion 3  , "(E)")
                         ]
           _otherwise -> error $ "Unexpected scale root " ++ show scaleRoot
 
@@ -339,7 +339,7 @@ diminished LeftHand = [
     ]
   where
     staffProps :: Ly.StaffProps
-    staffProps = (Chords.staffProps Ly.ClefBass 2){
+    staffProps = (Chords.staffProps Ly.ClefBass 4){
           Ly.stretchLastLine = True
         }
 
@@ -347,8 +347,8 @@ diminished LeftHand = [
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "As for the right hand, we can choose to always use an inversion "
-            , "starting on F, F♯ or G. Unlike for the right, however, only one "
-            , "other inversion fits within the range D3-G4."
+            , "starting on F, F♯ or G. "
+            , "Two other inversion fit within the range D3-G4."
             ]
         ]
 
@@ -374,12 +374,18 @@ diminished LeftHand = [
         case scaleRoot of
           Scale.F    -> [ (rootPosition , "(F, G♯/A♭, B, D)")
                         , (Inversion 1  , Ly.NoAnnotation)
+                        , (Inversion 2  , Ly.NoAnnotation)
+                        , (Inversion 3  , Ly.NoAnnotation)
                         ]
           Scale.F#   -> [ (rootPosition , "(F♯/G♭, A, C, D♯/E♭)")
                         , (Inversion 1  , Ly.NoAnnotation)
+                        , (Inversion 2  , Ly.NoAnnotation)
+                        , (Inversion 3  , Ly.NoAnnotation)
                         ]
           Scale.G    -> [ (rootPosition , "(G, A♯/B♭, C♯/D♭, E)")
                         , (Inversion 1  , Ly.NoAnnotation)
+                        , (Inversion 2  , Ly.NoAnnotation)
+                        , (Inversion 3  , Ly.NoAnnotation)
                         ]
           _otherwise -> error $ "Unexpected scale root " ++ show scaleRoot
 
@@ -422,4 +428,3 @@ mkExercise hand chordType inversionsFor = Chords.Exercise{
 
 adjustLeftHand :: Named.Chord Abs -> Maybe OctaveShift
 adjustLeftHand = Chord.Named.moveToRange ("D3", "G4")
-
