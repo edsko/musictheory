@@ -12,6 +12,7 @@ import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Named qualified as Named (Chord(..))
 import MusicTheory.Chord.Voicing (Voicing)
+import MusicTheory.Note (Note)
 import MusicTheory.Note qualified as Note
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Progression (Progression(..))
@@ -62,7 +63,7 @@ progressionExercise scaleType exercise = [
         }
 
     scales :: [Scale.Root]
-    scales = Scale.allRoots scaleType
+    scales = Scale.defaultRoots scaleType
 
 exerciseInScales :: Scale.Type -> ProgressionExercise -> [Scale.Root] -> [Ly.StaffElem]
 exerciseInScales scaleType exercise scales =
@@ -106,12 +107,24 @@ exerciseInScales scaleType exercise scales =
                 progression
 
     goChord :: Named.Chord Abs -> Ly.Annotation -> Ly.StaffElem
-    goChord chord ann = Ly.StaffChord Ly.Chord{
-          notes      = Chord.Named.getNotes chord
-        , duration   = Ly.OneOver 1
-        , name       = Just $ Chord.Named.getName chord
-        , annotation = ann
-        }
-      where
-        _chordRoot = (Chord.Named.getRoot chord).note
+    goChord chord ann =
+        checkKnownChord scaleType (Chord.Named.getRoot chord).note $
+          Ly.StaffChord Ly.Chord{
+              notes      = Chord.Named.getNotes chord
+            , duration   = Ly.OneOver 1
+            , name       = Just $ Chord.Named.getName chord
+            , annotation = ann
+            }
 
+-- | Chords in a progression should also be shown in the chords exercises
+checkKnownChord :: Scale.Type -> Note -> a -> a
+checkKnownChord scaleType chordRoot x =
+    if chordRoot `elem` allKnown
+      then x
+      else error $ "Unknown chord: " ++ show (scaleType, chordRoot)
+  where
+    allKnown :: [Note]
+    allKnown = map Scale.rootNote $ concat [
+          Scale.defaultRoots scaleType
+        , Scale.enharmonicRoots scaleType
+        ]

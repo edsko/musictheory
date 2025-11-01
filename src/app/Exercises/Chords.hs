@@ -94,13 +94,13 @@ chordExercise scaleType exercise = [
     (firstHalf, secondHalf, enharmonic) =
       case scaleType of
         Scale.Major -> (
-            take 6 $ Scale.allRoots Scale.Major
-          , drop 6 $ Scale.allRoots Scale.Major
+            take 6 $ Scale.defaultRoots Scale.Major
+          , drop 6 $ Scale.defaultRoots Scale.Major
           , Scale.enharmonicRoots Scale.Major
           )
         Scale.Minor -> (
-            take 6 $ Scale.allRoots Scale.Minor
-          , drop 6 $ Scale.allRoots Scale.Minor
+            take 6 $ Scale.defaultRoots Scale.Minor
+          , drop 6 $ Scale.defaultRoots Scale.Minor
           , Scale.enharmonicRoots Scale.Minor
           )
 

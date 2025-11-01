@@ -19,7 +19,7 @@ module MusicTheory.Scale (
     -- * Construction
   , named
     -- * Enumeration
-  , allRoots
+  , defaultRoots
   , enharmonicRoots
     -- * Common scales
   , cMajor
@@ -82,7 +82,7 @@ data Root =
   | Gb | F#
   | Db | C#
   | Ab | G#
-  | Eb
+  | Eb | D#
   | Bb
   | F
   deriving stock (Eq, Enum, Bounded)
@@ -102,7 +102,7 @@ rootNote = \case
     Gb -> "G♭" ; F# -> "F♯"
     Db -> "D♭" ; C# -> "C♯"
     Ab -> "A♭" ; G# -> "G♯"
-    Eb -> "E♭"
+    Eb -> "E♭" ; D# -> "D♯"
     Bb -> "B♭"
     F  -> "F"
 
@@ -131,6 +131,10 @@ named (Name root typ) = Scale (Name root typ) $
       Major -> majorScale   root
       Minor -> naturalMinor root
 
+-- | Major scales
+--
+-- We do not give definitions for G# and D#, which have double sharps in them.
+-- Unlike for the minor scales, we don't need these.
 majorScale :: Root -> [Note]
 majorScale = \case
     C  -> ["C"  , "D"  , "E"  , "F"  , "G"  , "A"  , "B" ]
@@ -147,9 +151,11 @@ majorScale = \case
     C# -> ["C♯" , "D♯" , "E♯" , "F♯" , "G♯" , "A♯" , "B♯"]
 
     Ab -> ["A♭" , "B♭" , "C"  , "D♭" , "E♭" , "F"  , "G" ]
-    G# -> ["G♯" , "A♯" , "B♯" , "C♯" , "D♯" , "E♯" , "F𝄪" ]
+    G# -> error "not defined"
 
     Eb -> ["E♭" , "F"  , "G"  , "A♭" , "B♭" , "C"  , "D" ]
+    D# -> error "not defined"
+
     Bb -> ["B♭" , "C"  , "D"  , "E♭" , "F"  , "G"  , "A" ]
     F  -> ["F"  , "G"  , "A"  , "B♭" , "C"  , "D"  , "E" ]
 
@@ -172,29 +178,37 @@ naturalMinor = \case
     G# -> ["G♯" , "A♯" , "B"  , "C♯" , "D♯" , "E"  , "F♯"]
 
     Eb -> ["E♭" , "F"  , "G♭" , "A♭" , "B♭" , "C♭" , "D♭"]
+    D# -> ["D♯" , "E♯" , "F♯" , "G♯" , "A♯" , "B"  , "C♯"]
+
     Bb -> ["B♭" , "C"  , "D♭" , "E♭" , "F"  , "G♭" , "A♭"]
     F  -> ["F"  , "G"  , "A♭" , "B♭" , "C"  , "D♭" , "E♭"]
 
 {-------------------------------------------------------------------------------
   Choice of roots
 
-  The minor scales G♭ and D♭ have double flats in them, so we avoid them and
-  use their enharmonic equivalents F♯ and C♯ instead.
+  The minor scales G♭ and D♭ have double flats in them, so we avoid them and use
+  their enharmonic equivalents F♯ and C♯ instead. For a sense of duality, we
+  then pick G♭ and D♭ for the major scales.
 
-  For a sense of duality, we then pick G♭ and D♭ for the major scales.
+  For the minor scale, we show G♯ and D♯ as two additional enharmonic scales;
+  this is necessary because these will show up naturally (for example D♯ is the
+  2 chord in a minor 2-5-1 in C♯m).
+
+  NOTE: If we used G♯ as the "default" minor scale (instead of A♭) we would yet
+  another enharmonic minor scale (A♯).
 -------------------------------------------------------------------------------}
 
-allMinorRoots, allMajorRoots :: [Root]
-allMajorRoots = [C, G, D, A, E, B,   Gb, Db,   Ab, Eb, Bb, F]
-allMinorRoots = [C, G, D, A, E, B,   F#, C#,   Ab, Eb, Bb, F]
+defaultMinorRoots, defaultMajorRoots :: [Root]
+defaultMajorRoots = [C, G, D, A, E, B,   Gb, Db,   Ab, Eb, Bb, F]
+defaultMinorRoots = [C, G, D, A, E, B,   F#, C#,   Ab, Eb, Bb, F]
 
-allRoots :: Type -> [Root]
-allRoots Major = allMajorRoots
-allRoots Minor = allMinorRoots
+defaultRoots :: Type -> [Root]
+defaultRoots Major = defaultMajorRoots
+defaultRoots Minor = defaultMinorRoots
 
 enharmonicMajorRoots, enharmonicMinorRoots :: [Root]
-enharmonicMajorRoots = [F#, C#] -- we omit G#
-enharmonicMinorRoots = [Gb, Db, Ab]
+enharmonicMajorRoots = [F#, C#]         -- omit scales with double sharps
+enharmonicMinorRoots = [Gb, Db, G#, D#]
 
 enharmonicRoots :: Type -> [Root]
 enharmonicRoots Major = enharmonicMajorRoots
