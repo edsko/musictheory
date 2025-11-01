@@ -46,7 +46,8 @@ data ProgressionExercise = ProgressionExercise{
 
 progressionExercise :: Scale.Type -> ProgressionExercise -> [Ly.SectionElem]
 progressionExercise scaleType exercise = [
-      Ly.SectionScore Ly.Score{
+      Ly.SectionPageBreak
+    , Ly.SectionScore Ly.Score{
           title = Just exercise.title
         , intro = exercise.intro
         , staff = Ly.Staff{

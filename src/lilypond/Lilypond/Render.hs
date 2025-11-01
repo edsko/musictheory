@@ -136,7 +136,7 @@ instance LilypondToDoc Ly.Staff where
           , "\\set Staff.printKeyCancellation = ##f"
             -- Ensure chord annotations (above and below) are aligned
             -- <https://lilypond.org/doc/v2.24/Documentation/snippets/tweaks-and-overrides#tweaks-and-overrides-vertically-aligned-dynamics-and-textscripts>
-          , "\\override TextScript.padding = #3"
+          , "\\override TextScript.padding = #2"
           , RenderM.lines $ renderNotes staff.elems
           ]
       ]
@@ -368,7 +368,7 @@ renderIntro intro = mconcat [
       RenderM.markup intro
     , RenderM.lines [
           "\\markup \\center-column {"
-        , "  \\vspace #0.5"
+        , "  \\vspace #0.2"
         , "}"
        ]
     ]

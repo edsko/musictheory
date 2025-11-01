@@ -43,7 +43,6 @@ exercises = Ly.Section{
                 , majorSeventh    (inversions [0..3])
                 , [Ly.SectionPageBreak]
                 , dominantSeventh (inversions [0..3])
-                , [Ly.SectionPageBreak]
                 , minorSeventh    (inversions [0..3])
                 ]
             }

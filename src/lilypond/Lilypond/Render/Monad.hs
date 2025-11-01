@@ -195,6 +195,7 @@ setupPaper = Doc.lines [
       "\\paper {"
     , "  ragged-bottom = ##t"
     , "  ragged-last-bottom = ##t"
+    , "  score-markup-spacing = #'((padding . 3))"
     , "  tocBookpart_markup = \\markup \\large \\column {"
     , "    \\hspace #1"
     , "    { \\bold \\fromproperty #'toc:text }"
