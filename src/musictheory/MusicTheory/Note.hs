@@ -222,13 +222,13 @@ simplify note@(InOctave o (Note name atal)) =
       -- Double flats and sharps
       --
 
-      (C, Just DoubleFlat) -> InOctave (o - 1) $ Note B (Just Flat)
-      (D, Just DoubleFlat) -> InOctave  o      $ Note C Nothing
-      (E, Just DoubleFlat) -> InOctave  o      $ Note D Nothing
-      (F, Just DoubleFlat) -> InOctave  o      $ Note E (Just Flat)
-      (G, Just DoubleFlat) -> InOctave  o      $ Note F Nothing
-      (A, Just DoubleFlat) -> InOctave  o      $ Note G Nothing
-      (B, Just DoubleFlat) -> InOctave  o      $ Note A Nothing
+      (C, Just DoubleFlat)  -> InOctave (o - 1) $ Note B (Just Flat)
+      (D, Just DoubleFlat)  -> InOctave  o      $ Note C Nothing
+      (E, Just DoubleFlat)  -> InOctave  o      $ Note D Nothing
+      (F, Just DoubleFlat)  -> InOctave  o      $ Note E (Just Flat)
+      (G, Just DoubleFlat)  -> InOctave  o      $ Note F Nothing
+      (A, Just DoubleFlat)  -> InOctave  o      $ Note G Nothing
+      (B, Just DoubleFlat)  -> InOctave  o      $ Note A Nothing
 
       (C, Just DoubleSharp) -> InOctave  o      $ Note D Nothing
       (D, Just DoubleSharp) -> InOctave  o      $ Note E Nothing
