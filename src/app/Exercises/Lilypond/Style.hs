@@ -47,10 +47,10 @@ styleSection label title =
 styleSubsection :: Ly.Part.Label -> Doc -> Doc
 styleSubsection label title =
     Ly.Markup.withinScope "center-column" $ mconcat [
-        "\\vspace #1"
+        "\\vspace #0.5"
       , Ly.Markup.withinScope "abs-fontsize #13" $
           titleWithLabel label title
-      , "\\vspace #1"
+      , "\\vspace #0.5"
       ]
 
 styleScore :: Ly.Part.Label -> Doc -> Doc
