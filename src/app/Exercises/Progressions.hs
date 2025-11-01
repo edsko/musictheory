@@ -28,7 +28,6 @@ import MusicTheory.Scale (Scale(..))
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
-import Lilypond.Markup qualified as Ly (Markup)
 
 import Exercises.Util.ChordInversion (ChordInversion(..))
 import Exercises.Util.ChordInversion qualified as ChordInversion
@@ -39,7 +38,7 @@ import Exercises.Util.ChordInversion qualified as ChordInversion
 
 data Setup = Setup{
       title :: String
-    , intro :: Maybe Ly.Markup
+    , intro :: Ly.Paragraphs
     }
 
 data Exercise = Exercise{
@@ -119,6 +118,7 @@ exerciseIn scaleType ex scales =
             , duration   = Ly.OneOver 1
             , name       = Just $ Chord.Named.getName chord
             , annotation = ann
+            , simplify   = False
             }
 
 -- | Chords in a prog should also be shown in the chords exercises

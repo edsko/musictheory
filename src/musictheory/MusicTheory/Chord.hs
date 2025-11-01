@@ -29,6 +29,7 @@ data Type =
   | HalfDiminished
   | Altered
   | SevenFlat9
+  | Diminished7
   | Sus
   deriving stock (Show, Eq)
 

@@ -88,7 +88,7 @@ instance LilypondToDoc Ly.Section where
   toDoc section = RenderM.section section.title $ \tocLabel -> mconcat [
         RenderM.markup $ Ly.Markup.Style (Ly.Markup.PartTitle tocLabel) $
           fromString section.title
-      , RenderM.whenJust section.intro $ renderIntro
+      , renderParagraphs section.intro
       , foldMap toDoc section.elems
       , "\\pageBreak"
       ]
@@ -105,12 +105,12 @@ instance LilypondToDoc Ly.Score where
         Just title ->  RenderM.score title $ \tocLabel -> mconcat [
             RenderM.markup $ Ly.Markup.Style (Ly.Markup.ScoreTitle tocLabel) $
               fromString title
-          , RenderM.whenJust score.intro $ renderIntro
+          , renderParagraphs score.intro
           , RenderM.withinScope "score" $
               toDoc score.staff
           ]
         Nothing -> mconcat [
-            RenderM.whenJust score.intro $ renderIntro
+            renderParagraphs score.intro
           , RenderM.withinScope "score" $
               toDoc score.staff
           ]
@@ -118,13 +118,18 @@ instance LilypondToDoc Ly.Score where
 instance LilypondToDoc Ly.Staff where
   toDoc staff = mconcat [
         RenderM.withinScope "layout" $ mconcat [
-            RenderM.withinScope "context" $
+            -- <https://lilypond.org/doc/v2.24/Documentation/notation/line-width>
+            RenderM.when staff.props.stretchLastLine $
+              assignBool "ragged-last" False
+
+            -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
+          , RenderM.withinScope "context" $
               RenderM.when staff.props.hideTimeSignature $
-                -- <https://lilypond.org/doc/v2.24/Documentation/notation/visibility-of-objects>
                 RenderM.line "\\Staff \\override TimeSignature.stencil = ##f"
+
+            -- <https://lilypond.org/doc/v2.24/Documentation/snippets/rhythms#rhythms-removing-bar-numbers-from-a-score>
           , RenderM.withinScope "context" $
               RenderM.when staff.props.omitMeasureNumbers $
-                -- <https://lilypond.org/doc/v2.24/Documentation/snippets/rhythms#rhythms-removing-bar-numbers-from-a-score>
                 RenderM.line "\\Score \\omit BarNumber"
           ]
       , RenderM.withinScope "new Staff" $ mconcat [
@@ -137,7 +142,7 @@ instance LilypondToDoc Ly.Staff where
             -- Ensure chord annotations (above and below) are aligned
             -- <https://lilypond.org/doc/v2.24/Documentation/snippets/tweaks-and-overrides#tweaks-and-overrides-vertically-aligned-dynamics-and-textscripts>
           , "\\override TextScript.padding = #2"
-          , RenderM.lines $ renderNotes staff.elems
+          , RenderM.lines $ map renderStaffElem staff.elems
           ]
       ]
 
@@ -212,27 +217,24 @@ instance LilypondToDoc Header where
   Render a single 'Staff'
 -------------------------------------------------------------------------------}
 
-renderNotes :: [Ly.StaffElem] -> [String]
-renderNotes = \elems ->
-    map aux elems
-  where
-    aux :: Ly.StaffElem -> String
-    aux (Ly.StaffChord chord) = concat [
-          renderUnnamed            chord.notes
-        , renderDuration           chord.duration
-        , maybe "" renderChordName chord.name
-        , renderAnnotation         chord.annotation
+renderStaffElem :: Ly.StaffElem -> String
+renderStaffElem = \case
+    Ly.StaffChord chord -> concat [
+          renderUnnamed chord.simplify chord.notes
+        , renderDuration               chord.duration
+        , maybe "" renderChordName     chord.name
+        , renderAnnotation             chord.annotation
         ]
-    aux (Ly.StaffRest rest) = concat [
+    Ly.StaffRest rest -> concat [
           "r" ++ renderDuration    rest.duration
         , maybe "" renderChordName rest.name
         , renderAnnotation         rest.annotation
         ]
-    aux (Ly.StaffLinebreak) =
+    Ly.StaffLinebreak ->
         "\\break"
-    aux (Ly.StaffComment comment) =
+    Ly.StaffComment comment ->
         "% " ++ comment
-    aux (Ly.StaffKeySignature scaleName) =
+    Ly.StaffKeySignature scaleName ->
         renderKeySignature scaleName
 
 renderAnnotation :: Ly.Annotation -> String
@@ -279,8 +281,8 @@ renderAccidental = \case
   'Note.InOctave'
 -------------------------------------------------------------------------------}
 
-renderInOctave :: Note.InOctave -> String
-renderInOctave (Note.InOctave o (Note.Note n ma)) = concat [
+renderInOctave :: Bool -> Note.InOctave -> String
+renderInOctave simplify inOctave = concat [
       renderNoteName n
 
       -- The syntax for accidentals is a bit strange: to force an accidental to
@@ -297,6 +299,13 @@ renderInOctave (Note.InOctave o (Note.Note n ma)) = concat [
             Note.DoubleFlat  -> "-flatflat"   ++ renderOctave o
             Note.Natural     ->                  renderOctave o ++ "" -- TODO: Reconsider "!"
     ]
+  where
+    o  :: Octave
+    n  :: Note.Name
+    ma :: Maybe Note.Accidental
+    Note.InOctave o (Note.Note n ma)
+      | simplify  = Note.simplify inOctave
+      | otherwise = inOctave
 
 renderOctave :: Octave -> String
 renderOctave o
@@ -330,6 +339,7 @@ renderChordName Chord.Name{root = Note.InOctave _o note, typ} = concat [
         Chord.HalfDiminished  -> sup "ø"
         Chord.Altered         -> sup "7alt"
         Chord.SevenFlat9      -> sup "7(♭9)"
+        Chord.Diminished7     -> sup "o"
         Chord.Sus             -> sup "sus"
     , "}"
     ]
@@ -337,13 +347,13 @@ renderChordName Chord.Name{root = Note.InOctave _o note, typ} = concat [
     sup :: String -> String
     sup text = "\\hspace #-0.5 \\normal-size-super{" ++ text ++ "}"
 
-renderUnnamed :: Unnamed.Chord Abs -> String
-renderUnnamed (Unnamed.Chord ns) =
+renderUnnamed :: Bool -> Unnamed.Chord Abs -> String
+renderUnnamed simplify (Unnamed.Chord ns) =
     case ns of
-      n :| []    -> renderInOctave n
+      n :| []    -> renderInOctave simplify n
       _otherwise -> concat [
           "<"
-        , List.intercalate " " (map renderInOctave $ NE.toList ns)
+        , List.intercalate " " $ map (renderInOctave simplify) $ NE.toList ns
         , ">"
         ]
 
@@ -360,16 +370,20 @@ assign var value = mconcat [
 assignReal :: String -> Double -> RenderM Doc
 assignReal var value = RenderM.line $ var ++ " = " ++ show value
 
-_assignBool :: String -> Bool -> RenderM Doc
-_assignBool var True  = RenderM.line $ var ++ " = ##t"
-_assignBool var False = RenderM.line $ var ++ " = ##f"
+assignBool :: String -> Bool -> RenderM Doc
+assignBool var True  = RenderM.line $ var ++ " = ##t"
+assignBool var False = RenderM.line $ var ++ " = ##f"
 
-renderIntro :: Ly.Markup.Markup -> RenderM Doc
-renderIntro intro = mconcat [
-      RenderM.markup intro
-    , RenderM.lines [
-          "\\markup \\center-column {"
-        , "  \\vspace #0.1"
-        , "}"
-       ]
-    ]
+renderParagraphs :: Ly.Paragraphs -> RenderM Doc
+renderParagraphs (Ly.Paragraphs paragraphs) =
+    mconcat <$> mapM renderParagraph paragraphs
+  where
+    renderParagraph :: Ly.Markup -> RenderM Doc
+    renderParagraph paragraph = mconcat [
+          RenderM.markup paragraph
+        , RenderM.lines [
+              "\\markup \\center-column {"
+            , "  \\vspace #0.1"
+            , "}"
+           ]
+        ]

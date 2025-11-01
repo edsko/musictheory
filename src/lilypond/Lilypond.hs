@@ -8,6 +8,7 @@ module Lilypond (
   , Book(..)
   , Bookpart(..)
   , Section(..)
+  , Paragraphs(..)
   , SectionElem(..)
   , Score(..)
   , Staff(..)
@@ -53,9 +54,12 @@ data Bookpart = Bookpart{
 
 data Section = Section{
       title  :: String
-    , intro  :: Maybe Ly.Markup
+    , intro  :: Paragraphs
     , elems  :: [SectionElem]
     }
+
+newtype Paragraphs = Paragraphs [Ly.Markup]
+  deriving newtype (Semigroup, Monoid)
 
 data SectionElem =
     SectionScore Score
@@ -64,7 +68,7 @@ data SectionElem =
 
 data Score = Score{
       title :: Maybe String
-    , intro :: Maybe Ly.Markup
+    , intro :: Paragraphs
     , staff :: Staff -- There can only be one
     }
 
@@ -82,6 +86,7 @@ data StaffProps = StaffProps{
     , timeSignature      :: TimeSignature
     , hideTimeSignature  :: Bool
     , omitMeasureNumbers :: Bool
+    , stretchLastLine    :: Bool
     }
   deriving stock (Show)
 
@@ -99,6 +104,7 @@ instance Default StaffProps where
       , timeSignature      = TimeSignature 4 4
       , hideTimeSignature  = False
       , omitMeasureNumbers = False
+      , stretchLastLine    = False
       }
 
 data StaffElem =
@@ -113,6 +119,7 @@ data Chord = Chord{
     , duration   :: Duration
     , name       :: Maybe (Chord.Name Abs)
     , annotation :: Annotation
+    , simplify   :: Bool
     }
 
 data Rest = Rest{

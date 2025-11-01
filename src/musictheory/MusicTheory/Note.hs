@@ -10,13 +10,16 @@ module MusicTheory.Note (
   , Accidental(..)
   , Note(..)
   , noteName
+    -- * Combinators
   , withAccidental
+  , simplify
     -- * Octaves
   , InOctave(..)
   ) where
 
 import Data.Ord
 import Data.Tuple (swap)
+import GHC.Stack
 
 import MusicTheory
 import MusicTheory.Note.Octave (Octave(..))
@@ -57,30 +60,6 @@ instance HasStringTable Note where
 
 noteName :: Note -> Name
 noteName (Note name _atal) = name
-
--- | Add accidental
---
--- NOTE: This is a partial function: we only support up to double sharps and
--- flats (sharpening something that is already a double sharp results in an
--- exception).
-withAccidental :: Note -> Maybe Accidental -> Note
-withAccidental = \(Note name atal) atal' ->
-    Note name (aux atal atal')
-  where
-    aux :: Maybe Accidental -> Maybe Accidental -> Maybe Accidental
-    aux atal        Nothing      = atal
-    aux Nothing     atal'        = atal'
-    aux (Just atal) (Just atal') = Just $
-        case (atal, atal') of
-          (Sharp       , Sharp      ) -> DoubleSharp
-          (Sharp       , Flat       ) -> Natural
-          (Flat        , Sharp      ) -> Natural
-          (Flat        , Flat       ) -> DoubleFlat
-          (DoubleSharp , Flat       ) -> Sharp
-          (DoubleFlat  , Sharp      ) -> Flat
-          (Flat        , DoubleSharp) -> Sharp
-          (Sharp       , DoubleFlat ) -> Flat
-          _otherwise -> error $ "withAccidental: " ++ show (atal, atal')
 
 {-------------------------------------------------------------------------------
   Octaves
@@ -174,3 +153,87 @@ deriving via NormalForm Name     instance Distance Name
 deriving via NormalForm Note     instance Distance Note
 deriving via NormalForm InOctave instance Distance InOctave
 
+{-------------------------------------------------------------------------------
+  Combinators
+-------------------------------------------------------------------------------}
+
+-- | Add accidental
+--
+-- NOTE: This is a partial function: we only support up to double sharps and
+-- flats (sharpening something that is already a double sharp results in an
+-- exception).
+withAccidental :: HasCallStack => Note -> Maybe Accidental -> Note
+withAccidental = \(Note name atal) atal' ->
+    Note name (aux atal atal')
+  where
+    aux :: Maybe Accidental -> Maybe Accidental -> Maybe Accidental
+    aux atal        Nothing      = atal
+    aux Nothing     atal'        = atal'
+    aux (Just atal) (Just atal') = Just $
+        case (atal, atal') of
+          (Sharp       , Sharp      ) -> DoubleSharp
+          (Sharp       , Flat       ) -> Natural
+          (Flat        , Sharp      ) -> Natural
+          (Flat        , Flat       ) -> DoubleFlat
+          (DoubleSharp , Flat       ) -> Sharp
+          (DoubleFlat  , Sharp      ) -> Flat
+          (Flat        , DoubleSharp) -> Sharp
+          (Sharp       , DoubleFlat ) -> Flat
+          _otherwise -> error $ "withAccidental: " ++ show (atal, atal')
+
+simplify :: InOctave -> InOctave
+simplify note@(InOctave o (Note name atal)) =
+    case (name, atal) of
+
+      --
+      -- Already in simplest form
+      --
+
+      (C, Nothing)    -> note
+      (C, Just Sharp) -> note ; (D, Just Flat)  -> note
+      (D, Nothing)    -> note
+      (D, Just Sharp) -> note ; (E, Just Flat)  -> note
+      (E, Nothing)    -> note
+      (F, Nothing)    -> note
+      (F, Just Sharp) -> note ; (G, Just Flat)  -> note
+      (G, Nothing)    -> note
+      (G, Just Sharp) -> note ; (A, Just Flat)  -> note
+      (A, Nothing)    -> note
+      (A, Just Sharp) -> note ; (B, Just Flat)  -> note
+      (B, Nothing)    -> note
+
+      --
+      -- Simplify "simple" accidentals
+      --
+
+      (C, Just Flat)  -> InOctave (o - 1) $ Note B Nothing
+      (F, Just Flat)  -> InOctave  o      $ Note E Nothing
+
+      (E, Just Sharp) -> InOctave  o      $ Note F Nothing
+      (B, Just Sharp) -> InOctave (o + 1) $ Note C Nothing
+
+      --
+      -- Strip explicit naturals
+      --
+
+      (_, Just Natural) -> InOctave o $ Note name Nothing
+
+      --
+      -- Double flats and sharps
+      --
+
+      (C, Just DoubleFlat) -> InOctave (o - 1) $ Note B (Just Flat)
+      (D, Just DoubleFlat) -> InOctave  o      $ Note C Nothing
+      (E, Just DoubleFlat) -> InOctave  o      $ Note D Nothing
+      (F, Just DoubleFlat) -> InOctave  o      $ Note E (Just Flat)
+      (G, Just DoubleFlat) -> InOctave  o      $ Note F Nothing
+      (A, Just DoubleFlat) -> InOctave  o      $ Note G Nothing
+      (B, Just DoubleFlat) -> InOctave  o      $ Note A Nothing
+
+      (C, Just DoubleSharp) -> InOctave  o      $ Note D Nothing
+      (D, Just DoubleSharp) -> InOctave  o      $ Note E Nothing
+      (E, Just DoubleSharp) -> InOctave  o      $ Note F (Just Sharp)
+      (F, Just DoubleSharp) -> InOctave  o      $ Note G Nothing
+      (G, Just DoubleSharp) -> InOctave  o      $ Note A Nothing
+      (A, Just DoubleSharp) -> InOctave  o      $ Note B Nothing
+      (B, Just DoubleSharp) -> InOctave (o + 1) $ Note C (Just Sharp)

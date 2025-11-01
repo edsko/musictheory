@@ -19,32 +19,32 @@ exercises :: [Ly.Section]
 exercises = [
       Ly.Section{
           title = "Diatonic triads"
-        , intro = Nothing
+        , intro = mempty
         , elems = [
               Ly.SectionSub $ Ly.Section{
                   title = "Root position"
-                , intro = Nothing
+                , intro = mempty
                 , elems = triads (inversions [0])
                 }
             , Ly.SectionSub $ Ly.Section{
                   title = "Inversions"
-                , intro = Nothing
+                , intro = mempty
                 , elems = triads (inversions [0..2])
                 }
             ]
         }
     , Ly.Section{
           title = "Diatonic seventh chords"
-        , intro = Nothing
+        , intro = mempty
         , elems = [
               Ly.SectionSub $ Ly.Section{
                   title = "Root position"
-                , intro = Nothing
+                , intro = mempty
                 , elems = sevenths (inversions [0])
                 }
             , Ly.SectionSub $ Ly.Section{
                   title = "Inversions"
-                , intro = Nothing
+                , intro = mempty
                 , elems = sevenths (inversions [0..3])
                 }
             ]
@@ -101,7 +101,7 @@ inversions is = [
 mkSetup :: String -> [ChordInversion] -> Chords.Setup
 mkSetup title invs = Chords.Setup{
       title
-    , intro          = Nothing
+    , intro          = mempty
     , clef           = Ly.ClefTreble
     , numInversions  = length invs
     }
@@ -110,6 +110,7 @@ mkExercise :: Chord.Type -> [ChordInversion] -> Chords.Exercise
 mkExercise chordType invs = Chords.Exercise{
       voicing        = Voicing.Default
     , startingOctave = Octave.middle
+    , simplifyNotes  = False
     , adjustOctave   = \_ -> Just noOctaveShift
     , inversionsFor  = \_ -> invs
     , chordType

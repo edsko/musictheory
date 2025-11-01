@@ -6,7 +6,9 @@
 module Exercises.Chords (
     Setup(..)
   , Exercise(..)
+  , staffProps
   , exercise
+  , exerciseIn
   ) where
 
 import Data.Default
@@ -24,7 +26,6 @@ import MusicTheory.Scale (Scale)
 import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
-import Lilypond.Markup qualified as Ly (Markup)
 import Lilypond.Markup qualified as Ly.Markup
 
 import Exercises.Util.ChordInversion (ChordInversion(..))
@@ -38,14 +39,15 @@ import Exercises.Util.ChordInversion qualified as ChordInversion
 
 data Setup = Setup{
       title         :: String
-    , intro         :: Maybe Ly.Markup
+    , intro         :: Ly.Paragraphs
     , clef          :: Ly.Clef
     , numInversions :: Int -- ^ Number of inversions for each chord
     }
 
 data Exercise = Exercise{
-      chordType :: Chord.Type
-    , voicing   :: Voicing
+      chordType     :: Chord.Type
+    , voicing       :: Voicing
+    , simplifyNotes :: Bool
 
       -- | Starting octave for building the chord
     , startingOctave :: Octave
@@ -69,7 +71,7 @@ exercise scaleType setup ex = [
           title = Just setup.title
         , intro = setup.intro
         , staff = Ly.Staff{
-              props = staffProps
+              props = staffProps setup.clef setup.numInversions
             , elems = mconcat [
                   exerciseIn scaleType ex firstHalf
                 , [Ly.StaffLinebreak]
@@ -79,22 +81,16 @@ exercise scaleType setup ex = [
         }
     , Ly.SectionScore Ly.Score{
           title = Nothing
-        , intro = Just $ Ly.Markup.italic $ Ly.Markup.fontsize 8 $ "Enharmonic"
+        , intro = Ly.Paragraphs [
+              Ly.Markup.italic $ Ly.Markup.fontsize 8 $ "Enharmonic"
+            ]
         , staff = Ly.Staff{
-              props = staffProps
+              props = staffProps setup.clef setup.numInversions
             , elems = exerciseIn scaleType ex enharmonic
             }
         }
     ]
   where
-    staffProps :: Ly.StaffProps
-    staffProps = def{
-          Ly.clef               = setup.clef
-        , Ly.timeSignature      = Ly.TimeSignature setup.numInversions 1
-        , Ly.hideTimeSignature  = True
-        , Ly.omitMeasureNumbers = True
-        }
-
     firstHalf, secondHalf, enharmonic :: [Scale.Root]
     (firstHalf, secondHalf, enharmonic) =
       case scaleType of
@@ -108,6 +104,14 @@ exercise scaleType setup ex = [
           , drop 6 $ Scale.defaultRoots Scale.Minor
           , Scale.enharmonicRoots Scale.Minor
           )
+
+staffProps :: Ly.Clef -> Int -> Ly.StaffProps
+staffProps clef numInversions = def{
+      Ly.clef               = clef
+    , Ly.timeSignature      = Ly.TimeSignature numInversions 1
+    , Ly.hideTimeSignature  = True
+    , Ly.omitMeasureNumbers = True
+    }
 
 exerciseIn :: Scale.Type -> Exercise -> [Scale.Root] -> [Ly.StaffElem]
 exerciseIn scaleType ex scales =
@@ -149,6 +153,7 @@ exerciseIn scaleType ex scales =
             , duration
             , name       = mName
             , annotation = ann
+            , simplify   = ex.simplifyNotes
             }
       where
         ChordInversion{annotation = ann} = chordInversion

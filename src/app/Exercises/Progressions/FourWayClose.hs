@@ -23,11 +23,13 @@ import Exercises.Util.TypeAB qualified as TypeAB
 exercises :: Ly.Section
 exercises = Ly.Section{
       title = "Four Note Closed Hand Voicings"
-    , intro = Just $ Ly.Markup.wordwrap $ mconcat [
-          "Every progression shown twice: "
-        , "first starting with the type A voicing, "
-        , "then with the type B voicing. "
-        , "Basic voice leading is applied in both cases."
+    , intro = Ly.Paragraphs [
+          Ly.Markup.wordwrap $ mconcat [
+              "Every progression shown twice: "
+            , "first starting with the type A voicing, "
+            , "then with the type B voicing. "
+            , "Basic voice leading is applied in both cases."
+            ]
         ]
     , elems = concat [
           major251 "Major 2-5-1 using 7"     Progression.WithoutSevenFlat9
@@ -78,7 +80,7 @@ minor251 title useSevenFlat9 =
 mkSetup :: String -> Progressions.Setup
 mkSetup title = Progressions.Setup{
       title
-    , intro = Nothing
+    , intro = mempty
     }
 
 mkExercise ::

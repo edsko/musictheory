@@ -97,6 +97,7 @@ majorDegree1 voicing typ =
       (FourWayClose, Chord.HalfDiminished) -> [  "1" , "♭3" ,  "♭5" , "♭7"        ]
       (FourWayClose, Chord.Altered)        -> [         "3" , "♭13" , "♭7" , "♯9" ]
       (FourWayClose, Chord.SevenFlat9)     -> [         "3" ,   "5" , "♭7" , "♭9" ]
+      (FourWayClose, Chord.Diminished7)    -> [  "1" , "♭3" ,  "♭5" , "𝄫7"        ]
       (FourWayClose, Chord.Sus)            -> [  "2" ,  "4" ,  "13" , "♭7"        ]
 
       _otherwise -> notYetImplemented (voicing, typ)
@@ -139,8 +140,9 @@ minorDegree1 voicing typ =
       (Default, Chord.Minor7)          -> [ "1" , "3" ,  "5" , "7" ]
       (Default, Chord.HalfDiminished)  -> [ "1" , "3" , "♭5" , "7" ]
 
-      (FourWayClose, Chord.Minor7)         -> [       "3" ,  "5" , "7" , "9" ]
-      (FourWayClose, Chord.HalfDiminished) -> [ "1" , "3" , "♭5" , "7"       ]
+      (FourWayClose, Chord.Minor7)         -> [       "3" ,  "5" ,  "7" , "9" ]
+      (FourWayClose, Chord.HalfDiminished) -> [ "1" , "3" , "♭5" ,  "7"       ]
+      (FourWayClose, Chord.Diminished7)    -> [ "1" , "3" , "♭5" , "♭7"       ]
 
       _otherwise -> notYetImplemented (voicing, typ)
 
