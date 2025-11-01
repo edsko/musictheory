@@ -236,7 +236,7 @@ sevenFlat9 hand =
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
             , showVoicing Chord.SevenFlat9
-            , " (or equivalenty as a diminished chord starting at the 3)"
+            , " (or equivalently as a diminished chord starting at the 3)"
             , "."
             ]
         ]
