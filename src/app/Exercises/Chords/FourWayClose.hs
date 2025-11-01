@@ -46,15 +46,15 @@ exercises = [
 exercisesForHand :: Hand -> [Ly.SectionElem]
 exercisesForHand hand = concat [
       major          hand
-    , minor          hand
+    , sus            hand
     , [Ly.SectionPageBreak]
 
     , dominant       hand
-    , halfDiminished hand
+    , altered        hand
     , [Ly.SectionPageBreak]
 
-    , altered        hand
-    , sus            hand
+    , minor          hand
+    , halfDiminished hand
     , [Ly.SectionPageBreak]
 
     , sevenFlat9     hand
