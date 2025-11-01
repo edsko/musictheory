@@ -11,7 +11,7 @@ import MusicTheory.Scale qualified as Scale
 import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly.Markup
 
-import Exercises.Progressions
+import Exercises.Progressions qualified as Progressions
 import Exercises.Util.ChordInversion (ChordInversion(..))
 import Exercises.Util.TypeAB (TypeAB(..))
 import Exercises.Util.TypeAB qualified as TypeAB
@@ -43,11 +43,10 @@ exercises = Ly.Section{
 
 major251 :: String -> Progression.UseSevenFlat9 -> [Ly.SectionElem]
 major251 title useSevenFlat9 =
-    progressionExercise Scale.Major $
-      mkExercise
-        title
-        (Progression.Major251 useSevenFlat9)
-        startingInversion
+    Progressions.exercise
+      Scale.Major
+      (mkSetup title)
+      (mkExercise (Progression.Major251 useSevenFlat9) startingInversion)
   where
     -- Starts on a rootless minor chord
     startingInversion :: Scale.Root -> [ChordInversion]
@@ -59,11 +58,10 @@ major251 title useSevenFlat9 =
 
 minor251 :: String -> Progression.UseSevenFlat9 -> [Ly.SectionElem]
 minor251 title useSevenFlat9 =
-    progressionExercise Scale.Minor $
-      mkExercise
-        title
-        (Progression.Minor251 useSevenFlat9)
-        startingInversion
+    Progressions.exercise
+      Scale.Minor
+      (mkSetup title)
+      (mkExercise (Progression.Minor251 useSevenFlat9) startingInversion)
   where
     -- This starts on a half-dimished chord, which we voice with a root.
     startingInversion :: Scale.Root -> [ChordInversion]
@@ -77,15 +75,18 @@ minor251 title useSevenFlat9 =
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-mkExercise ::
-     String
-  -> Progression.Name
-  -> (Scale.Root -> [ChordInversion])
-  -> ProgressionExercise
-mkExercise title progressionName startingInversion = ProgressionExercise{
+mkSetup :: String -> Progressions.Setup
+mkSetup title = Progressions.Setup{
       title
-    , intro                 = Nothing
-    , progressionName
+    , intro = Nothing
+    }
+
+mkExercise ::
+     Progression.Name
+  -> (Scale.Root -> [ChordInversion])
+  -> Progressions.Exercise
+mkExercise progressionName startingInversion = Progressions.Exercise{
+      progressionName
     , voicing               = Voicing.FourWayClose
     , startingInversion
     , permissibleInversions

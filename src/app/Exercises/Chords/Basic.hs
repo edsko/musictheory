@@ -8,7 +8,7 @@ import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
 
-import Exercises.Chords
+import Exercises.Chords qualified as Chords
 import Exercises.Util.ChordInversion (ChordInversion(..))
 
 {-------------------------------------------------------------------------------
@@ -53,25 +53,39 @@ exercises = [
 
 triads :: [ChordInversion] -> [Ly.SectionElem]
 triads invs = concat [
-      chordExercise Scale.Major $
-        mkExercise "Major" Chord.MajorTriad invs
-    , chordExercise Scale.Minor $
-        mkExercise "Minor" Chord.MinorTriad invs
-    , chordExercise Scale.Minor $
-        mkExercise "Diminished / m(♭5)" Chord.DiminishedTriad invs
+      Chords.exercise
+        Scale.Major
+        (mkSetup    "Major"          invs)
+        (mkExercise Chord.MajorTriad invs)
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup    "Minor"          invs)
+        (mkExercise Chord.MinorTriad invs)
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup    "Diminished / m(♭5)"  invs)
+        (mkExercise Chord.DiminishedTriad invs)
     ]
 
 sevenths :: [ChordInversion] -> [Ly.SectionElem]
 sevenths invs = concat [
-      chordExercise Scale.Major $
-        mkExercise "Major seventh" Chord.Major7 invs
-    , chordExercise Scale.Major $
-        mkExercise "Dominant seventh" Chord.Dominant7 invs
+      Chords.exercise
+        Scale.Major
+        (mkSetup    "Major seventh" invs)
+        (mkExercise Chord.Major7    invs)
+    , Chords.exercise
+        Scale.Major
+        (mkSetup    "Dominant seventh" invs)
+        (mkExercise Chord.Dominant7    invs)
     , [Ly.SectionPageBreak]
-    , chordExercise Scale.Minor $
-        mkExercise "Minor seventh" Chord.Minor7 invs
-    , chordExercise Scale.Minor $
-        mkExercise "Half-diminished / m7(♭5)" Chord.HalfDiminished invs
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup    "Minor seventh" invs)
+        (mkExercise Chord.Minor7    invs)
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup    "Half-diminished / m7(♭5)" invs)
+        (mkExercise Chord.HalfDiminished       invs)
     ]
 
 inversions :: [Word] -> [ChordInversion]
@@ -84,15 +98,19 @@ inversions is = [
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-mkExercise :: String -> Chord.Type -> [ChordInversion] -> ChordExercise
-mkExercise title chordType invs = ChordExercise{
+mkSetup :: String -> [ChordInversion] -> Chords.Setup
+mkSetup title invs = Chords.Setup{
       title
     , intro          = Nothing
     , clef           = Ly.ClefTreble
-    , voicing        = Voicing.Default
+    , numInversions  = length invs
+    }
+
+mkExercise :: Chord.Type -> [ChordInversion] -> Chords.Exercise
+mkExercise chordType invs = Chords.Exercise{
+      voicing        = Voicing.Default
     , startingOctave = Octave.middle
     , adjustOctave   = \_ -> Just noOctaveShift
-    , numInversions  = length invs
     , inversionsFor  = \_ -> invs
     , chordType
     }

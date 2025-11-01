@@ -1,8 +1,12 @@
 -- | Utilities for generating chord exercises
+--
+-- Intended for qualified import.
+--
+-- > import Exercises.Chords qualified as Chords
 module Exercises.Chords (
-    -- * Construct exercise
-    ChordExercise(..)
-  , chordExercise
+    Setup(..)
+  , Exercise(..)
+  , exercise
   ) where
 
 import Data.Default
@@ -32,23 +36,19 @@ import Exercises.Util.ChordInversion qualified as ChordInversion
   We show these chords as the /I/ chord in all /major/ scales.
 -------------------------------------------------------------------------------}
 
-data ChordExercise = ChordExercise{
-      title     :: String
-    , intro     :: Maybe Ly.Markup
-    , clef      :: Ly.Clef
-    , chordType :: Chord.Type
+data Setup = Setup{
+      title         :: String
+    , intro         :: Maybe Ly.Markup
+    , clef          :: Ly.Clef
+    , numInversions :: Int -- ^ Number of inversions for each chord
+    }
+
+data Exercise = Exercise{
+      chordType :: Chord.Type
     , voicing   :: Voicing
 
       -- | Starting octave for building the chord
     , startingOctave :: Octave
-
-      -- | How many inversions do we show for each chord?
-    , numInversions  :: Int
-
-      -- | Inversions
-      --
-      -- This should not exceed 'numInversions'
-    , inversionsFor :: Scale.Root -> [ChordInversion]
 
       -- | Adjust octave after inversion
       --
@@ -56,19 +56,24 @@ data ChordExercise = ChordExercise{
       -- the stave. If this returns 'Nothing', we conclude that this particular
       -- inversion is \"outside the playable range\" and omit it.
     , adjustOctave :: Named.Chord Abs -> Maybe OctaveShift
+
+      -- | Inversions
+      --
+      -- This should not exceed 'numInversions'
+    , inversionsFor :: Scale.Root -> [ChordInversion]
     }
 
-chordExercise :: Scale.Type -> ChordExercise -> [Ly.SectionElem]
-chordExercise scaleType exercise = [
+exercise :: Scale.Type -> Setup -> Exercise -> [Ly.SectionElem]
+exercise scaleType setup ex = [
       Ly.SectionScore Ly.Score{
-          title = Just exercise.title
-        , intro = exercise.intro
+          title = Just setup.title
+        , intro = setup.intro
         , staff = Ly.Staff{
               props = staffProps
             , elems = mconcat [
-                  exerciseInScales scaleType exercise firstHalf
+                  exerciseIn scaleType ex firstHalf
                 , [Ly.StaffLinebreak]
-                , exerciseInScales scaleType exercise secondHalf
+                , exerciseIn scaleType ex secondHalf
                 ]
             }
         }
@@ -77,15 +82,15 @@ chordExercise scaleType exercise = [
         , intro = Just $ Ly.Markup.italic $ Ly.Markup.fontsize 8 $ "Enharmonic"
         , staff = Ly.Staff{
               props = staffProps
-            , elems = exerciseInScales scaleType exercise enharmonic
+            , elems = exerciseIn scaleType ex enharmonic
             }
         }
     ]
   where
     staffProps :: Ly.StaffProps
     staffProps = def{
-          Ly.clef               = exercise.clef
-        , Ly.timeSignature      = Ly.TimeSignature exercise.numInversions 1
+          Ly.clef               = setup.clef
+        , Ly.timeSignature      = Ly.TimeSignature setup.numInversions 1
         , Ly.hideTimeSignature  = True
         , Ly.omitMeasureNumbers = True
         }
@@ -104,8 +109,8 @@ chordExercise scaleType exercise = [
           , Scale.enharmonicRoots Scale.Minor
           )
 
-exerciseInScales :: Scale.Type -> ChordExercise -> [Scale.Root] -> [Ly.StaffElem]
-exerciseInScales scaleType exercise scales =
+exerciseIn :: Scale.Type -> Exercise -> [Scale.Root] -> [Ly.StaffElem]
+exerciseIn scaleType ex scales =
     concatMap goScale scales
   where
     -- Show all inversions for the specified scale
@@ -115,22 +120,17 @@ exerciseInScales scaleType exercise scales =
     goScale scaleRoot =
         zipWith
           (goInversion chord')
-          (exercise.inversionsFor scaleRoot)
+          (ex.inversionsFor scaleRoot)
           (True : repeat False)
       where
         scale :: Scale
         scale = Scale.named $ Scale.Name scaleRoot scaleType
 
         chord :: Named.Chord Rel
-        chord = Chord.Named.chordI exercise.chordType
+        chord = Chord.Named.chordI ex.chordType
 
         chord' :: Named.Chord Abs
-        chord' =
-            Voicing.wrtScale
-              scale
-              exercise.voicing
-              exercise.startingOctave
-              chord
+        chord' = Voicing.wrtScale scale ex.voicing ex.startingOctave chord
 
     goInversion ::
          Named.Chord Abs
@@ -158,7 +158,7 @@ exerciseInScales scaleType exercise scales =
 
         mShifted :: Maybe (Named.Chord Abs)
         mShifted =
-            exercise.adjustOctave inverted <&> \shift ->
+            ex.adjustOctave inverted <&> \shift ->
               transposeOctave shift inverted
 
         mName :: Maybe (Chord.Name Abs)

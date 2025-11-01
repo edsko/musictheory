@@ -1,6 +1,12 @@
+-- | Utilities for generating chord progression exercises
+--
+-- Intended for qualified import.
+--
+-- > import Exercises.Progressions qualified as Progressions
 module Exercises.Progressions (
-    ProgressionExercise(..)
-  , progressionExercise
+    Setup(..)
+  , Exercise(..)
+  , exercise
   ) where
 
 import Data.Default
@@ -31,10 +37,13 @@ import Exercises.Util.ChordInversion qualified as ChordInversion
   Construct chord progression exercise
 -------------------------------------------------------------------------------}
 
-data ProgressionExercise = ProgressionExercise{
-      title           :: String
-    , intro           :: Maybe Ly.Markup
-    , progressionName :: Progression.Name
+data Setup = Setup{
+      title :: String
+    , intro :: Maybe Ly.Markup
+    }
+
+data Exercise = Exercise{
+      progressionName :: Progression.Name
     , voicing         :: Voicing
 
       -- | Inversion for initial chord
@@ -44,15 +53,15 @@ data ProgressionExercise = ProgressionExercise{
     , permissibleInversions :: Chord.Type -> [Inversion]
     }
 
-progressionExercise :: Scale.Type -> ProgressionExercise -> [Ly.SectionElem]
-progressionExercise scaleType exercise = [
+exercise :: Scale.Type -> Setup -> Exercise -> [Ly.SectionElem]
+exercise scaleType setup ex = [
       Ly.SectionPageBreak
     , Ly.SectionScore Ly.Score{
-          title = Just exercise.title
-        , intro = exercise.intro
+          title = Just setup.title
+        , intro = setup.intro
         , staff = Ly.Staff{
               props = staffProps
-            , elems = exerciseInScales scaleType exercise scales
+            , elems = exerciseIn scaleType ex scales
             }
         }
     ]
@@ -66,46 +75,41 @@ progressionExercise scaleType exercise = [
     scales :: [Scale.Root]
     scales = Scale.defaultRoots scaleType
 
-exerciseInScales :: Scale.Type -> ProgressionExercise -> [Scale.Root] -> [Ly.StaffElem]
-exerciseInScales scaleType exercise scales =
+exerciseIn :: Scale.Type -> Exercise -> [Scale.Root] -> [Ly.StaffElem]
+exerciseIn scaleType ex scales =
     concatMap goScale scales
   where
     -- .. for each scale
     goScale :: Scale.Root -> [Ly.StaffElem]
     goScale scaleRoot = concat [
           [Ly.StaffKeySignature scale.name]
-        , concatMap (goInitInversion progression') $
-            exercise.startingInversion scale.name.root
+        , concatMap (goInitInversion prog') $
+            ex.startingInversion scale.name.root
         , [Ly.StaffLinebreak]
         ]
       where
         scale :: Scale
         scale = Scale.named $ Scale.Name scaleRoot scaleType
 
-        progression :: Progression Rel
-        progression = Progression.named exercise.progressionName
+        prog :: Progression Rel
+        prog = Progression.named ex.progressionName
 
-        progression' :: Progression Abs
-        progression' =
-            Progression.wrtScale
-              scale
-              exercise.voicing
-              Octave.middle
-              progression
+        prog' :: Progression Abs
+        prog' = Progression.wrtScale scale ex.voicing Octave.middle prog
 
     -- .. and for each choice of initial inversion
     goInitInversion :: Progression Abs -> ChordInversion -> [Ly.StaffElem]
-    goInitInversion progression initInversion =
+    goInitInversion prog initInversion =
         zipWith goChord
           (NE.toList withVoiceLeading)
           (initInversion.annotation : repeat Ly.NoAnnotation)
       where
         withVoiceLeading :: NonEmpty (Named.Chord Abs)
         Progression withVoiceLeading =
-            Progression.voiceLeading exercise.permissibleInversions $
+            Progression.voiceLeading ex.permissibleInversions $
               Progression.mapFirst
                 (ChordInversion.apply initInversion)
-                progression
+                prog
 
     goChord :: Named.Chord Abs -> Ly.Annotation -> Ly.StaffElem
     goChord chord ann =
@@ -117,7 +121,7 @@ exerciseInScales scaleType exercise scales =
             , annotation = ann
             }
 
--- | Chords in a progression should also be shown in the chords exercises
+-- | Chords in a prog should also be shown in the chords exercises
 checkKnownChord :: Scale.Type -> Note -> a -> a
 checkKnownChord scaleType chordRoot x =
     if chordRoot `elem` allKnown
