@@ -214,8 +214,8 @@ sus hand =
             , " a whole step down)."
             ]
         , Ly.Markup.wordwrap $ mconcat [
-              "The type A/type B nomenclature is less common here, but we still"
-            , "show two inversions: 4th at the bottom ("
+              "The type A/type B nomenclature is less common for suspended chords, "
+            , "but we still show two inversions: 4th at the bottom ("
             , Ly.Markup.Quoted "type A"
             , "), and 7th at the bottom ("
             , Ly.Markup.Quoted "type B"
