@@ -245,7 +245,7 @@ sevenFlat9 hand =
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
             , showVoicing Chord.SevenFlat9
-            , " (or equivalently as a diminished chord starting at the 3)"
+            , " (or alternatively as a diminished chord starting on any of these notes)"
             , "."
             ]
         ]
@@ -284,7 +284,8 @@ diminished RightHand = [
           Ly.Markup.wordwrap $ mconcat [
               "Since a diminished chord is entirely symmetrical, there are really "
             , "only three different diminished chords, for which we can choose a "
-            , "default inversion starting on F, G♭, or G. "
+            , "default inversion starting on F, G♭, or G ; however, for better "
+            , "voice leading any inversion can be used."
             ]
         , Ly.Markup.wordwrap $ mconcat [
               "Technically speaking a diminished chord is voiced using "
