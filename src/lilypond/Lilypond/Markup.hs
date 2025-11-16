@@ -112,7 +112,7 @@ render stylesheet = withinScope "markup" . go
     go :: Markup -> Doc
     go Empty             = mempty
     go (Text     str)    = Doc.line $ str
-    go (Quoted   str)    = Doc.line $ "\"" ++ str ++ "\""
+    go (Quoted   str)    = Doc.line $ "\"\\\"" ++ str ++ "\\\"\""
     go (Music    music)  = goMusic music
     go (Scope s  markup) = withinScope (scope s) $ go markup
     go (MConcat  markup) = foldMap go markup

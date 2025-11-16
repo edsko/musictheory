@@ -29,9 +29,9 @@ exercises = Ly.Section{
       title = "Four Note Closed Hand Voicings"
     , intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
-              "Every is chord shown twice: "
-            , "first with the third at the bottom (type A), "
-            , "then with the seventh at the bottom (type B)."
+              "For most chords only two inversions are common: "
+            , "type A (3rd at the bottom), "
+            , "and type B (7th at the bottom)."
             ]
         ]
     , elems = [
@@ -211,8 +211,17 @@ sus hand =
             , showVoicing Chord.Sus
             ,  "(or equivalently using a maj7 chord voiced using"
             , showVoicing Chord.Major7
-            , " a whole step down)"
-            , "."
+            , " a whole step down)."
+            ]
+        , Ly.Markup.wordwrap $ mconcat [
+              "The type A/type B nomenclature is less common here, but we still"
+            , "show two inversions: 4th at the bottom ("
+            , Ly.Markup.Quoted "type A"
+            , "), and 7th at the bottom ("
+            , Ly.Markup.Quoted "type B"
+            , "); the 2nd or the 13th at the bottom would result in a"
+            , "semitone interval at the top or the bottom of the voicing "
+            , "respectively, which is usually undesirable."
             ]
         ]
 
