@@ -6,6 +6,7 @@ import MusicTheory
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Named qualified as Named (Chord(..))
+import MusicTheory.Chord.Voicing (Voicing)
 import MusicTheory.Chord.Voicing qualified as Voicing
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Reference
@@ -92,7 +93,7 @@ major hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.Major7
+            , showVoicing Voicing.FourWayClose Chord.Major7
             , "."
             ]
         ]
@@ -115,7 +116,7 @@ minor hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.Minor7
+            , showVoicing Voicing.FourWayClose Chord.Minor7
             , "."
             ]
         ]
@@ -138,7 +139,7 @@ dominant hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.Dominant7
+            , showVoicing Voicing.FourWayClose Chord.Dominant7
             , "."
             ]
         ]
@@ -161,7 +162,7 @@ halfDiminished hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.HalfDiminished
+            , showVoicing Voicing.FourWayClose Chord.HalfDiminished
             , "."
             ]
         ]
@@ -185,7 +186,7 @@ altered hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.Altered
+            , showVoicing Voicing.FourWayClose Chord.Altered
             , "."
             ]
         ]
@@ -208,9 +209,9 @@ sus hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.Sus
+            , showVoicing Voicing.FourWayClose Chord.Sus
             ,  "(or equivalently using a maj7 chord voiced using"
-            , showVoicing Chord.Major7
+            , showVoicing Voicing.Default Chord.Major7
             , " a whole step down)."
             ]
         , Ly.Markup.wordwrap $ mconcat [
@@ -244,7 +245,7 @@ sevenFlat9 hand =
     intro = Ly.Paragraphs [
           Ly.Markup.wordwrap $ mconcat [
               "Voiced using"
-            , showVoicing Chord.SevenFlat9
+            , showVoicing Voicing.FourWayClose Chord.SevenFlat9
             , " (or alternatively as a diminished chord starting on any of these notes)"
             , "."
             ]
@@ -289,9 +290,8 @@ diminished RightHand = [
             ]
         , Ly.Markup.wordwrap $ mconcat [
               "Technically speaking a diminished chord is voiced using "
-            , showVoicing Chord.Diminished7
-            , ". However, since diminished chords are not diatonic to any key, "
-            , "we choose to use the simplest possible note spellings instead."
+            , showVoicing Voicing.FourWayClose Chord.Diminished7
+            , ". However, we choose to use the simplest possible note spellings instead."
             ]
         ]
 
@@ -403,10 +403,10 @@ diminished LeftHand = [
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-showVoicing :: Chord.Type -> Ly.Markup
-showVoicing chordType =
+showVoicing :: Voicing -> Chord.Type -> Ly.Markup
+showVoicing voicing chordType =
     foldMap (Ly.Markup.Music . Ly.Markup.Interval) $
-      Voicing.intervals Voicing.FourWayClose chordType
+      Voicing.intervals voicing chordType
 
 data Hand = RightHand | LeftHand
 

@@ -18,100 +18,174 @@ import Exercises.Util.ChordInversion (ChordInversion(..))
 exercises :: [Ly.Section]
 exercises = [
       Ly.Section{
-          title = "Diatonic triads"
+          title = "Triads"
         , intro = mempty
         , elems = [
               Ly.SectionSub $ Ly.Section{
                   title = "Root position"
                 , intro = mempty
-                , elems = triads (inversions [0])
+                , elems = triadsRoot
                 }
             , Ly.SectionSub $ Ly.Section{
                   title = "Inversions"
-                , intro = mempty
-                , elems = triads (inversions [0..2])
+                , intro = Ly.Paragraphs [
+                      "We show all chords in root position followed by all possible inversions."
+                    ]
+                , elems = triadsInversions
                 }
             ]
         }
     , Ly.Section{
-          title = "Diatonic seventh chords"
+          title = "Seventh chords"
         , intro = mempty
         , elems = [
               Ly.SectionSub $ Ly.Section{
                   title = "Root position"
                 , intro = mempty
-                , elems = sevenths (inversions [0])
+                , elems = seventhsRoot
                 }
             , Ly.SectionSub $ Ly.Section{
                   title = "Inversions"
-                , intro = mempty
-                , elems = sevenths (inversions [0..3])
+                , intro = Ly.Paragraphs [
+                      "We show all chords in root position followed by all possible inversions."
+                    ]
+                , elems = seventhsInversions
                 }
             ]
         }
     ]
 
-triads :: [ChordInversion] -> [Ly.SectionElem]
-triads invs = concat [
+triadsRoot :: [Ly.SectionElem]
+triadsRoot = concat [
       Chords.exercise
         Scale.Major
-        (mkSetup    "Major"          invs)
+        (mkSetup "Major" 1)
         (mkExercise Chord.MajorTriad invs)
     , Chords.exercise
         Scale.Minor
-        (mkSetup    "Minor"          invs)
+        (mkSetup "Minor" 1)
         (mkExercise Chord.MinorTriad invs)
     , Chords.exercise
         Scale.Minor
-        (mkSetup    "Diminished / m(♭5)"  invs)
+        (mkSetup "Diminished" 1)
         (mkExercise Chord.DiminishedTriad invs)
     ]
+  where
+    invs :: Scale.Root -> [ChordInversion]
+    invs _ = [ChordInversion rootPosition noOctaveShift Ly.NoAnnotation]
 
-sevenths :: [ChordInversion] -> [Ly.SectionElem]
-sevenths invs = concat [
+triadsInversions :: [Ly.SectionElem]
+triadsInversions = concat [
       Chords.exercise
         Scale.Major
-        (mkSetup    "Major seventh" invs)
-        (mkExercise Chord.Major7    invs)
+        (mkSetup "Major" 3)
+        (mkExercise Chord.MajorTriad invs)
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup "Minor" 3)
+        (mkExercise Chord.MinorTriad invs)
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup "Diminished" 3)
+        (mkExercise Chord.DiminishedTriad invs)
+    ]
+  where
+    invs :: Scale.Root -> [ChordInversion]
+    invs root = [
+         ChordInversion (Inversion i) noOctaveShift (inversionAnn root i)
+       | i <- [0..2]
+       ]
+
+seventhsRoot :: [Ly.SectionElem]
+seventhsRoot = concat [
+      Chords.exercise
+        Scale.Major
+        (mkSetup "Major seventh" 1)
+        (mkExercise Chord.Major7 invs)
     , Chords.exercise
         Scale.Major
-        (mkSetup    "Dominant seventh" invs)
-        (mkExercise Chord.Dominant7    invs)
+        (mkSetup "Dominant seventh" 1)
+        (mkExercise Chord.Dominant7 invs)
     , [Ly.SectionPageBreak]
     , Chords.exercise
         Scale.Minor
-        (mkSetup    "Minor seventh" invs)
-        (mkExercise Chord.Minor7    invs)
+        (mkSetup "Minor seventh" 1)
+        (mkExercise Chord.Minor7 invs)
     , Chords.exercise
         Scale.Minor
-        (mkSetup    "Half-diminished / m7(♭5)" invs)
-        (mkExercise Chord.HalfDiminished       invs)
+        (mkSetup "Half-diminished / m7(♭5)" 1)
+        (mkExercise Chord.HalfDiminished invs)
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup "Diminished" 1)
+        (mkExercise Chord.Diminished7 invs)
     ]
+  where
+    invs :: Scale.Root -> [ChordInversion]
+    invs _ = [ChordInversion rootPosition noOctaveShift Ly.NoAnnotation]
 
-inversions :: [Word] -> [ChordInversion]
-inversions is = [
-      ChordInversion (Inversion i) noOctaveShift Ly.NoAnnotation
-    | i <- is
+seventhsInversions :: [Ly.SectionElem]
+seventhsInversions = concat [
+      Chords.exercise
+        Scale.Major
+        (mkSetup "Major seventh" 4)
+        (mkExercise Chord.Major7 invs)
+    , [Ly.SectionPageBreak]
+    , Chords.exercise
+        Scale.Major
+        (mkSetup "Dominant seventh" 4)
+        (mkExercise Chord.Dominant7 invs)
+    , [Ly.SectionPageBreak]
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup "Minor seventh" 4)
+        (mkExercise Chord.Minor7 invs)
+    , [Ly.SectionPageBreak]
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup "Half-diminished / m7(♭5)" 4)
+        (mkExercise Chord.HalfDiminished invs)
+    , [Ly.SectionPageBreak]
+    , Chords.exercise
+        Scale.Minor
+        (mkSetup "Diminished" 4)
+        (mkExercise Chord.Diminished7 invs)
     ]
+  where
+    invs :: Scale.Root -> [ChordInversion]
+    invs root = [
+         ChordInversion (Inversion i) noOctaveShift (inversionAnn root i)
+       | i <- [0..3]
+       ]
 
 {-------------------------------------------------------------------------------
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-mkSetup :: String -> [ChordInversion] -> Chords.Setup
-mkSetup title invs = Chords.Setup{
+mkSetup :: String -> Int -> Chords.Setup
+mkSetup title numInvs = Chords.Setup{
       title
     , intro          = mempty
     , clef           = Ly.ClefTreble
-    , numInversions  = length invs
+    , numInversions  = numInvs
     }
 
-mkExercise :: Chord.Type -> [ChordInversion] -> Chords.Exercise
+mkExercise :: Chord.Type -> (Scale.Root -> [ChordInversion]) -> Chords.Exercise
 mkExercise chordType invs = Chords.Exercise{
       voicing        = Voicing.Default
     , startingOctave = Octave.middle
     , simplifyNotes  = False
     , adjustOctave   = \_ -> Just noOctaveShift
-    , inversionsFor  = \_ -> invs
+    , inversionsFor  = invs
     , chordType
     }
+
+inversionAnn :: Scale.Root -> Word -> Ly.Annotation
+inversionAnn root i =
+    case (root, i) of
+      (Scale.C, 0) -> "root"
+      (Scale.C, 1) -> "1st"
+      (Scale.C, 2) -> "2nd"
+      (Scale.C, 3) -> "3rd"
+      (Scale.C, _) -> error $ "unexpected inversion " ++ show i
+      _otherwise   -> Ly.NoAnnotation
