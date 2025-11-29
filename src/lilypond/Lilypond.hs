@@ -132,6 +132,9 @@ data Annotation =
     NoAnnotation
   | Annotation String
 
+instance Default Annotation where
+  def = NoAnnotation
+
 instance IsString Annotation where
   fromString = Annotation
 

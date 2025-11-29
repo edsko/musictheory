@@ -8,8 +8,8 @@ import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
 
-import Exercises.Chords qualified as Chords
-import Exercises.Util.ChordInversion (ChordInversion(..))
+import Construction.Chords qualified as Chords
+import Construction.Util.ChordInversion (ChordInversion(..))
 
 {-------------------------------------------------------------------------------
   List of exercises

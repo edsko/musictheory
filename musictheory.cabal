@@ -50,6 +50,7 @@ library
       MusicTheory.Progression
       MusicTheory.Reference
       MusicTheory.Scale
+      MusicTheory.Util.List
       MusicTheory.Util.StringTable
 
   other-modules:
@@ -87,7 +88,7 @@ library lilypond
 executable music-theory-exercises
   import:         lang
   main-is:        Main.hs
-  hs-source-dirs: src/app
+  hs-source-dirs: src/exercises
 
   build-depends:
       -- Internal dependencies
@@ -105,12 +106,15 @@ executable music-theory-exercises
 
   other-modules:
       Cmdline
+
+      Construction.Chords
+      Construction.Lilypond.Style
+      Construction.Progressions.PerKey
+      Construction.Util.ChordInversion
+      Construction.Util.TypeAB
+
       Exercises
-      Exercises.Chords
+      Exercises.Additional
       Exercises.Chords.Basic
       Exercises.Chords.FourWayClose
-      Exercises.Lilypond.Style
-      Exercises.Progressions
       Exercises.Progressions.FourWayClose
-      Exercises.Util.ChordInversion
-      Exercises.Util.TypeAB

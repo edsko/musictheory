@@ -1,6 +1,6 @@
 -- | Absolute references vs relative reference (wrt to a choice of scale)
 --
--- Intended for unqualified.
+-- Intended for unqualified import.
 --
 -- > import MusicTheory.Reference
 module MusicTheory.Reference (

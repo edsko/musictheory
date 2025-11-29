@@ -1,9 +1,9 @@
--- | Utilities for generating chord progression exercises
+-- | Exercise construction: chord progressions, repeated in all keys
 --
 -- Intended for qualified import.
 --
--- > import Exercises.Progressions qualified as Progressions
-module Exercises.Progressions (
+-- > import Construction.Progressions.PerKey qualified as Progressions.PerKey
+module Construction.Progressions.PerKey (
     Setup(..)
   , Exercise(..)
   , exercise
@@ -29,8 +29,8 @@ import MusicTheory.Scale qualified as Scale
 
 import Lilypond qualified as Ly
 
-import Exercises.Util.ChordInversion (ChordInversion(..))
-import Exercises.Util.ChordInversion qualified as ChordInversion
+import Construction.Util.ChordInversion (ChordInversion(..))
+import Construction.Util.ChordInversion qualified as ChordInversion
 
 {-------------------------------------------------------------------------------
   Construct chord progression exercise

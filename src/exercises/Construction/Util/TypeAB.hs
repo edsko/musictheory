@@ -1,8 +1,8 @@
 -- | Type A/B chords (in four way close voicings)
 --
--- > import Exercises.Util.TypeAB (TypeAB(..))
--- > import Exercises.Util.TypeAB qualified as TypeAB
-module Exercises.Util.TypeAB(
+-- > import Construction.Util.TypeAB (TypeAB(..))
+-- > import Construction.Util.TypeAB qualified as TypeAB
+module Construction.Util.TypeAB(
     TypeAB(..)
     -- * Combinators
   , markIf
@@ -13,7 +13,7 @@ import MusicTheory
 
 import Lilypond qualified as Ly
 
-import Exercises.Util.ChordInversion (ChordInversion(..))
+import Construction.Util.ChordInversion (ChordInversion(..))
 
 {-------------------------------------------------------------------------------
   Definition

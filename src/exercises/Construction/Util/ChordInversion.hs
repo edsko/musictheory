@@ -2,9 +2,9 @@
 --
 -- Intended for qualified import.
 --
--- > import Exercises.Util.ChordInversion (ChordInversion(..))
--- > import Exercises.Util.ChordInversion qualified as ChordInversion
-module Exercises.Util.ChordInversion (
+-- > import Construction.Util.ChordInversion (ChordInversion(..))
+-- > import Construction.Util.ChordInversion qualified as ChordInversion
+module Construction.Util.ChordInversion (
     ChordInversion(..)
   , apply
   ) where

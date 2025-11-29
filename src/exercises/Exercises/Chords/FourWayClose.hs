@@ -16,10 +16,10 @@ import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly (Markup)
 import Lilypond.Markup qualified as Ly.Markup
 
-import Exercises.Chords qualified as Chords
-import Exercises.Util.ChordInversion (ChordInversion(..))
-import Exercises.Util.TypeAB (TypeAB(..))
-import Exercises.Util.TypeAB qualified as TypeAB
+import Construction.Chords qualified as Chords
+import Construction.Util.ChordInversion (ChordInversion(..))
+import Construction.Util.TypeAB (TypeAB(..))
+import Construction.Util.TypeAB qualified as TypeAB
 
 {-------------------------------------------------------------------------------
   List of exercises

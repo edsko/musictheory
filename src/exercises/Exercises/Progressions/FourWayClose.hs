@@ -11,10 +11,10 @@ import MusicTheory.Scale qualified as Scale
 import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly.Markup
 
-import Exercises.Progressions qualified as Progressions
-import Exercises.Util.ChordInversion (ChordInversion(..))
-import Exercises.Util.TypeAB (TypeAB(..))
-import Exercises.Util.TypeAB qualified as TypeAB
+import Construction.Progressions.PerKey qualified as Progressions.PerKey
+import Construction.Util.ChordInversion (ChordInversion(..))
+import Construction.Util.TypeAB (TypeAB(..))
+import Construction.Util.TypeAB qualified as TypeAB
 
 {-------------------------------------------------------------------------------
   List of exercises
@@ -45,7 +45,7 @@ exercises = Ly.Section{
 
 major251 :: String -> Progression.UseSevenFlat9 -> [Ly.SectionElem]
 major251 title useSevenFlat9 =
-    Progressions.exercise
+    Progressions.PerKey.exercise
       Scale.Major
       (mkSetup title)
       (mkExercise (Progression.Major251 useSevenFlat9) startingInversion)
@@ -60,7 +60,7 @@ major251 title useSevenFlat9 =
 
 minor251 :: String -> Progression.UseSevenFlat9 -> [Ly.SectionElem]
 minor251 title useSevenFlat9 =
-    Progressions.exercise
+    Progressions.PerKey.exercise
       Scale.Minor
       (mkSetup title)
       (mkExercise (Progression.Minor251 useSevenFlat9) startingInversion)
@@ -77,8 +77,8 @@ minor251 title useSevenFlat9 =
   Internal auxiliary
 -------------------------------------------------------------------------------}
 
-mkSetup :: String -> Progressions.Setup
-mkSetup title = Progressions.Setup{
+mkSetup :: String -> Progressions.PerKey.Setup
+mkSetup title = Progressions.PerKey.Setup{
       title
     , intro = mempty
     }
@@ -86,8 +86,8 @@ mkSetup title = Progressions.Setup{
 mkExercise ::
      Progression.Name
   -> (Scale.Root -> [ChordInversion])
-  -> Progressions.Exercise
-mkExercise progressionName startingInversion = Progressions.Exercise{
+  -> Progressions.PerKey.Exercise
+mkExercise progressionName startingInversion = Progressions.PerKey.Exercise{
       progressionName
     , voicing               = Voicing.FourWayClose
     , startingInversion

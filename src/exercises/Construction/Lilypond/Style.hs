@@ -1,5 +1,5 @@
 -- | Lilypond styling
-module Exercises.Lilypond.Style (stylesheet) where
+module Construction.Lilypond.Style (stylesheet) where
 
 import Data.String
 

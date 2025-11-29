@@ -7,7 +7,7 @@ import Lilypond.Render qualified as Ly
 import Cmdline
 
 import Exercises (exercises)
-import Exercises.Lilypond.Style (stylesheet)
+import Construction.Lilypond.Style (stylesheet)
 
 main :: IO ()
 main = do

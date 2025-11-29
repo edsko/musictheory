@@ -1,9 +1,9 @@
--- | Utilities for generating chord exercises
+-- | Exercise construction: chords
 --
 -- Intended for qualified import.
 --
--- > import Exercises.Chords qualified as Chords
-module Exercises.Chords (
+-- > import Construction.Chords qualified as Chords
+module Construction.Chords (
     Setup(..)
   , Exercise(..)
   , staffProps
@@ -28,8 +28,8 @@ import MusicTheory.Scale qualified as Scale
 import Lilypond qualified as Ly
 import Lilypond.Markup qualified as Ly.Markup
 
-import Exercises.Util.ChordInversion (ChordInversion(..))
-import Exercises.Util.ChordInversion qualified as ChordInversion
+import Construction.Util.ChordInversion (ChordInversion(..))
+import Construction.Util.ChordInversion qualified as ChordInversion
 
 {-------------------------------------------------------------------------------
   Construct chords exercise

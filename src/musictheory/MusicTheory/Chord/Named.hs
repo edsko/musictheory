@@ -32,6 +32,9 @@ import MusicTheory.Scale qualified as Scale
 -------------------------------------------------------------------------------}
 
 -- | Named chord
+--
+-- NOTE: See 'MusicTheory.Chord.Voicing.wrtScale' to translate a relative chord
+-- into an absolute chord.
 data Chord r where
   -- | Relative chord
   --
