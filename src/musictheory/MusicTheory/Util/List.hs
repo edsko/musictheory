@@ -9,6 +9,7 @@ module MusicTheory.Util.List (
   , odds
   , evens
   , rotate
+  , repeatLast
   ) where
 
 {-------------------------------------------------------------------------------
@@ -59,3 +60,13 @@ evens (_:xs) = odds xs
 -- > rotate (-7) "(abc)" == "c)(ab"
 rotate :: Int -> [a] -> [a]
 rotate i xs = take (length xs) $ drop (i `mod` length xs) (cycle xs)
+
+-- | Repeat the last element
+--
+-- > repeatLast "abc" == "abcc"
+repeatLast :: [a] -> [a]
+repeatLast = reverse . aux . reverse
+  where
+    aux :: [a] -> [a]
+    aux []     = error "empty list"
+    aux (x:xs) = x:x:xs

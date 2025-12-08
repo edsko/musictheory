@@ -70,14 +70,14 @@ triads = Ly.SectionScore Ly.Score{
     progression1 :: Progression Abs
     progression1 = Progression $ NE.fromList [
           mkChord scale chordType
-        | scale     <- counterclockwise
+        | scale     <- List.repeatLast counterclockwise
         | chordType <- cycle [Chord.MinorTriad, Chord.MajorTriad]
         ]
 
     progression2 :: Progression Abs
     progression2 = Progression $ NE.fromList [
           mkChord scale chordType
-        | scale     <- counterclockwise
+        | scale     <- List.repeatLast counterclockwise
         | chordType <- cycle [Chord.MajorTriad, Chord.MinorTriad]
         ]
 
@@ -113,14 +113,14 @@ fourWayClose = Ly.SectionScore Ly.Score{
     progression1 :: Progression Abs
     progression1 = Progression $ NE.fromList [
           mkChord scale chordType
-        | scale     <- counterclockwise
+        | scale     <- List.repeatLast counterclockwise
         | chordType <- cycle [Chord.Minor7, Chord.Dominant7]
         ]
 
     progression2 :: Progression Abs
     progression2 = Progression $ NE.fromList [
           mkChord scale chordType
-        | scale     <- counterclockwise
+        | scale     <- List.repeatLast counterclockwise
         | chordType <- cycle [Chord.Dominant7, Chord.Minor7]
         ]
 
