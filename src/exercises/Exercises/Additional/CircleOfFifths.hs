@@ -42,17 +42,20 @@ exercises = [
 
 alongCircleOfFifths :: Ly.Section
 alongCircleOfFifths = Ly.Section{
-      title = "Along the circle of fifths"
+      title = "Minor/major anti-clockwise along the circle of fifths"
     , intro = mempty
     , elems = [
           triads
+        , Ly.SectionPageBreak
+        , sevenths
+        , Ly.SectionPageBreak
         , fourWayClose
         ]
     }
 
 triads :: Ly.SectionElem
 triads = Ly.SectionScore Ly.Score{
-      title = Just "Minor/major triads"
+      title = Just "Triads"
     , intro = mempty
     , staff = Ly.Staff{
           props = staffProps
@@ -79,6 +82,37 @@ triads = Ly.SectionScore Ly.Score{
 
     permissibleInversions :: Chord.Type -> [Inversion]
     permissibleInversions _ = [Inversion i | i <- [0 .. 2]]
+
+sevenths :: Ly.SectionElem
+sevenths = Ly.SectionScore Ly.Score{
+      title = Just "Minor7/dominant chords"
+    , intro = mempty
+    , staff = Ly.Staff{
+          props = staffProps
+        , elems =
+            consecutiveProgressions
+              initInversions
+              progressions
+              permissibleInversions
+        }
+    }
+  where
+    initInversions :: [ChordInversion]
+    initInversions = [
+          ChordInversion (Inversion 0) (OctaveShift 1) def
+        , ChordInversion (Inversion 3) noOctaveShift   def
+        , ChordInversion (Inversion 2) noOctaveShift   def
+        , ChordInversion (Inversion 1) noOctaveShift   def
+        ]
+
+    progressions :: [ProgressionF MultipleChordsPerMeasure Abs]
+    progressions = [
+          mkProgression Voicing.Default [Chord.Minor7, Chord.Dominant7]
+        , mkProgression Voicing.Default [Chord.Dominant7, Chord.Minor7]
+        ]
+
+    permissibleInversions :: Chord.Type -> [Inversion]
+    permissibleInversions _ = [Inversion i | i <- [0 .. 3]]
 
 fourWayClose :: Ly.SectionElem
 fourWayClose = Ly.SectionScore Ly.Score{
