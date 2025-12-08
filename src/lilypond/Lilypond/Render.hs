@@ -71,7 +71,7 @@ instance LilypondToDoc Ly.Book where
       , "\\markup \\vspace #2"
       , RenderM.markup $ Ly.Markup.italic $ mconcat [
             "Document produced by Edsko de Vries. "
-          , "Revision 4 (2025-11-25)"
+          , "Revision 5 (2025-12-08)"
           ]
       , "\\markup \\vspace #4"
       , "\\markuplist \\table-of-contents"
