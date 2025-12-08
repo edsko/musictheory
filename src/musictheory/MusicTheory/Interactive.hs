@@ -21,7 +21,7 @@ import MusicTheory.Note (Note(Note))
 import MusicTheory.Note qualified as Note
 import MusicTheory.Note.Octave (Octave(..))
 import MusicTheory.Note.Octave qualified as Octave
-import MusicTheory.Progression (Progression(..))
+import MusicTheory.Progression (Progression, ProgressionF(..))
 import MusicTheory.Progression qualified as Progression
 import MusicTheory.Reference
 import MusicTheory.Scale (Scale(..))

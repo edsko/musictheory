@@ -13,7 +13,7 @@ import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Named qualified as Named (Chord(..))
 import MusicTheory.Chord.Voicing qualified as Voicing
 import MusicTheory.Note.Octave qualified as Octave
-import MusicTheory.Progression (Progression(..))
+import MusicTheory.Progression (Progression, ProgressionF(..))
 import MusicTheory.Progression qualified as Progression
 import MusicTheory.Reference
 import MusicTheory.Scale (Scale(..))

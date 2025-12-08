@@ -4,10 +4,11 @@
 --
 -- Intended for qualified import.
 --
--- > import MusicTheory.Progression (Progression(..))
+-- > import MusicTheory.Progression (Progression, ProgressionF(..))
 -- > import MusicTheory.Progression qualified as Progression
 module MusicTheory.Progression (
-    Progression(..)
+    Progression
+  , ProgressionF(..)
     -- * Combinators
   , mapFirst
   , wrtScale
@@ -18,6 +19,7 @@ module MusicTheory.Progression (
   , named
   ) where
 
+import Control.Monad.State
 import Data.List.NonEmpty (NonEmpty(..))
 
 import MusicTheory
@@ -35,18 +37,32 @@ import MusicTheory.Util
   Basic definitions
 -------------------------------------------------------------------------------}
 
-newtype Progression r = Progression (NonEmpty (Named.Chord r))
-  deriving stock (Show)
+newtype ProgressionF f r = Progression (f (Named.Chord r))
+
+deriving instance Show (f (Named.Chord r)) => Show (ProgressionF f r)
+
+type Progression = ProgressionF NonEmpty
 
 {-------------------------------------------------------------------------------
   Combinators
 -------------------------------------------------------------------------------}
 
-mapFirst :: (Named.Chord r -> Named.Chord r) -> Progression r -> Progression r
-mapFirst f (Progression (c :| cs)) = Progression (f c :| cs)
+mapFirst :: forall f r.
+     Traversable f
+  => (Named.Chord r -> Named.Chord r) -> ProgressionF f r -> ProgressionF f r
+mapFirst f (Progression chords) = Progression $
+    flip evalState True $ traverse aux chords
+  where
+    aux :: Named.Chord r -> State Bool (Named.Chord r)
+    aux c = state $ \isFirst -> (
+          if isFirst then f c else c
+        , False
+        )
 
 -- | Choose chord voicings
-wrtScale :: Scale -> Voicing -> Octave -> Progression Rel -> Progression Abs
+wrtScale ::
+     Functor f
+  => Scale -> Voicing -> Octave -> ProgressionF f Rel -> ProgressionF f Abs
 wrtScale scale voicing octave (Progression chords) = Progression $
     Voicing.wrtScale scale voicing octave <$> chords
 
@@ -54,19 +70,20 @@ wrtScale scale voicing octave (Progression chords) = Progression $
 --
 -- Fails if there is no unique solution.
 voiceLeading ::
-     (Chord.Type -> [Inversion]) -- ^ Permissible inversions
-  -> Progression Abs -> Progression Abs
+     Traversable f
+  => (Chord.Type -> [Inversion]) -- ^ Permissible inversions
+  -> ProgressionF f Abs -> ProgressionF f Abs
 voiceLeading permissibleInversions = \(Progression chords) -> Progression $
-    case chords of
-      c :| cs -> c :| go c cs
+    flip evalState Nothing $ traverse aux chords
   where
-    go ::
-         Named.Chord Abs  -- Previous chord (for voice leading)
-      -> [Named.Chord Abs] -> [Named.Chord Abs]
-    go _    []        = []
-    go prev (next:cs) =
-        let next' = minimize (distance prev) allOptions
-         in next' : go next' cs
+    aux :: Named.Chord Abs -> State (Maybe (Named.Chord Abs)) (Named.Chord Abs)
+    aux next = state $ \case
+        Nothing ->
+          -- First chord in the sequence; leave as-is
+          (next, Just next)
+        Just prev ->
+          let next' = minimize (distance prev) allOptions
+          in (next', Just next')
       where
         possibleInversions :: [Named.Chord Abs]
         possibleInversions = [
