@@ -50,7 +50,9 @@ library
       MusicTheory.Progression
       MusicTheory.Reference
       MusicTheory.Scale
+      MusicTheory.Util.Foldable
       MusicTheory.Util.List
+      MusicTheory.Util.Stream
       MusicTheory.Util.StringTable
 
   other-modules:

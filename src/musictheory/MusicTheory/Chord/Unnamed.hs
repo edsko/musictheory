@@ -28,6 +28,7 @@ import MusicTheory.Note qualified as Note
 import MusicTheory.Note.Octave (Octave(..))
 import MusicTheory.Reference
 import MusicTheory.Scale qualified as Scale
+import MusicTheory.Util.Foldable qualified as Foldable
 
 {-------------------------------------------------------------------------------
   Basic definition
@@ -78,8 +79,7 @@ getNotes (Chord notes) = notes
 
 -- | Number of notes in the chord
 size :: Chord r -> Word
-size (Chord ns) = fromIntegral $ length ns
-
+size (Chord ns) = Foldable.length ns
 
 {-------------------------------------------------------------------------------
   Construction
@@ -164,4 +164,3 @@ moveToRange (rangeLo, rangeHi) chord@(Chord notes) = do
            else if distanceToLo `mod` 12 == 0
                    then fromIntegral distanceToLo `div` 12
                    else fromIntegral distanceToLo `div` 12 + 1
-

@@ -9,7 +9,8 @@ module MusicTheory.Util.List (
   , odds
   , evens
   , rotate
-  , repeatLast
+  , Elem(..)
+  , markElems
   ) where
 
 {-------------------------------------------------------------------------------
@@ -61,12 +62,26 @@ evens (_:xs) = odds xs
 rotate :: Int -> [a] -> [a]
 rotate i xs = take (length xs) $ drop (i `mod` length xs) (cycle xs)
 
--- | Repeat the last element
+data Elem a = Elem{
+      value   :: a
+    , isFirst :: Bool
+    , isLast  :: Bool
+    }
+  deriving stock (Show)
+
+-- | Mark elements
 --
--- > repeatLast "abc" == "abcc"
-repeatLast :: [a] -> [a]
-repeatLast = reverse . aux . reverse
+-- >    markElems "abc"
+-- > == [ Elem {value = 'a', isFirst = True,  isLast = False}
+-- >    , Elem {value = 'b', isFirst = False, isLast = False}
+-- >    , Elem {value = 'c', isFirst = False, isLast = True }
+-- >    ]
+markElems :: [a] -> [Elem a]
+markElems = \case
+    []      -> []
+    [x]     -> [Elem x True True]
+    x:x':xs -> Elem x True False : go x' xs
   where
-    aux :: [a] -> [a]
-    aux []     = error "empty list"
-    aux (x:xs) = x:x:xs
+    go :: a -> [a] -> [Elem a]
+    go x []      = [Elem x False True]
+    go x (x':xs) = Elem x False False : go x' xs

@@ -17,11 +17,11 @@ shiftIntegral delta x = fromInteger $ toInteger x + toInteger delta
 
 -- | Find the unique option that minimizes the given measure
 --
--- > minimize (fromIntegral . length) ["abc", "de", "fghi"] == "de"
+-- > minimize Foldable.length ["abc", "de", "fghi"] == "de"
 --
 -- Throws an exception if there is no unique answer.
 --
--- > minimize (fromIntegral . length) ["abc", "de", "fghi", "XY"]
+-- > minimize Foldable.length ["abc", "de", "fghi", "XY"]
 --
 -- throws
 --

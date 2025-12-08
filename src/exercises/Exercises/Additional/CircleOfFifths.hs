@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedLists  #-}
 {-# LANGUAGE ParallelListComp #-}
 
 module Exercises.Additional.CircleOfFifths (exercises) where
@@ -5,7 +6,6 @@ module Exercises.Additional.CircleOfFifths (exercises) where
 import Data.Default
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
-import Data.List.NonEmpty qualified as NE
 
 import MusicTheory
 import MusicTheory.Chord qualified as Chord
@@ -13,12 +13,14 @@ import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Named qualified as Named (Chord(..))
 import MusicTheory.Chord.Voicing qualified as Voicing
 import MusicTheory.Note.Octave qualified as Octave
-import MusicTheory.Progression (Progression, ProgressionF(..))
+import MusicTheory.Progression (ProgressionF(..))
 import MusicTheory.Progression qualified as Progression
 import MusicTheory.Reference
 import MusicTheory.Scale (Scale(..))
 import MusicTheory.Scale qualified as Scale
+import MusicTheory.Util.Foldable qualified as Foldable
 import MusicTheory.Util.List qualified as List
+import MusicTheory.Util.Stream qualified as Stream
 
 import Lilypond qualified as Ly
 
@@ -57,35 +59,22 @@ triads = Ly.SectionScore Ly.Score{
         , elems =
             consecutiveProgressions
               initInversions
-              [progression1, progression2]
+              progressions
               permissibleInversions
         }
     }
   where
-    mkChord :: Scale -> Chord.Type -> Named.Chord Abs
-    mkChord scale chordType =
-        Voicing.wrtScale scale Voicing.Default Octave.middle $
-          Chord.Named.chordI chordType
-
-    progression1 :: Progression Abs
-    progression1 = Progression $ NE.fromList [
-          mkChord scale chordType
-        | scale     <- List.repeatLast counterclockwise
-        | chordType <- cycle [Chord.MinorTriad, Chord.MajorTriad]
-        ]
-
-    progression2 :: Progression Abs
-    progression2 = Progression $ NE.fromList [
-          mkChord scale chordType
-        | scale     <- List.repeatLast counterclockwise
-        | chordType <- cycle [Chord.MajorTriad, Chord.MinorTriad]
-        ]
-
     initInversions :: [ChordInversion]
     initInversions = [
           ChordInversion (Inversion 0) noOctaveShift def
         , ChordInversion (Inversion 1) noOctaveShift def
         , ChordInversion (Inversion 2) noOctaveShift def
+        ]
+
+    progressions :: [ProgressionF MultipleChordsPerMeasure Abs]
+    progressions = [
+          mkProgression Voicing.Default [Chord.MinorTriad, Chord.MajorTriad]
+        , mkProgression Voicing.Default [Chord.MajorTriad, Chord.MinorTriad]
         ]
 
     permissibleInversions :: Chord.Type -> [Inversion]
@@ -100,34 +89,21 @@ fourWayClose = Ly.SectionScore Ly.Score{
         , elems =
             consecutiveProgressions
               initInversions
-              [progression1, progression2]
+              progressions
               permissibleInversions
         }
     }
   where
-    mkChord :: Scale -> Chord.Type -> Named.Chord Abs
-    mkChord scale chordType =
-        Voicing.wrtScale scale Voicing.FourWayClose Octave.middle $
-          Chord.Named.chordI chordType
-
-    progression1 :: Progression Abs
-    progression1 = Progression $ NE.fromList [
-          mkChord scale chordType
-        | scale     <- List.repeatLast counterclockwise
-        | chordType <- cycle [Chord.Minor7, Chord.Dominant7]
-        ]
-
-    progression2 :: Progression Abs
-    progression2 = Progression $ NE.fromList [
-          mkChord scale chordType
-        | scale     <- List.repeatLast counterclockwise
-        | chordType <- cycle [Chord.Dominant7, Chord.Minor7]
-        ]
-
     initInversions :: [ChordInversion]
     initInversions = [
           ChordInversion (Inversion 0) (OctaveShift 1) def
         , ChordInversion (Inversion 2) noOctaveShift   def
+        ]
+
+    progressions :: [ProgressionF MultipleChordsPerMeasure Abs]
+    progressions = [
+          mkProgression Voicing.FourWayClose [Chord.Minor7, Chord.Dominant7]
+        , mkProgression Voicing.FourWayClose [Chord.Dominant7, Chord.Minor7]
         ]
 
     permissibleInversions :: Chord.Type -> [Inversion]
@@ -139,7 +115,7 @@ fourWayClose = Ly.SectionScore Ly.Score{
 
 consecutiveProgressions ::
      [ChordInversion]
-  -> [Progression Abs]
+  -> [ProgressionF MultipleChordsPerMeasure Abs]
   -> (Chord.Type -> [Inversion])
   -> [Ly.StaffElem]
 consecutiveProgressions initInversions progressions permissibleInversions =
@@ -149,28 +125,66 @@ consecutiveProgressions initInversions progressions permissibleInversions =
       , progression   <- progressions
       ]
   where
-    go :: ChordInversion -> Progression Abs -> [Ly.StaffElem]
+    go :: ChordInversion
+      -> ProgressionF MultipleChordsPerMeasure Abs
+      -> [Ly.StaffElem]
     go initInversion progression =
-        map goChord (NE.toList withVoiceLeading)
+        concatMap goMeasure withVoiceLeading
       where
-        withVoiceLeading :: NonEmpty (Named.Chord 'Abs)
-        Progression withVoiceLeading =
+        withVoiceLeading :: [[Named.Chord 'Abs]]
+        Progression (MultipleChordsPerMeasure withVoiceLeading) =
             Progression.voiceLeading permissibleInversions $
               Progression.mapFirst
                 (ChordInversion.apply initInversion)
                 progression
 
-    goChord :: Named.Chord Abs -> Ly.StaffElem
-    goChord chord = Ly.StaffChord Ly.Chord{
+    goMeasure :: [Named.Chord Abs] -> [Ly.StaffElem]
+    goMeasure measure = map (goChord $ Foldable.length measure) measure
+
+    goChord :: Word -> Named.Chord Abs -> Ly.StaffElem
+    goChord measureLen chord = Ly.StaffChord Ly.Chord{
           notes      = Chord.Named.getNotes chord
-        , duration   = Ly.OneOver 1
+        , duration   = Ly.OneOver measureLen
         , name       = Just $ Chord.Named.getName chord
         , annotation = Ly.NoAnnotation
         , simplify   = True
         }
 
+mkProgression ::
+     Voicing.Voicing
+  -> NonEmpty Chord.Type
+  -> ProgressionF MultipleChordsPerMeasure Abs
+mkProgression voicing chordTypes = multipleChordsPerMeasure [
+      [ mkChord scale.value chordType
+      | chordType <- Stream.take numChords chordTypes'
+      ]
+    | scale <- List.markElems counterclockwise
+    , let numChords = if scale.isLast then 2 else 1
+    | chordTypes' <- Stream.toList $ Stream.tails $ Stream.cycle chordTypes
+    ]
+  where
+    mkChord :: Scale -> Chord.Type -> Named.Chord Abs
+    mkChord scale chordType =
+        Voicing.wrtScale scale voicing Octave.middle $
+          Chord.Named.chordI chordType
+
 {-------------------------------------------------------------------------------
-  Internal auxiliary
+  Auxiliary: progressions with multiple chords per measure
+
+  This could conceivably live somewhere more general.
+-------------------------------------------------------------------------------}
+
+newtype MultipleChordsPerMeasure a =
+    MultipleChordsPerMeasure [[a]]
+  deriving stock (Functor, Foldable, Traversable)
+
+multipleChordsPerMeasure ::
+     [[Named.Chord Abs]]
+  -> ProgressionF MultipleChordsPerMeasure Abs
+multipleChordsPerMeasure = Progression . MultipleChordsPerMeasure
+
+{-------------------------------------------------------------------------------
+  Miscellaneous internal auxiliary
 -------------------------------------------------------------------------------}
 
 clockwise :: [Scale]
@@ -184,6 +198,6 @@ counterclockwise = List.rotate (-1) $ reverse clockwise
 
 staffProps :: Ly.StaffProps
 staffProps = def{
-      Ly.hideTimeSignature  = True
+      Ly.hideTimeSignature  =  True
     , Ly.omitMeasureNumbers = True
     }
