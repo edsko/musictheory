@@ -55,26 +55,29 @@ triads = Ly.SectionScore Ly.Score{
     , staff = Ly.Staff{
           props = staffProps
         , elems =
-            alongCircleOfFifthsWith
+            consecutiveProgressions
               initInversions
               [progression1, progression2]
               permissibleInversions
         }
     }
   where
+    mkChord :: Scale -> Chord.Type -> Named.Chord Abs
+    mkChord scale chordType =
+        Voicing.wrtScale scale Voicing.Default Octave.middle $
+          Chord.Named.chordI chordType
+
     progression1 :: Progression Abs
     progression1 = Progression $ NE.fromList [
-          Voicing.wrtScale scale Voicing.Default Octave.middle $
-            Chord.Named.chordI chordType
-        | scale     <- List.rotate (-1) $ reverse allMajor
+          mkChord scale chordType
+        | scale     <- counterclockwise
         | chordType <- cycle [Chord.MinorTriad, Chord.MajorTriad]
         ]
 
     progression2 :: Progression Abs
     progression2 = Progression $ NE.fromList [
-          Voicing.wrtScale scale Voicing.Default Octave.middle $
-            Chord.Named.chordI chordType
-        | scale     <- List.rotate (-1) $ reverse allMajor
+          mkChord scale chordType
+        | scale     <- counterclockwise
         | chordType <- cycle [Chord.MajorTriad, Chord.MinorTriad]
         ]
 
@@ -95,26 +98,29 @@ fourWayClose = Ly.SectionScore Ly.Score{
     , staff = Ly.Staff{
           props = staffProps
         , elems =
-            alongCircleOfFifthsWith
+            consecutiveProgressions
               initInversions
               [progression1, progression2]
               permissibleInversions
         }
     }
   where
+    mkChord :: Scale -> Chord.Type -> Named.Chord Abs
+    mkChord scale chordType =
+        Voicing.wrtScale scale Voicing.FourWayClose Octave.middle $
+          Chord.Named.chordI chordType
+
     progression1 :: Progression Abs
     progression1 = Progression $ NE.fromList [
-          Voicing.wrtScale scale Voicing.FourWayClose Octave.middle $
-            Chord.Named.chordI chordType
-        | scale     <- List.rotate (-1) $ reverse allMajor
+          mkChord scale chordType
+        | scale     <- counterclockwise
         | chordType <- cycle [Chord.Minor7, Chord.Dominant7]
         ]
 
     progression2 :: Progression Abs
     progression2 = Progression $ NE.fromList [
-          Voicing.wrtScale scale Voicing.FourWayClose Octave.middle $
-            Chord.Named.chordI chordType
-        | scale     <- List.rotate (-1) $ reverse allMajor
+          mkChord scale chordType
+        | scale     <- counterclockwise
         | chordType <- cycle [Chord.Dominant7, Chord.Minor7]
         ]
 
@@ -128,15 +134,15 @@ fourWayClose = Ly.SectionScore Ly.Score{
     permissibleInversions _ = [Inversion i | i <- [0, 2]]
 
 {-------------------------------------------------------------------------------
-  Internal auxiliary
+  Construct exercise
 -------------------------------------------------------------------------------}
 
-alongCircleOfFifthsWith ::
+consecutiveProgressions ::
      [ChordInversion]
   -> [Progression Abs]
   -> (Chord.Type -> [Inversion])
   -> [Ly.StaffElem]
-alongCircleOfFifthsWith initInversions progressions permissibleInversions =
+consecutiveProgressions initInversions progressions permissibleInversions =
     List.intercalate [Ly.StaffLinebreak] [
         go initInversion progression
       | initInversion <- initInversions
@@ -163,11 +169,18 @@ alongCircleOfFifthsWith initInversions progressions permissibleInversions =
         , simplify   = True
         }
 
-allMajor :: [Scale]
-allMajor = [
+{-------------------------------------------------------------------------------
+  Internal auxiliary
+-------------------------------------------------------------------------------}
+
+clockwise :: [Scale]
+clockwise = [
       Scale.named (Scale.Name root Scale.Major)
     | root <- Scale.defaultRoots Scale.Major
     ]
+
+counterclockwise :: [Scale]
+counterclockwise = List.rotate (-1) $ reverse clockwise
 
 staffProps :: Ly.StaffProps
 staffProps = def{

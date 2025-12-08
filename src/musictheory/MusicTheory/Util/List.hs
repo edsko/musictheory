@@ -4,11 +4,16 @@
 --
 -- > import MusicTheory.Util.List qualified as List
 module MusicTheory.Util.List (
+    -- * Construction
     alternate
   , odds
   , evens
   , rotate
   ) where
+
+{-------------------------------------------------------------------------------
+  Construction
+-------------------------------------------------------------------------------}
 
 -- | Alternate elements from two lists
 --
