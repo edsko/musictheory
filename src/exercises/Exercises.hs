@@ -3,7 +3,7 @@ module Exercises (exercises) where
 import Lilypond (Lilypond)
 import Lilypond qualified as Ly
 
-import Exercises.Additional                qualified as Additional
+import Exercises.Additional.CircleOfFifths qualified as Additional.CircleOfFifths
 import Exercises.Chords.Basic              qualified as Chords.Basic
 import Exercises.Chords.FourWayClose       qualified as Chords.FourWayClose
 import Exercises.Progressions.FourWayClose qualified as Progressions.FourWayClose
@@ -43,6 +43,5 @@ progressions = Ly.Bookpart{
 additional :: Ly.Bookpart
 additional = Ly.Bookpart{
       title    = "Additional exercises"
-    , sections = Additional.exercises
+    , sections = Additional.CircleOfFifths.exercises
     }
-

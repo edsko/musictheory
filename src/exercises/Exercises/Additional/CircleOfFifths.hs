@@ -1,4 +1,4 @@
-module Exercises.Additional (exercises) where
+module Exercises.Additional.CircleOfFifths (exercises) where
 
 import Data.Default
 import Data.List qualified as List

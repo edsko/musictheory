@@ -114,7 +114,7 @@ executable music-theory-exercises
       Construction.Util.TypeAB
 
       Exercises
-      Exercises.Additional
+      Exercises.Additional.CircleOfFifths
       Exercises.Chords.Basic
       Exercises.Chords.FourWayClose
       Exercises.Progressions.FourWayClose
