@@ -1,3 +1,5 @@
+{-# LANGUAGE ParallelListComp #-}
+
 module Exercises.Additional.CircleOfFifths (exercises) where
 
 import Data.Default
@@ -9,7 +11,6 @@ import MusicTheory
 import MusicTheory.Chord qualified as Chord
 import MusicTheory.Chord.Named qualified as Chord.Named
 import MusicTheory.Chord.Named qualified as Named (Chord(..))
-import MusicTheory.Chord.Voicing (Voicing)
 import MusicTheory.Chord.Voicing qualified as Voicing
 import MusicTheory.Note.Octave qualified as Octave
 import MusicTheory.Progression (Progression(..))
@@ -42,109 +43,151 @@ alongCircleOfFifths = Ly.Section{
       title = "Along the circle of fifths"
     , intro = mempty
     , elems = [
-          Ly.SectionScore Ly.Score{
-              title = Just "Clockwise major/minor triads"
-            , intro = mempty
-            , staff = Ly.Staff{
-                  props = staffProps
-                , elems =
-                    let chordTypes = cycle [
-                            Chord.MajorTriad
-                          , Chord.MinorTriad
-                          ]
-                    in alongCircleOfFifthsWith
-                         (zip allMajor chordTypes)
-                         [ ChordInversion (Inversion 0) (OctaveShift 1) def
-                         , ChordInversion (Inversion 2) noOctaveShift   def
-                         , ChordInversion (Inversion 1) noOctaveShift   def
-                         ]
-                         (\_chordType -> [Inversion i | i <- [0 .. 2]])
-                         Voicing.Default
-                }
-            }
-        , Ly.SectionScore Ly.Score{
-              title = Just "Counter-clockwise minor/major triads"
-            , intro = mempty
-            , staff = Ly.Staff{
-                  props = staffProps
-                , elems =
-                    let chordTypes = cycle $ [
-                            Chord.MinorTriad
-                          , Chord.MajorTriad
-                          ]
-                    in alongCircleOfFifthsWith
-                         (zip (List.rotate (-1) $ reverse allMajor) chordTypes)
-                         [ ChordInversion (Inversion 0) noOctaveShift def
-                         , ChordInversion (Inversion 1) noOctaveShift def
-                         , ChordInversion (Inversion 2) noOctaveShift def
-                         ]
-                         (\_chordType -> [Inversion i | i <- [0 .. 2]])
-                         Voicing.Default
-                }
-            }
-        , Ly.SectionScore Ly.Score{
-              title = Just "Clockwise dominant/minor7 chords"
-            , intro = mempty
-            , staff = Ly.Staff{
-                  props = staffProps
-                , elems =
-                    let chordTypes = cycle [
-                            Chord.Dominant7
-                          , Chord.Minor7
-                          ]
-                    in alongCircleOfFifthsWith
-                         (zip allMajor chordTypes)
-                         [ ChordInversion (Inversion 2) (OctaveShift (-1)) def
-                         , ChordInversion (Inversion 0) noOctaveShift      def
-                         ]
-                         (\_chordType -> [Inversion i | i <- [0, 2]])
-                         Voicing.FourWayClose
-                }
-            }
-        , Ly.SectionScore Ly.Score{
-              title = Just "Counter-clockwise minor7/dominant chords"
-            , intro = mempty
-            , staff = Ly.Staff{
-                  props = staffProps
-                , elems =
-                    let chordTypes = cycle [
-                            Chord.Minor7
-                          , Chord.Dominant7
-                          ]
-                    in alongCircleOfFifthsWith
-                         (zip (List.rotate (-1) $ reverse allMajor) chordTypes)
-                         [ ChordInversion (Inversion 0) (OctaveShift 1) def
-                         , ChordInversion (Inversion 2) noOctaveShift   def
-                         ]
-                         (\_chordType -> [Inversion i | i <- [0, 2]])
-                         Voicing.FourWayClose
-                }
-            }
+          triadsClockwise
+        , triadsCounter
+        , fourWayCloseClockwise
+        , fourWayCloseCounter
         ]
     }
-  where
-    staffProps :: Ly.StaffProps
-    staffProps = def{
-          Ly.hideTimeSignature  = True
-        , Ly.omitMeasureNumbers = True
-        }
 
-alongCircleOfFifthsWith ::
-     [(Scale, Chord.Type)]
-  -> [ChordInversion]
-  -> (Chord.Type -> [Inversion])
-  -> Voicing
-  -> [Ly.StaffElem]
-alongCircleOfFifthsWith scales initInversions permissibleInversions voicing =
-    List.intercalate [Ly.StaffLinebreak] $ map goInitInversion initInversions
+triadsClockwise :: Ly.SectionElem
+triadsClockwise = Ly.SectionScore Ly.Score{
+      title = Just "Clockwise major/minor triads"
+    , intro = mempty
+    , staff = Ly.Staff{
+          props = staffProps
+        , elems =
+            alongCircleOfFifthsWith
+              progression
+              initInversions
+              permissibleInversions
+        }
+    }
   where
-    chords :: Progression Abs
-    chords = Progression $ NE.fromList [
-          Voicing.wrtScale scale voicing Octave.middle $
+    progression :: Progression Abs
+    progression = Progression $ NE.fromList [
+          Voicing.wrtScale scale Voicing.Default Octave.middle $
             Chord.Named.chordI chordType
-        | (scale, chordType) <- scales
+        | scale     <- allMajor
+        | chordType <- cycle [Chord.MajorTriad, Chord.MinorTriad]
         ]
 
+    initInversions :: [ChordInversion]
+    initInversions = [
+          ChordInversion (Inversion 0) (OctaveShift 1) def
+        , ChordInversion (Inversion 2) noOctaveShift   def
+        , ChordInversion (Inversion 1) noOctaveShift   def
+        ]
+
+    permissibleInversions :: Chord.Type -> [Inversion]
+    permissibleInversions _ = [Inversion i | i <- [0 .. 2]]
+
+triadsCounter :: Ly.SectionElem
+triadsCounter = Ly.SectionScore Ly.Score{
+      title = Just "Counter-clockwise minor/major triads"
+    , intro = mempty
+    , staff = Ly.Staff{
+          props = staffProps
+        , elems =
+            alongCircleOfFifthsWith
+              progression
+              initInversions
+              permissibleInversions
+        }
+    }
+  where
+    progression :: Progression Abs
+    progression = Progression $ NE.fromList [
+          Voicing.wrtScale scale Voicing.Default Octave.middle $
+            Chord.Named.chordI chordType
+        | scale     <- List.rotate (-1) $ reverse allMajor
+        | chordType <- cycle [Chord.MinorTriad, Chord.MajorTriad]
+        ]
+
+    initInversions :: [ChordInversion]
+    initInversions = [
+          ChordInversion (Inversion 0) noOctaveShift def
+        , ChordInversion (Inversion 1) noOctaveShift def
+        , ChordInversion (Inversion 2) noOctaveShift def
+        ]
+
+    permissibleInversions :: Chord.Type -> [Inversion]
+    permissibleInversions _ = [Inversion i | i <- [0 .. 2]]
+
+fourWayCloseClockwise :: Ly.SectionElem
+fourWayCloseClockwise = Ly.SectionScore Ly.Score{
+      title = Just "Clockwise dominant/minor7 chords"
+    , intro = mempty
+    , staff = Ly.Staff{
+          props = staffProps
+        , elems =
+            alongCircleOfFifthsWith
+              progression
+              initInversions
+              permissibleInversions
+        }
+    }
+  where
+    progression :: Progression Abs
+    progression = Progression $ NE.fromList [
+          Voicing.wrtScale scale Voicing.FourWayClose Octave.middle $
+            Chord.Named.chordI chordType
+        | scale     <- allMajor
+        | chordType <- cycle [Chord.Dominant7, Chord.Minor7]
+        ]
+
+    initInversions :: [ChordInversion]
+    initInversions = [
+          ChordInversion (Inversion 2) (OctaveShift (-1)) def
+        , ChordInversion (Inversion 0) noOctaveShift      def
+        ]
+
+    permissibleInversions :: Chord.Type -> [Inversion]
+    permissibleInversions _ = [Inversion i | i <- [0, 2]]
+
+fourWayCloseCounter :: Ly.SectionElem
+fourWayCloseCounter = Ly.SectionScore Ly.Score{
+      title = Just "Counter-clockwise minor7/dominant chords"
+    , intro = mempty
+    , staff = Ly.Staff{
+          props = staffProps
+        , elems =
+            alongCircleOfFifthsWith
+              progression
+              initInversions
+              permissibleInversions
+        }
+    }
+  where
+    progression :: Progression Abs
+    progression = Progression $ NE.fromList [
+          Voicing.wrtScale scale Voicing.FourWayClose Octave.middle $
+            Chord.Named.chordI chordType
+        | scale     <- List.rotate (-1) $ reverse allMajor
+        | chordType <- cycle [Chord.Minor7, Chord.Dominant7]
+        ]
+
+    initInversions :: [ChordInversion]
+    initInversions = [
+          ChordInversion (Inversion 0) (OctaveShift 1) def
+        , ChordInversion (Inversion 2) noOctaveShift   def
+        ]
+
+    permissibleInversions :: Chord.Type -> [Inversion]
+    permissibleInversions _ = [Inversion i | i <- [0, 2]]
+
+{-------------------------------------------------------------------------------
+  Internal auxiliary
+-------------------------------------------------------------------------------}
+
+alongCircleOfFifthsWith ::
+     Progression Abs
+  -> [ChordInversion]
+  -> (Chord.Type -> [Inversion])
+  -> [Ly.StaffElem]
+alongCircleOfFifthsWith progression initInversions permissibleInversions =
+    List.intercalate [Ly.StaffLinebreak] $ map goInitInversion initInversions
+  where
     -- .. for each choice of initial inversion
     goInitInversion :: ChordInversion -> [Ly.StaffElem]
     goInitInversion initInversion =
@@ -155,7 +198,7 @@ alongCircleOfFifthsWith scales initInversions permissibleInversions voicing =
             Progression.voiceLeading permissibleInversions $
               Progression.mapFirst
                 (ChordInversion.apply initInversion)
-                chords
+                progression
 
     goChord :: Named.Chord Abs -> Ly.StaffElem
     goChord chord = Ly.StaffChord Ly.Chord{
@@ -166,18 +209,14 @@ alongCircleOfFifthsWith scales initInversions permissibleInversions voicing =
         , simplify   = True
         }
 
-{-------------------------------------------------------------------------------
-  Internal auxiliary
--------------------------------------------------------------------------------}
-
 allMajor :: [Scale]
 allMajor = [
       Scale.named (Scale.Name root Scale.Major)
     | root <- Scale.defaultRoots Scale.Major
     ]
 
-{-
-majorMinor, minorMajor :: [Scale]
-majorMinor = List.alternate (List.odds allMajor) (List.evens allMinor)
-minorMajor = List.alternate (List.odds allMinor) (List.evens allMajor)
--}
+staffProps :: Ly.StaffProps
+staffProps = def{
+      Ly.hideTimeSignature  = True
+    , Ly.omitMeasureNumbers = True
+    }
